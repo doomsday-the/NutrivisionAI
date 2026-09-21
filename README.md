@@ -2,11 +2,6 @@
 
 Welcome to the central repository for **NutriVision AI**, an AI-powered Calorie Tracker and Nutrition Coach. This project integrates Computer Vision (for food detection), a Relational Database (for tracking), a web dashboard, a mobile app, and Wear OS integration.
 
-## ⚠️ Important Note on Tech Stack vs. College Requirements
-Your initial chat mentioned the **MERN** stack (MongoDB). However, the **VIT Database Systems Project PDF** strictly requires a **Relational Database** (PostgreSQL/MySQL) and explicitly lists MongoDB as "Not Recommended." 
-
-To ensure you get full marks, we have adapted the stack to **PERN** (PostgreSQL, Express, React, Node.js). This aligns perfectly with the university's mandate for minimum tables, normalization, ER diagrams, and SQL constraints.
-
 ## Documentation Directory (Single Source of Truth)
 All project planning, schemas, and structural documents are linked below:
 
