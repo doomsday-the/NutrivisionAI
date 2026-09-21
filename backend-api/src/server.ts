@@ -4,7 +4,10 @@ import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import * as dotenv from 'dotenv';
-// TODO: import routes
+import authRoutes from './routes/auth.routes';
+import profileRoutes from './routes/profile.routes';
+import mealRoutes from './routes/meal.routes';
+import activityRoutes from './routes/activity.routes';
 
 dotenv.config();
 
@@ -29,10 +32,10 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // Routes
-// app.use('/api/auth', authRoutes);
-// app.use('/api/profile', profileRoutes);
-// app.use('/api/meals', mealRoutes);
-// app.use('/api/activity', activityRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/meals', mealRoutes);
+app.use('/api/activity', activityRoutes);
 
 // Global Error Handler (F-002, F-008, F-010 covered here)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
