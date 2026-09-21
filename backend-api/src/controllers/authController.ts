@@ -74,3 +74,43 @@ export const googleAuth = async (req: Request, res: Response) => {
     return res.status(401).json({ error: 'INVALID_GOOGLE_TOKEN', message: 'Google token verification failed.' });
   }
 };
+
+export const devLogin = async (req: Request, res: Response) => {
+  try {
+    let user = await prisma.users.findUnique({ where: { email: 'dev@test.com' } });
+
+    if (!user) {
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash('devpassword', salt);
+      user = await prisma.users.create({
+        data: {
+          google_id: 'dev_user_123',
+          email: 'dev@test.com',
+          display_name: 'Dev User',
+          avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+          password_hash,
+          last_login_at: new Date(),
+        }
+      });
+    }
+
+    const token = jwt.sign(
+      { user_id: user.user_id, email: user.email },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '7d' }
+    );
+
+    return res.status(200).json({
+      token,
+      user: {
+        user_id: user.user_id,
+        email: user.email,
+        display_name: user.display_name,
+        avatar_url: user.avatar_url,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'DEV_LOGIN_FAILED' });
+  }
+};
