@@ -2,15 +2,14 @@ import { z } from 'zod';
 
 export const googleAuthSchema = z.object({
   body: z.object({
-    id_token: z.string({ required_error: 'id_token is required' }),
+    id_token: z.string({ message: 'id_token is required' }),
   }),
 });
 
 export const mealAnalyzeSchema = z.object({
   body: z.object({
     meal_type: z.enum(['breakfast', 'lunch', 'dinner', 'snack'], {
-      required_error: 'meal_type is required',
-      invalid_type_error: 'meal_type must be breakfast, lunch, dinner, or snack',
+      message: 'meal_type must be breakfast, lunch, dinner, or snack',
     }),
   }),
 });
