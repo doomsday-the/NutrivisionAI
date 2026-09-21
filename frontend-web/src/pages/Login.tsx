@@ -21,6 +21,16 @@ export default function Login() {
     }
   };
 
+  const handleDevLogin = async () => {
+    try {
+      const res = await axios.post('http://localhost:3000/api/auth/dev-login');
+      login(res.data.token, res.data.user);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError('Dev Login failed');
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center pt-20">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
@@ -29,11 +39,18 @@ export default function Login() {
         
         {error && <div className="bg-red-50 text-red-600 p-3 rounded mb-4">{error}</div>}
         
-        <div className="flex justify-center">
+        <div className="flex flex-col gap-4 items-center">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() => setError('Google Login Failed')}
           />
+          <div className="text-gray-400 text-sm">OR</div>
+          <button 
+            onClick={handleDevLogin}
+            className="w-full bg-gray-800 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 transition"
+          >
+            Developer Login (Bypass Google)
+          </button>
         </div>
       </div>
     </div>
