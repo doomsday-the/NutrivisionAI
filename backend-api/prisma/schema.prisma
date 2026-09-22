@@ -1,0 +1,227 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  user_id       Int       @id @default(autoincrement())
+  google_id     String    @unique @db.VarChar(255)
+  email         String    @unique @db.VarChar(255)
+  display_name  String    @db.VarChar(255)
+  avatar_url    String?
+  role          String    @default("user") @db.VarChar(20)
+  password_hash String    @db.VarChar(255)
+  created_at    DateTime  @default(now()) @db.Timestamptz
+  last_login_at DateTime  @db.Timestamptz
+
+  profile         user_profiles?
+  meals           meals[]
+  daily_logs      daily_logs[]
+}
+
+model user_profiles {
+  profile_id           Int      @id @default(autoincrement())
+  user_id              Int      @unique
+  age                  Int?
+  height_cm            Decimal? @db.Decimal(5, 2)
+  weight_kg            Decimal? @db.Decimal(5, 2)
+  activity_level       String?  @db.VarChar(20)
+  goal                 String?  @db.VarChar(20)
+  daily_calorie_target Decimal? @db.Decimal(7, 2)
+  updated_at           DateTime @default(now()) @db.Timestamptz
+
+  user users @relation(fields: [user_id], references: [user_id])
+}
+
+model food_sources {
+  source_id      Int       @id @default(autoincrement())
+  source_name    String    @unique @db.VarChar(100)
+  source_version String?   @db.VarChar(50)
+  source_url     String?
+  imported_at    DateTime? @db.Timestamptz
+  notes          String?
+
+  food_items food_items[]
+}
+
+model food_categories {
+  category_id Int     @id @default(autoincrement())
+  parent_id   Int?
+  name        String  @unique @db.VarChar(150)
+  slug        String  @unique @db.VarChar(150)
+  description String?
+
+  parent     food_categories?  @relation("CategoryHierarchy", fields: [parent_id], references: [category_id])
+  children   food_categories[] @relation("CategoryHierarchy")
+  food_items food_items[]
+}
+
+model food_items {
+  food_id          Int      @id @default(autoincrement())
+  external_id      String?  @db.VarChar(100)
+  source_id        Int
+  category_id      Int?
+  name             String   @db.VarChar(255)
+  name_local       String?  @db.VarChar(255)
+  food_type        String   @db.VarChar(20)
+  reference_unit   String   @default("100g") @db.VarChar(180)
+  density_g_per_ml Decimal? @db.Decimal(6, 4)
+  brand            String?  @db.VarChar(150)
+  country_origin   String?  @db.VarChar(100)
+  is_verified      Boolean  @default(false)
+  is_active        Boolean  @default(true)
+  
+  // Prisma doesn't natively support TSVECTOR, using Unsupported
+  search_vector    Unsupported("tsvector")?
+
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @default(now()) @db.Timestamptz
+
+  source         food_sources        @relation(fields: [source_id], references: [source_id])
+  category       food_categories?    @relation(fields: [category_id], references: [category_id])
+  food_nutrients food_nutrients[]
+  serving_sizes  serving_sizes[]
+  food_aliases   food_aliases[]
+  food_tags      food_tags[]
+  meal_items     meal_items[]
+  
+  ai_match_log_matched   ai_match_log[] @relation("AiMatchLogMatched")
+  ai_match_log_corrected ai_match_log[] @relation("AiMatchLogCorrected")
+}
+
+model nutrient_types {
+  nutrient_id     Int     @id @default(autoincrement())
+  name            String  @unique @db.VarChar(100)
+  display_name    String  @db.VarChar(100)
+  unit            String  @db.VarChar(20)
+  category        String? @db.VarChar(50)
+  daily_value_ref Decimal? @db.Decimal(10, 3)
+  sort_order      Int?
+
+  food_nutrients food_nutrients[]
+}
+
+model food_nutrients {
+  food_nutrient_id Int      @id @default(autoincrement())
+  food_id          Int
+  nutrient_id      Int
+  value_per_100g   Decimal  @db.Decimal(12, 4)
+  data_points      Int?
+  min_value        Decimal? @db.Decimal(12, 4)
+  max_value        Decimal? @db.Decimal(12, 4)
+
+  food     food_items     @relation(fields: [food_id], references: [food_id])
+  nutrient nutrient_types @relation(fields: [nutrient_id], references: [nutrient_id])
+
+  @@unique([food_id, nutrient_id])
+}
+
+model serving_sizes {
+  serving_id   Int     @id @default(autoincrement())
+  food_id      Int
+  serving_name String  @db.VarChar(100)
+  serving_unit String  @db.VarChar(20)
+  quantity     Decimal @db.Decimal(8, 2)
+  weight_grams Decimal @db.Decimal(8, 2)
+  notes        String?
+
+  food       food_items   @relation(fields: [food_id], references: [food_id])
+  meal_items meal_items[]
+}
+
+model food_aliases {
+  alias_id   Int     @id @default(autoincrement())
+  food_id    Int
+  alias      String  @db.VarChar(255)
+  alias_type String? @db.VarChar(50)
+  language   String? @db.VarChar(10)
+
+  food food_items @relation(fields: [food_id], references: [food_id])
+}
+
+model tags {
+  tag_id      Int     @id @default(autoincrement())
+  name        String  @unique @db.VarChar(50)
+  description String?
+
+  food_tags food_tags[]
+}
+
+model food_tags {
+  food_id Int
+  tag_id  Int
+
+  food food_items @relation(fields: [food_id], references: [food_id])
+  tag  tags       @relation(fields: [tag_id], references: [tag_id])
+
+  @@id([food_id, tag_id])
+}
+
+model meals {
+  meal_id         Int      @id @default(autoincrement())
+  user_id         Int
+  image_url       String?
+  meal_type       String   @db.VarChar(20)
+  total_calories  Decimal? @db.Decimal(8, 2)
+  total_protein_g Decimal? @db.Decimal(8, 2)
+  total_carbs_g   Decimal? @db.Decimal(8, 2)
+  total_fat_g     Decimal? @db.Decimal(8, 2)
+  notes           String?
+  logged_at       DateTime @default(now()) @db.Timestamptz
+
+  user       users        @relation(fields: [user_id], references: [user_id])
+  meal_items meal_items[]
+}
+
+model meal_items {
+  item_id            Int     @id @default(autoincrement())
+  meal_id            Int
+  food_id            Int
+  quantity_grams     Decimal @db.Decimal(8, 2)
+  estimated_calories Decimal @db.Decimal(8, 2)
+  serving_id         Int?
+  user_corrected     Boolean @default(false)
+
+  meal    meals          @relation(fields: [meal_id], references: [meal_id])
+  food    food_items     @relation(fields: [food_id], references: [food_id])
+  serving serving_sizes? @relation(fields: [serving_id], references: [serving_id])
+}
+
+model daily_logs {
+  log_id             Int      @id @default(autoincrement())
+  user_id            Int
+  log_date           DateTime @db.Date
+  total_calories     Decimal  @default(0) @db.Decimal(8, 2)
+  total_protein_g    Decimal  @default(0) @db.Decimal(8, 2)
+  total_carbs_g      Decimal  @default(0) @db.Decimal(8, 2)
+  total_fat_g        Decimal  @default(0) @db.Decimal(8, 2)
+  calories_burned    Decimal  @default(0) @db.Decimal(8, 2)
+  steps              Int      @default(0)
+  target_calories    Decimal  @db.Decimal(8, 2)
+  remaining_calories Decimal? @db.Decimal(8, 2)
+
+  user users @relation(fields: [user_id], references: [user_id])
+
+  @@unique([user_id, log_date])
+}
+
+model ai_match_log {
+  log_id            Int      @id @default(autoincrement())
+  detected_label    String   @db.VarChar(255)
+  matched_food_id   Int?
+  match_score       Decimal? @db.Decimal(5, 4)
+  match_method      String?  @db.VarChar(50)
+  weight_grams      Decimal? @db.Decimal(8, 2)
+  user_corrected    Boolean  @default(false)
+  corrected_food_id Int?
+  session_id        String?  @db.VarChar(100)
+  created_at        DateTime @default(now()) @db.Timestamptz
+
+  matched_food   food_items? @relation("AiMatchLogMatched", fields: [matched_food_id], references: [food_id])
+  corrected_food food_items? @relation("AiMatchLogCorrected", fields: [corrected_food_id], references: [food_id])
+}
