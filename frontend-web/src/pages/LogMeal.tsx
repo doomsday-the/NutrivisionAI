@@ -55,13 +55,13 @@ export default function LogMeal() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Food Image</label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-primary-500 cursor-pointer">
+          <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-primary-500 cursor-pointer">
             <Upload size={32} className="mb-2" />
             <input 
               type="file" 
               accept="image/jpeg, image/png"
               onChange={e => setFile(e.target.files?.[0] || null)}
-              className="w-full h-full opacity-0 absolute cursor-pointer"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
             {file ? <span className="text-primary-600 font-semibold">{file.name}</span> : <span>Click to upload or drag and drop</span>}
           </div>

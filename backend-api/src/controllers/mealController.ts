@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
+import FormData from 'form-data';
 import { AuthRequest } from '../middlewares/auth';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -18,15 +19,18 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
   const session_id = uuidv4();
   
   try {
-    // 1. Call AI Service (TC-001)
-    // In real app, we'd pass the file buffer. Here we mock it as per ADR-005.
-    const aiResponse = await axios.post(`${process.env.AI_SERVICE_URL}/predict`, 
-      { session_id }, // mocking multipart for now
-      {
-        headers: { 'X-Internal-Token': process.env.X_INTERNAL_TOKEN },
-        timeout: 30000 
-      }
-    );
+    // 1. Call AI Service (TC-001) — forward image as multipart
+    const formData = new FormData();
+    formData.append('image', file.buffer, { filename: file.originalname, contentType: file.mimetype });
+    formData.append('session_id', session_id);
+
+    const aiResponse = await axios.post(`${process.env.AI_SERVICE_URL}/predict`, formData, {
+      headers: { 
+        ...formData.getHeaders(),
+        'X-Internal-Token': process.env.X_INTERNAL_TOKEN 
+      },
+      timeout: 30000 
+    });
 
     const { detections } = aiResponse.data;
 
