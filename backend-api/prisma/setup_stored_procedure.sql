@@ -25,7 +25,18 @@ DECLARE
   v_food_pro NUMERIC;
   v_food_carb NUMERIC;
   v_food_fat NUMERIC;
+  v_target NUMERIC;
+  v_today DATE := CURRENT_DATE;
 BEGIN
+  -- 0. Ensure a daily_logs row exists for today
+  SELECT COALESCE(daily_calorie_target, 2000) INTO v_target
+  FROM public.user_profiles WHERE user_id = p_user_id;
+  IF v_target IS NULL THEN v_target := 2000; END IF;
+
+  INSERT INTO public.daily_logs (user_id, log_date, target_calories, total_calories, total_protein_g, total_carbs_g, total_fat_g, calories_burned, remaining_calories, steps)
+  VALUES (p_user_id, v_today, v_target, 0, 0, 0, 0, 0, v_target, 0)
+  ON CONFLICT (user_id, log_date) DO NOTHING;
+
   -- 1. Insert meal row (totals will be updated later)
   INSERT INTO public.meals (user_id, meal_type, image_url, logged_at)
   VALUES (p_user_id, p_meal_type, p_image_url, NOW())
@@ -71,6 +82,28 @@ BEGIN
       total_fat_g = v_total_fat
   WHERE meal_id = p_meal_id;
 
-  -- Note: trg_update_daily_log will automatically fire from the meal_items inserts
+  -- 4. Directly update daily log totals (in addition to trigger, for reliability)
+  UPDATE public.daily_logs
+  SET total_calories = (
+        SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m 
+        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_today
+      ),
+      total_protein_g = (
+        SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m 
+        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_today
+      ),
+      total_carbs_g = (
+        SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m 
+        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_today
+      ),
+      total_fat_g = (
+        SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m 
+        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_today
+      ),
+      remaining_calories = target_calories - (
+        SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m 
+        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_today
+      ) + calories_burned
+  WHERE user_id = p_user_id AND log_date = v_today;
 END;
 $$;
