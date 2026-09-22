@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Environment & Secrets
+.env
+*.env.local
+*.env.production
+
+# Database
+backups/
+*.dump
+*.sql.gz
+
+# AI model weights & datasets
+ai-service/dataset/
+ai-service/models/*.pt
+ai-service/models/*.onnx
+
+# Build output
+frontend-web/.next/
+frontend-web/out/
+mobile-app/.expo/
+mobile-app/android/
+mobile-app/ios/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
