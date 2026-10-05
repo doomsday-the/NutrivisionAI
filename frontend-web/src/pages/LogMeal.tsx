@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Upload } from 'lucide-react';
+import { Camera, Upload, CheckCircle } from 'lucide-react';
 
 export default function LogMeal() {
   const [file, setFile] = useState<File | null>(null);
   const [mealType, setMealType] = useState('lunch');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
   const navigate = useNavigate();
 
   const handleUpload = async (e: React.FormEvent) => {
@@ -22,15 +23,58 @@ export default function LogMeal() {
     formData.append('meal_type', mealType);
 
     try {
-      await axios.post('http://localhost:3000/api/meals/analyze', formData, {
+      const response = await axios.post('http://localhost:3000/api/meals/analyze', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      navigate('/dashboard');
+      setAnalysisResult(response.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to analyze meal');
+    } finally {
       setLoading(false);
     }
   };
+
+  if (analysisResult) {
+    return (
+      <div className="max-w-xl mx-auto bg-white p-8 rounded-lg shadow text-center">
+        <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
+        <h1 className="text-2xl font-bold mb-2">Meal Analyzed Successfully!</h1>
+        <p className="text-gray-600 mb-6">Here is what the AI detected.</p>
+        
+        <div className="bg-gray-50 p-4 rounded-lg text-left mb-6">
+          <div className="flex justify-between font-bold text-lg border-b pb-2 mb-2">
+            <span>Total Calories</span>
+            <span className="text-primary-600">{analysisResult.total_calories} kcal</span>
+          </div>
+          <div className="flex justify-between text-sm text-gray-600 mb-4">
+            <span>P: {analysisResult.total_protein_g}g</span>
+            <span>C: {analysisResult.total_carbs_g}g</span>
+            <span>F: {analysisResult.total_fat_g}g</span>
+          </div>
+
+          <h3 className="font-semibold text-gray-800 mb-2">Detected Items:</h3>
+          <ul className="space-y-2">
+            {analysisResult.meal_items?.map((item: any, idx: number) => (
+              <li key={idx} className="flex justify-between bg-white p-2 border rounded">
+                <div>
+                  <div className="font-medium">{item.food?.name}</div>
+                  <div className="text-xs text-gray-500">{item.quantity_grams}g</div>
+                </div>
+                <div className="font-semibold">{item.estimated_calories} kcal</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="w-full bg-primary-600 text-white p-3 rounded font-bold hover:bg-primary-700"
+        >
+          Go to Dashboard
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-xl mx-auto bg-white p-8 rounded-lg shadow">
