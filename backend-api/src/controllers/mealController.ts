@@ -202,10 +202,10 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
     }
 
     // Calculate new calories
-    const energyNutrient = newFood.food_nutrients.find(n => 
+    const energyNutrient = newFood.food_nutrients.find(n =>
       n.nutrient_id === 1 || n.nutrient.name.toLowerCase() === 'energy' || n.nutrient.name.toLowerCase() === 'calories'
     );
-    
+
     let estimated_calories = 0;
     if (energyNutrient) {
       estimated_calories = (Number(energyNutrient.value_per_100g) / 100) * quantity;
@@ -227,7 +227,7 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
       });
 
       let totalCal = 0, totalPro = 0, totalCarb = 0, totalFat = 0;
-      
+
       for (const item of allItems) {
         if (item.item_id === itemId) {
           const qtyMultiplier = quantity / 100;
@@ -347,5 +347,349 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('[Correct Meal Item Error]', error);
     return res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to correct meal item' });
+  }
+};
+
+export const deleteMeal = async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.user_id;
+  const rawMealId = Array.isArray(req.params.mealId) ? req.params.mealId[0] : req.params.mealId;
+  const mealId = parseInt(rawMealId, 10);
+
+  if (isNaN(mealId) || mealId <= 0) {
+    return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid mealId parameter' });
+  }
+
+  try {
+    const meal = await prisma.meals.findUnique({
+      where: { meal_id: mealId }
+    });
+
+    if (!meal) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: 'Meal not found' });
+    }
+
+    if (meal.user_id !== user_id) {
+      return res.status(403).json({ error: 'FORBIDDEN', message: 'You do not have permission to delete this meal' });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Delete child meal items first (FK constraint)
+      await tx.meal_items.deleteMany({
+        where: { meal_id: mealId }
+      });
+
+      // Delete the meal
+      await tx.meals.delete({
+        where: { meal_id: mealId }
+      });
+
+      // Recalculate daily_logs via raw SQL to ensure totals are perfectly accurate
+      await tx.$executeRaw`
+        UPDATE public.daily_logs
+        SET total_calories = (
+              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_protein_g = (
+              SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_carbs_g = (
+              SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_fat_g = (
+              SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            remaining_calories = target_calories - (
+              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ) + calories_burned
+        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE;
+      `;
+    });
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error('[Delete Meal Error]', error);
+    return res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to delete meal' });
+  }
+};
+
+export const getMealHistory = async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.user_id;
+  const page = Math.max(1, parseInt((req.query.page as string) || '1', 10));
+  const limit = Math.max(1, Math.min(100, parseInt((req.query.limit as string) || '10', 10)));
+  const dateStr = req.query.date as string | undefined;
+
+  const skip = (page - 1) * limit;
+
+  const whereClause: any = {
+    user_id
+  };
+
+  if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const startOfDay = new Date(`${dateStr}T00:00:00.000Z`);
+    const endOfDay = new Date(`${dateStr}T23:59:59.999Z`);
+    whereClause.logged_at = {
+      gte: startOfDay,
+      lte: endOfDay
+    };
+  }
+
+  try {
+    const [total, rawMeals] = await Promise.all([
+      prisma.meals.count({ where: whereClause }),
+      prisma.meals.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        orderBy: { logged_at: 'desc' },
+        include: {
+          meal_items: {
+            include: { food: true }
+          }
+        }
+      })
+    ]);
+
+    const meals = rawMeals.map(meal => ({
+      meal_id: meal.meal_id,
+      meal_type: meal.meal_type,
+      logged_at: meal.logged_at.toISOString(),
+      total_calories: Number(meal.total_calories || 0),
+      total_protein_g: Number(meal.total_protein_g || 0),
+      total_carbs_g: Number(meal.total_carbs_g || 0),
+      total_fat_g: Number(meal.total_fat_g || 0),
+      items: meal.meal_items.map(item => ({
+        item_id: item.item_id,
+        food_id: item.food_id,
+        food_name: item.food?.name || 'Unknown food',
+        quantity_grams: Number(item.quantity_grams),
+        estimated_calories: Number(item.estimated_calories),
+        user_corrected: item.user_corrected,
+        food: item.food
+      }))
+    }));
+
+    return res.status(200).json({
+      meals,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('[Meal History Error]', error);
+    return res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to fetch meal history' });
+  }
+};
+
+export const createMeal = async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.user_id;
+  const { meal_type } = req.body;
+
+  try {
+    const meal = await prisma.meals.create({
+      data: {
+        user_id,
+        meal_type,
+        total_calories: 0,
+        total_protein_g: 0,
+        total_carbs_g: 0,
+        total_fat_g: 0,
+        logged_at: new Date()
+      }
+    });
+
+    return res.status(201).json({
+      meal_id: meal.meal_id,
+      meal_type: meal.meal_type,
+      logged_at: meal.logged_at.toISOString(),
+      total_calories: 0,
+      total_protein_g: 0,
+      total_carbs_g: 0,
+      total_fat_g: 0,
+      items: []
+    });
+  } catch (error) {
+    console.error('[Create Meal Error]', error);
+    return res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to create meal' });
+  }
+};
+
+export const addMealItem = async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.user_id;
+  const rawMealId = Array.isArray(req.params.mealId) ? req.params.mealId[0] : req.params.mealId;
+  const mealId = parseInt(rawMealId, 10);
+  const { food_id, quantity_grams } = req.body;
+
+  const foodId = Number(food_id);
+  const quantity = Number(quantity_grams);
+
+  if (isNaN(mealId) || mealId <= 0) {
+    return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid mealId' });
+  }
+
+  try {
+    const meal = await prisma.meals.findUnique({
+      where: { meal_id: mealId }
+    });
+
+    if (!meal) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: 'Meal not found' });
+    }
+
+    if (meal.user_id !== user_id) {
+      return res.status(403).json({ error: 'FORBIDDEN', message: 'You do not have permission to modify this meal' });
+    }
+
+    const food = await prisma.food_items.findUnique({
+      where: { food_id: foodId },
+      include: {
+        food_nutrients: {
+          include: { nutrient: true }
+        }
+      }
+    });
+
+    if (!food) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: 'Food item not found' });
+    }
+
+    // Calculate calories for this item
+    const energyNutrient = food.food_nutrients.find(n =>
+      n.nutrient_id === 1 || n.nutrient?.name?.toLowerCase() === 'energy' || n.nutrient?.name?.toLowerCase() === 'calories'
+    );
+    const estimated_calories = energyNutrient ? (Number(energyNutrient.value_per_100g) / 100) * quantity : 0;
+
+    let updatedMeal: any;
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Create the new meal item
+      await tx.meal_items.create({
+        data: {
+          meal_id: mealId,
+          food_id: foodId,
+          quantity_grams: quantity,
+          estimated_calories: estimated_calories,
+          user_corrected: true
+        }
+      });
+
+      // 2. Fetch all items in meal to recalculate totals
+      const allItems = await tx.meal_items.findMany({
+        where: { meal_id: mealId },
+        include: {
+          food: {
+            include: {
+              food_nutrients: {
+                include: { nutrient: true }
+              }
+            }
+          }
+        }
+      });
+
+      let totalCal = 0, totalPro = 0, totalCarb = 0, totalFat = 0;
+      for (const item of allItems) {
+        const qtyMultiplier = Number(item.quantity_grams) / 100;
+        const energy = item.food.food_nutrients.find(n => n.nutrient_id === 1 || n.nutrient?.name?.toLowerCase() === 'energy' || n.nutrient?.name?.toLowerCase() === 'calories');
+        const protein = item.food.food_nutrients.find(n => n.nutrient_id === 2 || n.nutrient?.name?.toLowerCase() === 'protein');
+        const carbs = item.food.food_nutrients.find(n => n.nutrient_id === 3 || n.nutrient?.name?.toLowerCase() === 'carbohydrate' || n.nutrient?.name?.toLowerCase() === 'carbs');
+        const fat = item.food.food_nutrients.find(n => n.nutrient_id === 4 || n.nutrient?.name?.toLowerCase() === 'fat' || n.nutrient?.name?.toLowerCase() === 'total lipid (fat)');
+
+        if (energy) totalCal += Number(energy.value_per_100g) * qtyMultiplier;
+        if (protein) totalPro += Number(protein.value_per_100g) * qtyMultiplier;
+        if (carbs) totalCarb += Number(carbs.value_per_100g) * qtyMultiplier;
+        if (fat) totalFat += Number(fat.value_per_100g) * qtyMultiplier;
+      }
+
+      // 3. Update parent meal totals
+      updatedMeal = await tx.meals.update({
+        where: { meal_id: mealId },
+        data: {
+          total_calories: totalCal,
+          total_protein_g: totalPro,
+          total_carbs_g: totalCarb,
+          total_fat_g: totalFat
+        },
+        include: {
+          meal_items: {
+            include: { food: true }
+          }
+        }
+      });
+
+      // 4. Ensure daily_logs row exists
+      const profile = await tx.user_profiles.findUnique({ where: { user_id } });
+      const targetCalories = profile ? Number(profile.daily_calorie_target) : 2000;
+
+      await tx.$executeRaw`
+        INSERT INTO public.daily_logs (
+          user_id, log_date, target_calories, total_calories, total_protein_g, total_carbs_g, total_fat_g, calories_burned, remaining_calories, steps
+        ) VALUES (
+          ${user_id}::INT,
+          (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE,
+          ${targetCalories}::NUMERIC,
+          0, 0, 0, 0, 0,
+          ${targetCalories}::NUMERIC,
+          0
+        )
+        ON CONFLICT (user_id, log_date) DO NOTHING;
+      `;
+
+      // 5. Update daily_logs with raw SQL
+      await tx.$executeRaw`
+        UPDATE public.daily_logs
+        SET total_calories = (
+              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_protein_g = (
+              SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_carbs_g = (
+              SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_fat_g = (
+              SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            remaining_calories = target_calories - (
+              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ) + calories_burned
+        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE;
+      `;
+    });
+
+    const items = updatedMeal.meal_items.map((item: any) => ({
+      item_id: item.item_id,
+      food_id: item.food_id,
+      food_name: item.food?.name || 'Unknown food',
+      quantity_grams: Number(item.quantity_grams),
+      estimated_calories: Number(item.estimated_calories),
+      user_corrected: item.user_corrected,
+      food: item.food
+    }));
+
+    return res.status(201).json({
+      meal_id: updatedMeal.meal_id,
+      meal_type: updatedMeal.meal_type,
+      total_calories: Number(updatedMeal.total_calories),
+      total_protein_g: Number(updatedMeal.total_protein_g),
+      total_carbs_g: Number(updatedMeal.total_carbs_g),
+      total_fat_g: Number(updatedMeal.total_fat_g),
+      items
+    });
+  } catch (error) {
+    console.error('[Add Meal Item Error]', error);
+    return res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to add meal item' });
   }
 };
