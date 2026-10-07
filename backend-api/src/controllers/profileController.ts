@@ -63,13 +63,23 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
       create: { user_id: req.user!.user_id, age, height_cm, weight_kg, activity_level, goal, daily_calorie_target: target_calories }
     });
 
+    const user = await prisma.users.findUnique({
+      where: { user_id: req.user!.user_id }
+    });
+
     res.status(200).json({
-      age: updated.age,
-      height_cm: Number(updated.height_cm),
-      weight_kg: Number(updated.weight_kg),
-      activity_level: updated.activity_level,
-      goal: updated.goal,
-      daily_calorie_target: Number(updated.daily_calorie_target)
+      user_id: user!.user_id,
+      email: user!.email,
+      display_name: user!.display_name,
+      avatar_url: user!.avatar_url,
+      profile: {
+        age: updated.age,
+        height_cm: Number(updated.height_cm),
+        weight_kg: Number(updated.weight_kg),
+        activity_level: updated.activity_level,
+        goal: updated.goal,
+        daily_calorie_target: Number(updated.daily_calorie_target)
+      }
     });
   } catch (error) {
     res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to update profile' });
