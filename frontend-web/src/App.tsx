@@ -10,7 +10,7 @@ import Profile from './pages/Profile';
 import Activity from './pages/Activity';
 import MealHistory from './pages/MealHistory';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'mock-client-id.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '558532335340-jsbgfpii5qojdbdk8oa23tlukjhljrca.apps.googleusercontent.com';
 
 function App() {
   return (

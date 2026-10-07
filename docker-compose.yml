@@ -30,6 +30,7 @@ services:
       - X_INTERNAL_TOKEN=shared_secret_between_node_and_python
       - NODE_ENV=development
       - DEV_LOGIN_ENABLED=true
+      - GOOGLE_CLIENT_ID=558532335340-jsbgfpii5qojdbdk8oa23tlukjhljrca.apps.googleusercontent.com
     depends_on:
       postgres:
         condition: service_healthy
