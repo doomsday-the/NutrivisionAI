@@ -49,6 +49,7 @@ export const searchFoods = async (req: AuthRequest, res: Response) => {
       where: {
         food_id: { in: foodIds }
       },
+      take: 20,
       include: {
         food_nutrients: {
           include: {
