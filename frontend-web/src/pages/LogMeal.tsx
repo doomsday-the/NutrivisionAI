@@ -54,10 +54,10 @@ export default function LogMeal() {
 
           <h3 className="font-semibold text-gray-800 mb-2">Detected Items:</h3>
           <ul className="space-y-2">
-            {analysisResult.meal_items?.map((item: any, idx: number) => (
+            {(analysisResult.items || analysisResult.meal_items)?.map((item: any, idx: number) => (
               <li key={idx} className="flex justify-between bg-white p-2 border rounded">
                 <div>
-                  <div className="font-medium">{item.food?.name}</div>
+                  <div className="font-medium">{item.food_name || item.food?.name}</div>
                   <div className="text-xs text-gray-500">{item.quantity_grams}g</div>
                 </div>
                 <div className="font-semibold">{item.estimated_calories} kcal</div>

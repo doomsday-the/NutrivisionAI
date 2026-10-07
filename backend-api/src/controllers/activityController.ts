@@ -9,48 +9,38 @@ export const syncActivity = async (req: AuthRequest, res: Response) => {
     const { log_date, steps, calories_burned } = req.body;
     const user_id = req.user!.user_id;
 
-    // First ensure a profile exists to get the target calories
+    // Retrieve target calories from profile or default to 2000
     const profile = await prisma.user_profiles.findUnique({ where: { user_id } });
     const target = profile ? Number(profile.daily_calorie_target) : 2000;
 
-    // We must use raw SQL for upsert if we want the trigger to run safely or do it via Prisma upsert
-    const logDateObj = new Date(log_date); // YYYY-MM-DD string
+    const result: any = await prisma.$queryRaw`
+      INSERT INTO public.daily_logs (
+        user_id, log_date, target_calories, total_calories, total_protein_g, total_carbs_g, total_fat_g, calories_burned, remaining_calories, steps
+      ) VALUES (
+        ${user_id}::INT,
+        ${log_date}::DATE,
+        ${target}::NUMERIC,
+        0, 0, 0, 0,
+        ${calories_burned}::NUMERIC,
+        (${target}::NUMERIC + ${calories_burned}::NUMERIC),
+        ${steps}::INT
+      )
+      ON CONFLICT (user_id, log_date) DO UPDATE SET
+        steps = EXCLUDED.steps,
+        calories_burned = EXCLUDED.calories_burned,
+        remaining_calories = daily_logs.target_calories - daily_logs.total_calories + EXCLUDED.calories_burned
+      RETURNING log_id, user_id, to_char(log_date, 'YYYY-MM-DD') AS log_date_str, steps, calories_burned, total_calories, remaining_calories, target_calories;
+    `;
 
-    const updatedLog = await prisma.daily_logs.upsert({
-      where: { user_id_log_date: { user_id, log_date: logDateObj } },
-      update: {
-        steps,
-        calories_burned,
-        target_calories: target,
-        // The remaining_calories is handled by the trigger or calculated in DB, but we can compute here for now
-        remaining_calories: target - Number(prisma.daily_logs.fields.total_calories || 0) + calories_burned,
-      },
-      create: {
-        user_id,
-        log_date: logDateObj,
-        steps,
-        calories_burned,
-        target_calories: target,
-        total_calories: 0,
-        total_protein_g: 0,
-        total_carbs_g: 0,
-        total_fat_g: 0,
-        remaining_calories: target + calories_burned
-      }
-    });
-
-    // To ensure accuracy with trigger, we refetch
-    const finalLog = await prisma.daily_logs.findUnique({
-      where: { log_id: updatedLog.log_id }
-    });
+    const row = result[0];
 
     return res.status(200).json({
-      log_date,
-      steps: finalLog!.steps,
-      calories_burned: Number(finalLog!.calories_burned),
-      total_calories: Number(finalLog!.total_calories),
-      remaining_calories: Number(finalLog!.remaining_calories),
-      target_calories: Number(finalLog!.target_calories)
+      log_date: row.log_date_str || log_date,
+      steps: Number(row.steps),
+      calories_burned: Number(row.calories_burned),
+      total_calories: Number(row.total_calories),
+      remaining_calories: Number(row.remaining_calories),
+      target_calories: Number(row.target_calories)
     });
 
   } catch (error) {
@@ -63,23 +53,26 @@ export const getDashboard = async (req: AuthRequest, res: Response) => {
   try {
     const user_id = req.user!.user_id;
     let log_date = req.query.date as string;
-    
+
     if (!log_date) {
       log_date = new Date().toISOString().split('T')[0];
     }
     const logDateObj = new Date(log_date);
 
+    const startOfDay = new Date(`${log_date}T00:00:00.000Z`);
+    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
     const [dailyLog, profile, meals] = await Promise.all([
       prisma.daily_logs.findUnique({
-        where: { user_id_log_date: { user_id, log_date: logDateObj } }
+        where: { user_id_log_date: { user_id, log_date: startOfDay } }
       }),
       prisma.user_profiles.findUnique({ where: { user_id } }),
       prisma.meals.findMany({
         where: {
           user_id,
           logged_at: {
-            gte: new Date(`${log_date}T00:00:00.000Z`),
-            lt: new Date(`${log_date}T23:59:59.999Z`)
+            gte: startOfDay,
+            lt: endOfDay
           }
         },
         select: {

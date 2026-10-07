@@ -35,13 +35,13 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
 export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
     const { age, height_cm, weight_kg, activity_level, goal } = req.body;
-    
+
     // TDEE Calculation
     let target_calories = 2000; // default fallback
     if (age && height_cm && weight_kg && activity_level && goal) {
       // Mifflin-St Jeor (Male default per NFRs)
       let bmr = (10 * weight_kg) + (6.25 * height_cm) - (5 * age) + 5;
-      
+
       const multipliers: Record<string, number> = {
         sedentary: 1.2,
         light: 1.375,
@@ -49,9 +49,9 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
         active: 1.725,
         very_active: 1.9
       };
-      
+
       let tdee = bmr * (multipliers[activity_level] || 1.2);
-      
+
       if (goal === 'lose') target_calories = tdee - 300;
       else if (goal === 'gain') target_calories = tdee + 300;
       else target_calories = tdee;

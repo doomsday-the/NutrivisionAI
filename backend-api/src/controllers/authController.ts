@@ -10,7 +10,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 export const googleAuth = async (req: Request, res: Response) => {
   try {
     const { id_token } = req.body;
-    
+
     // Verify token
     const ticket = await client.verifyIdToken({
       idToken: id_token,
@@ -76,12 +76,20 @@ export const googleAuth = async (req: Request, res: Response) => {
 };
 
 export const devLogin = async (req: Request, res: Response) => {
+  if (process.env.NODE_ENV !== 'development') {
+    return res.status(403).json({
+      error: 'FORBIDDEN',
+      message: 'Developer bypass authentication is strictly disabled outside development environment.'
+    });
+  }
+
   try {
     let user = await prisma.users.findUnique({ where: { email: 'dev@test.com' } });
 
     if (!user) {
       const salt = await bcrypt.genSalt(10);
-      const password_hash = await bcrypt.hash('devpassword', salt);
+      const devPassword = process.env.DEV_USER_PASSWORD || 'devpassword';
+      const password_hash = await bcrypt.hash(devPassword, salt);
       user = await prisma.users.create({
         data: {
           google_id: 'dev_user_123',

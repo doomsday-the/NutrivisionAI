@@ -108,6 +108,12 @@ Central food registry. Represents a single food in a single preparation state.
 
 **Note on `food_type`**: "Rice - raw" and "Rice - cooked (boiled)" are stored as two separate `food_items` rows with `food_type = 'raw'` and `food_type = 'cooked'` respectively. This is the canonical mechanism for distinguishing preparation states.
 
+**Stable MVP Food IDs**: To ensure deterministic integration between the AI detection service contract (TC-001) and database records, the core MVP foods are seeded with stable IDs:
+- `food_id = 12`: `Rice - cooked (boiled)` (IFCT-002) — matched by TC-001 mock detection
+- `food_id = 34`: `Dal - cooked` (IFCT-004) — matched by TC-001 mock detection
+- `food_id = 13..15`: IFCT staples (Milk, Rajma, Chana)
+- `food_id = 16..25`: USDA MVP foods (Pizza, Burger, Pasta, Oats, Bread, Apple, Banana, Chicken breast, Almonds, Yogurt)
+
 **Indexes**: `search_vector` (GIN index for full-text search), `source_id`, `category_id`.
 
 ---
@@ -117,15 +123,22 @@ Defines every nutrient the system tracks (Calories, Protein, Fat, etc.).
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
-| `nutrient_id` | SERIAL | PK | |
-| `name` | VARCHAR(100) | NN, UNIQUE | e.g. `Energy`, `Protein`, `Total Fat` |
-| `display_name` | VARCHAR(100) | NN | UI-friendly name |
-| `unit` | VARCHAR(20) | NN | e.g. `kcal`, `g`, `mg`, `mcg` |
-| `category` | VARCHAR(50) | | e.g. `macro`, `micro`, `mineral`, `vitamin` |
+| `nutrient_id` | SERIAL | PK | Stable IDs 1..7 for core seed nutrients |
+| `name` | VARCHAR(100) | NN, UNIQUE | Canonical snake_case key: `energy`, `protein`, `carbohydrate`, `fat`, `fiber`, `sugars`, `sodium` |
+| `display_name` | VARCHAR(100) | NN | UI-friendly label (e.g. `Energy`, `Protein`, `Total Fat`) |
+| `unit` | VARCHAR(20) | NN | e.g. `kcal`, `g`, `mg` |
+| `category` | VARCHAR(50) | | e.g. `General`, `Macros`, `Micros` |
 | `daily_value_ref` | NUMERIC(10,3) | | Reference daily intake per ICMR/WHO guidelines |
 | `sort_order` | INT | | Display ordering in UI |
 
-**Seed data**: Minimum required rows — Energy (kcal), Protein (g), Total Carbohydrate (g), Total Fat (g), Dietary Fiber (g), Total Sugars (g), Sodium (mg).
+**Seed data**: 7 canonical rows seeded with stable IDs:
+1. `nutrient_id=1`, `name='energy'`, `display_name='Energy'`, `unit='kcal'`, `daily_value_ref=2000`
+2. `nutrient_id=2`, `name='protein'`, `display_name='Protein'`, `unit='g'`, `daily_value_ref=50`
+3. `nutrient_id=3`, `name='carbohydrate'`, `display_name='Carbohydrate'`, `unit='g'`, `daily_value_ref=275`
+4. `nutrient_id=4`, `name='fat'`, `display_name='Total Fat'`, `unit='g'`, `daily_value_ref=78`
+5. `nutrient_id=5`, `name='fiber'`, `display_name='Dietary Fiber'`, `unit='g'`, `daily_value_ref=28`
+6. `nutrient_id=6`, `name='sugars'`, `display_name='Total Sugars'`, `unit='g'`, `daily_value_ref=50`
+7. `nutrient_id=7`, `name='sodium'`, `display_name='Sodium'`, `unit='mg'`, `daily_value_ref=2300`
 
 ---
 
