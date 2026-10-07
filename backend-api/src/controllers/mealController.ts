@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
 import FormData from 'form-data';
 import { AuthRequest } from '../middlewares/auth';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -16,7 +16,7 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
     return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Image file is required' });
   }
 
-  const session_id = uuidv4();
+  const session_id = crypto.randomUUID();
 
   try {
     // 1. Call AI Service (TC-001) — forward image as multipart
