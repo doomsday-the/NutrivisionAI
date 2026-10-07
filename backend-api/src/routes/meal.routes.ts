@@ -1,9 +1,22 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { analyzeMeal, correctMealItem } from '../controllers/mealController';
+import {
+  analyzeMeal,
+  correctMealItem,
+  deleteMeal,
+  getMealHistory,
+  createMeal,
+  addMealItem
+} from '../controllers/mealController';
 import { authenticate } from '../middlewares/auth';
 import { validate } from '../middlewares/validate';
-import { mealAnalyzeSchema } from '../schemas';
+import {
+  mealAnalyzeSchema,
+  mealHistorySchema,
+  createMealSchema,
+  addMealItemSchema,
+  deleteMealSchema
+} from '../schemas';
 
 const router = Router();
 const upload = multer({
@@ -19,6 +32,12 @@ const upload = multer({
 
 router.use(authenticate);
 
+// Meal history (GET /api/meals/history)
+router.get('/history', validate(mealHistorySchema), getMealHistory);
+
+// Create manual meal (POST /api/meals)
+router.post('/', validate(createMealSchema), createMeal);
+
 // We run multer first, then validate the body via Zod, then controller
 router.post(
   '/analyze',
@@ -27,7 +46,13 @@ router.post(
   analyzeMeal
 );
 
-// Manual item correction
+// Add item to meal (POST /api/meals/:mealId/items)
+router.post('/:mealId/items', validate(addMealItemSchema), addMealItem);
+
+// Manual item correction (PUT /api/meals/:mealId/items/:itemId)
 router.put('/:mealId/items/:itemId', correctMealItem);
+
+// Delete meal (DELETE /api/meals/:mealId)
+router.delete('/:mealId', validate(deleteMealSchema), deleteMeal);
 
 export default router;
