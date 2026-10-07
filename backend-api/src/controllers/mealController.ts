@@ -9,7 +9,7 @@ import crypto from 'crypto';
 axiosRetry(axios, {
   retries: 3,
   retryDelay: axiosRetry.exponentialDelay,
-  retryCondition: (error) => {
+  retryCondition: (error: any) => {
     return (
       axiosRetry.isNetworkError(error) ||
       (error.response?.status ? error.response.status >= 500 : false)
