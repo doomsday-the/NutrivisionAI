@@ -119,12 +119,53 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
 
 export const correctMealItem = async (req: AuthRequest, res: Response) => {
   const user_id = req.user!.user_id;
-  const mealId = parseInt(req.params.mealId);
-  const itemId = parseInt(req.params.itemId);
+
+  const rawMealId = Array.isArray(req.params.mealId) ? req.params.mealId[0] : req.params.mealId;
+  const rawItemId = Array.isArray(req.params.itemId) ? req.params.itemId[0] : req.params.itemId;
+
+  // Strict validation: IDs must consist solely of digits and be positive integers
+  if (!rawMealId || !/^\d+$/.test(rawMealId) || !rawItemId || !/^\d+$/.test(rawItemId)) {
+    return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid mealId or itemId parameter' });
+  }
+
+  const mealId = parseInt(rawMealId, 10);
+  const itemId = parseInt(rawItemId, 10);
+  if (mealId <= 0 || itemId <= 0) {
+    return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid mealId or itemId parameter' });
+  }
+
   const { new_food_id, quantity_grams } = req.body;
 
-  if (isNaN(mealId) || isNaN(itemId) || !new_food_id || !quantity_grams) {
-    return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid parameters' });
+  // Validate new_food_id: must be a positive integer
+  let foodId: number;
+  if (typeof new_food_id === 'number') {
+    if (!Number.isInteger(new_food_id) || new_food_id <= 0) {
+      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid new_food_id' });
+    }
+    foodId = new_food_id;
+  } else if (typeof new_food_id === 'string' && /^\d+$/.test(new_food_id.trim())) {
+    foodId = parseInt(new_food_id.trim(), 10);
+    if (foodId <= 0) {
+      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid new_food_id' });
+    }
+  } else {
+    return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid new_food_id' });
+  }
+
+  // Validate quantity_grams: must be a positive finite number (> 0)
+  let quantity: number;
+  if (typeof quantity_grams === 'number') {
+    if (isNaN(quantity_grams) || !isFinite(quantity_grams) || quantity_grams <= 0) {
+      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid quantity_grams' });
+    }
+    quantity = quantity_grams;
+  } else if (typeof quantity_grams === 'string' && /^\d+(\.\d+)?$/.test(quantity_grams.trim())) {
+    quantity = Number(quantity_grams.trim());
+    if (isNaN(quantity) || !isFinite(quantity) || quantity <= 0) {
+      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid quantity_grams' });
+    }
+  } else {
+    return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid quantity_grams' });
   }
 
   try {
@@ -148,7 +189,7 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
 
     // Get the new food to calculate calories
     const newFood = await prisma.food_items.findUnique({
-      where: { food_id: new_food_id },
+      where: { food_id: foodId },
       include: {
         food_nutrients: {
           include: { nutrient: true }
@@ -160,34 +201,18 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'NOT_FOUND', message: 'New food item not found' });
     }
 
-    // Calculate new calories (Energy is usually nutrient_id or by name)
+    // Calculate new calories
     const energyNutrient = newFood.food_nutrients.find(n => 
-      n.nutrient.name.toLowerCase() === 'energy' || n.nutrient.name.toLowerCase() === 'calories'
+      n.nutrient_id === 1 || n.nutrient.name.toLowerCase() === 'energy' || n.nutrient.name.toLowerCase() === 'calories'
     );
     
     let estimated_calories = 0;
     if (energyNutrient) {
-      estimated_calories = (Number(energyNutrient.value_per_100g) / 100) * Number(quantity_grams);
+      estimated_calories = (Number(energyNutrient.value_per_100g) / 100) * quantity;
     }
 
-    // Since we need to update the meal totals, we can do this in a transaction
-    // Or call a stored procedure if available. For now, we will do it with Prisma.
-    // 1. Update the meal_item
-    // 2. Re-calculate the whole meal totals
-    
     await prisma.$transaction(async (tx) => {
-      // Update item
-      await tx.meal_items.update({
-        where: { item_id: itemId },
-        data: {
-          food_id: new_food_id,
-          quantity_grams: quantity_grams,
-          estimated_calories: estimated_calories,
-          user_corrected: true
-        }
-      });
-
-      // Recalculate meal totals
+      // Recalculate meal totals with the corrected item before writing
       const allItems = await tx.meal_items.findMany({
         where: { meal_id: mealId },
         include: {
@@ -204,19 +229,32 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
       let totalCal = 0, totalPro = 0, totalCarb = 0, totalFat = 0;
       
       for (const item of allItems) {
-        const qtyMultiplier = Number(item.quantity_grams) / 100;
-        
-        const energy = item.food.food_nutrients.find(n => n.nutrient.name.toLowerCase() === 'energy' || n.nutrient.name.toLowerCase() === 'calories');
-        const protein = item.food.food_nutrients.find(n => n.nutrient.name.toLowerCase() === 'protein');
-        const carbs = item.food.food_nutrients.find(n => n.nutrient.name.toLowerCase() === 'carbohydrate' || n.nutrient.name.toLowerCase() === 'carbs');
-        const fat = item.food.food_nutrients.find(n => n.nutrient.name.toLowerCase() === 'fat' || n.nutrient.name.toLowerCase() === 'total lipid (fat)');
+        if (item.item_id === itemId) {
+          const qtyMultiplier = quantity / 100;
+          const energy = newFood.food_nutrients.find(n => n.nutrient_id === 1 || n.nutrient.name.toLowerCase() === 'energy' || n.nutrient.name.toLowerCase() === 'calories');
+          const protein = newFood.food_nutrients.find(n => n.nutrient_id === 2 || n.nutrient.name.toLowerCase() === 'protein');
+          const carbs = newFood.food_nutrients.find(n => n.nutrient_id === 3 || n.nutrient.name.toLowerCase() === 'carbohydrate' || n.nutrient.name.toLowerCase() === 'carbs');
+          const fat = newFood.food_nutrients.find(n => n.nutrient_id === 4 || n.nutrient.name.toLowerCase() === 'fat' || n.nutrient.name.toLowerCase() === 'total lipid (fat)');
 
-        if (energy) totalCal += Number(energy.value_per_100g) * qtyMultiplier;
-        if (protein) totalPro += Number(protein.value_per_100g) * qtyMultiplier;
-        if (carbs) totalCarb += Number(carbs.value_per_100g) * qtyMultiplier;
-        if (fat) totalFat += Number(fat.value_per_100g) * qtyMultiplier;
+          if (energy) totalCal += Number(energy.value_per_100g) * qtyMultiplier;
+          if (protein) totalPro += Number(protein.value_per_100g) * qtyMultiplier;
+          if (carbs) totalCarb += Number(carbs.value_per_100g) * qtyMultiplier;
+          if (fat) totalFat += Number(fat.value_per_100g) * qtyMultiplier;
+        } else {
+          const qtyMultiplier = Number(item.quantity_grams) / 100;
+          const energy = item.food.food_nutrients.find(n => n.nutrient_id === 1 || n.nutrient.name.toLowerCase() === 'energy' || n.nutrient.name.toLowerCase() === 'calories');
+          const protein = item.food.food_nutrients.find(n => n.nutrient_id === 2 || n.nutrient.name.toLowerCase() === 'protein');
+          const carbs = item.food.food_nutrients.find(n => n.nutrient_id === 3 || n.nutrient.name.toLowerCase() === 'carbohydrate' || n.nutrient.name.toLowerCase() === 'carbs');
+          const fat = item.food.food_nutrients.find(n => n.nutrient_id === 4 || n.nutrient.name.toLowerCase() === 'fat' || n.nutrient.name.toLowerCase() === 'total lipid (fat)');
+
+          if (energy) totalCal += Number(energy.value_per_100g) * qtyMultiplier;
+          if (protein) totalPro += Number(protein.value_per_100g) * qtyMultiplier;
+          if (carbs) totalCarb += Number(carbs.value_per_100g) * qtyMultiplier;
+          if (fat) totalFat += Number(fat.value_per_100g) * qtyMultiplier;
+        }
       }
 
+      // Update parent meal totals FIRST so any triggers or readers observe the recalculated totals
       await tx.meals.update({
         where: { meal_id: mealId },
         data: {
@@ -227,16 +265,51 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
         }
       });
 
+      // Update item (this fires trg_update_daily_log on meal_items, which now reads the updated meals totals)
+      await tx.meal_items.update({
+        where: { item_id: itemId },
+        data: {
+          food_id: foodId,
+          quantity_grams: quantity,
+          estimated_calories: estimated_calories,
+          user_corrected: true
+        }
+      });
+
+      // Explicitly update daily_logs inside transaction to ensure totals are perfectly fresh
+      await tx.$executeRaw`
+        UPDATE public.daily_logs
+        SET total_calories = (
+              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_protein_g = (
+              SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_carbs_g = (
+              SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_fat_g = (
+              SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            remaining_calories = target_calories - (
+              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ) + calories_burned
+        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE;
+      `;
+
       // Also log the correction in ai_match_log
-      // find the latest ai_match_log for this user/session and update it
-      // this is tricky without session_id on meal_item, but we'll insert a basic correction log
       await tx.ai_match_log.create({
         data: {
-          detected_label: mealItem.food_id.toString(), // we don't have the original label string easily here
+          detected_label: mealItem.food_id.toString(),
           matched_food_id: mealItem.food_id,
           user_corrected: true,
-          corrected_food_id: new_food_id,
-          weight_grams: quantity_grams
+          corrected_food_id: foodId,
+          weight_grams: quantity
         }
       });
     });
