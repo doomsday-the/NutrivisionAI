@@ -27,9 +27,9 @@ def main():
     parser.add_argument('--db-url', required=True)
     parser.add_argument('--dry-run', type=str, default='false')
     args = parser.parse_args()
-    
+
     dry_run = args.dry_run.lower() == 'true'
-    
+
     conn = get_db_connection(args.db_url)
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -43,12 +43,12 @@ def main():
         """)
         source_id = cursor.fetchone()['source_id']
     else:
-        source_id = 1 # mock for dry-run
-        
+        source_id = 1  # mock for dry-run
+
     # Get nutrient ids
     cursor.execute("SELECT nutrient_id, name FROM public.nutrient_types;")
     nutrients = {row['name']: row['nutrient_id'] for row in cursor.fetchall()}
-    
+
     summary = {
         "source": "ICMR-NIN IFCT 2017",
         "total_rows": 0,
@@ -57,7 +57,7 @@ def main():
         "skipped_errors": 0,
         "errors": []
     }
-    
+
     with open(args.source_file, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -67,7 +67,7 @@ def main():
                 summary["skipped_errors"] += 1
                 summary["errors"].append({"row_id": row.get('IFCT_Code', 'unknown'), "reason": "Missing food name"})
                 continue
-                
+
             # determine food type
             lower_name = food_name.lower()
             if 'raw' in lower_name or 'ingredient' in lower_name:
@@ -77,33 +77,22 @@ def main():
             elif 'milk' in lower_name or 'juice' in lower_name or 'tea' in lower_name:
                 food_type = 'beverage'
             else:
-                food_type = 'cooked' # default
-                
+                food_type = 'cooked'  # default
+
             external_id = row.get('IFCT_Code', '')
-            
-            # Check for duplicates? For now just insert/upsert
+
             if not dry_run:
                 try:
+                    cursor.execute("SAVEPOINT ifct_row_sp;")
                     cursor.execute("""
                         INSERT INTO public.food_items (external_id, source_id, name, food_type, reference_unit, is_verified)
                         VALUES (%s, %s, %s, %s, '100g', true)
-                        ON CONFLICT DO NOTHING
+                        ON CONFLICT (source_id, external_id) DO UPDATE SET name = EXCLUDED.name
                         RETURNING food_id;
                     """, (external_id, source_id, food_name, food_type))
-                    
-                    res = cursor.fetchone()
-                    if res is None:
-                        # Already exists or duplicate name? Actually name is not unique in schema, wait. 
-                        # We just don't want to insert if it's identical? We'll assume the insert worked if we get here for MVP.
-                        # Since we do ON CONFLICT DO NOTHING without a unique constraint other than maybe id which we don't supply, 
-                        # wait, there's no unique constraint on external_id or name in schema.prisma! 
-                        # We should just insert. 
-                        pass
-                        
-                    # get food_id
-                    cursor.execute("SELECT food_id FROM public.food_items WHERE name = %s AND source_id = %s;", (food_name, source_id))
+
                     food_id = cursor.fetchone()['food_id']
-                    
+
                     # Insert nutrients
                     nutrient_map = {
                         'energy': row.get('Energy (kcal)', '0'),
@@ -113,21 +102,23 @@ def main():
                         'fiber': row.get('Dietary Fibre (g)', '0'),
                         'sodium': row.get('Sodium (mg)', '0'),
                     }
-                    
+
                     for nut_name, val_str in nutrient_map.items():
-                        if nut_name in nutrients:
+                        if nut_name in nutrients and val_str is not None:
                             try:
-                                val = float(val_str)
+                                val = float(str(val_str).strip())
                                 cursor.execute("""
                                     INSERT INTO public.food_nutrients (food_id, nutrient_id, value_per_100g)
                                     VALUES (%s, %s, %s)
                                     ON CONFLICT (food_id, nutrient_id) DO UPDATE SET value_per_100g = EXCLUDED.value_per_100g;
                                 """, (food_id, nutrients[nut_name], val))
-                            except ValueError:
-                                pass # ignore bad numeric values
+                            except (ValueError, TypeError):
+                                pass
+
+                    cursor.execute("RELEASE SAVEPOINT ifct_row_sp;")
                     summary["imported"] += 1
                 except Exception as e:
-                    conn.rollback()
+                    cursor.execute("ROLLBACK TO SAVEPOINT ifct_row_sp;")
                     summary["skipped_errors"] += 1
                     summary["errors"].append({"row_id": external_id, "reason": str(e)})
             else:
