@@ -1,6 +1,6 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, Camera, User } from 'lucide-react';
+import { LogOut, Home, Camera, User, Activity } from 'lucide-react';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -20,6 +20,9 @@ export default function Layout() {
                 </Link>
                 <Link to="/log-meal" className="p-2 hover:bg-primary-500 rounded flex items-center gap-1">
                   <Camera size={18} /> <span className="hidden sm:inline">Log Meal</span>
+                </Link>
+                <Link to="/activity" className="p-2 hover:bg-primary-500 rounded flex items-center gap-1">
+                  <Activity size={18} /> <span className="hidden sm:inline">Activity</span>
                 </Link>
                 <Link to="/profile" className="p-2 hover:bg-primary-500 rounded flex items-center gap-1">
                   <User size={18} /> <span className="hidden sm:inline">Profile</span>
