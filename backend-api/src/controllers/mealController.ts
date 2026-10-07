@@ -228,60 +228,25 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
     }
 
     await prisma.$transaction(async (tx) => {
-      // Recalculate meal totals with the corrected item before writing
-      const allItems = await tx.meal_items.findMany({
-        where: { meal_id: mealId },
-        include: {
-          food: {
-            include: {
-              food_nutrients: {
-                include: { nutrient: true }
-              }
-            }
-          }
-        }
-      });
+      // 1. Ensure daily_logs row exists for today
+      const profile = await tx.user_profiles.findUnique({ where: { user_id } });
+      const targetCalories = profile ? Number(profile.daily_calorie_target) : 2000;
 
-      let totalCal = 0, totalPro = 0, totalCarb = 0, totalFat = 0;
+      await tx.$executeRaw`
+        INSERT INTO public.daily_logs (
+          user_id, log_date, target_calories, total_calories, total_protein_g, total_carbs_g, total_fat_g, calories_burned, remaining_calories, steps
+        ) VALUES (
+          ${user_id}::INT,
+          (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE,
+          ${targetCalories}::NUMERIC,
+          0, 0, 0, 0, 0,
+          ${targetCalories}::NUMERIC,
+          0
+        )
+        ON CONFLICT (user_id, log_date) DO NOTHING;
+      `;
 
-      for (const item of allItems) {
-        if (item.item_id === itemId) {
-          const qtyMultiplier = quantity / 100;
-          const energy = newFood.food_nutrients.find(n => n.nutrient_id === 1 || n.nutrient.name.toLowerCase() === 'energy' || n.nutrient.name.toLowerCase() === 'calories');
-          const protein = newFood.food_nutrients.find(n => n.nutrient_id === 2 || n.nutrient.name.toLowerCase() === 'protein');
-          const carbs = newFood.food_nutrients.find(n => n.nutrient_id === 3 || n.nutrient.name.toLowerCase() === 'carbohydrate' || n.nutrient.name.toLowerCase() === 'carbs');
-          const fat = newFood.food_nutrients.find(n => n.nutrient_id === 4 || n.nutrient.name.toLowerCase() === 'fat' || n.nutrient.name.toLowerCase() === 'total lipid (fat)');
-
-          if (energy) totalCal += Number(energy.value_per_100g) * qtyMultiplier;
-          if (protein) totalPro += Number(protein.value_per_100g) * qtyMultiplier;
-          if (carbs) totalCarb += Number(carbs.value_per_100g) * qtyMultiplier;
-          if (fat) totalFat += Number(fat.value_per_100g) * qtyMultiplier;
-        } else {
-          const qtyMultiplier = Number(item.quantity_grams) / 100;
-          const energy = item.food.food_nutrients.find(n => n.nutrient_id === 1 || n.nutrient.name.toLowerCase() === 'energy' || n.nutrient.name.toLowerCase() === 'calories');
-          const protein = item.food.food_nutrients.find(n => n.nutrient_id === 2 || n.nutrient.name.toLowerCase() === 'protein');
-          const carbs = item.food.food_nutrients.find(n => n.nutrient_id === 3 || n.nutrient.name.toLowerCase() === 'carbohydrate' || n.nutrient.name.toLowerCase() === 'carbs');
-          const fat = item.food.food_nutrients.find(n => n.nutrient_id === 4 || n.nutrient.name.toLowerCase() === 'fat' || n.nutrient.name.toLowerCase() === 'total lipid (fat)');
-
-          if (energy) totalCal += Number(energy.value_per_100g) * qtyMultiplier;
-          if (protein) totalPro += Number(protein.value_per_100g) * qtyMultiplier;
-          if (carbs) totalCarb += Number(carbs.value_per_100g) * qtyMultiplier;
-          if (fat) totalFat += Number(fat.value_per_100g) * qtyMultiplier;
-        }
-      }
-
-      // Update parent meal totals FIRST so any triggers or readers observe the recalculated totals
-      await tx.meals.update({
-        where: { meal_id: mealId },
-        data: {
-          total_calories: totalCal,
-          total_protein_g: totalPro,
-          total_carbs_g: totalCarb,
-          total_fat_g: totalFat
-        }
-      });
-
-      // Update item (this fires trg_update_daily_log on meal_items, which now reads the updated meals totals)
+      // 2. Update item
       await tx.meal_items.update({
         where: { item_id: itemId },
         data: {
@@ -292,33 +257,39 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
         }
       });
 
-      // Explicitly update daily_logs inside transaction to ensure totals are perfectly fresh
+      // 3. Delegate meal totals recalculation to SQL engine
       await tx.$executeRaw`
-        UPDATE public.daily_logs
+        UPDATE public.meals
         SET total_calories = (
-              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              SELECT COALESCE(SUM(estimated_calories), 0)
+              FROM public.meal_items
+              WHERE meal_id = ${mealId}
             ),
             total_protein_g = (
-              SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              SELECT COALESCE(SUM((quantity_grams / 100.0) * fn.value_per_100g), 0)
+              FROM public.meal_items mi
+              JOIN public.food_nutrients fn ON mi.food_id = fn.food_id
+              JOIN public.nutrient_types nt ON fn.nutrient_id = nt.nutrient_id
+              WHERE mi.meal_id = ${mealId} AND nt.name ILIKE '%protein%'
             ),
             total_carbs_g = (
-              SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              SELECT COALESCE(SUM((quantity_grams / 100.0) * fn.value_per_100g), 0)
+              FROM public.meal_items mi
+              JOIN public.food_nutrients fn ON mi.food_id = fn.food_id
+              JOIN public.nutrient_types nt ON fn.nutrient_id = nt.nutrient_id
+              WHERE mi.meal_id = ${mealId} AND (nt.name ILIKE '%carbohydrate%' OR nt.name ILIKE '%carbs%')
             ),
             total_fat_g = (
-              SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
-            ),
-            remaining_calories = target_calories - (
-              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
-            ) + calories_burned
-        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE;
+              SELECT COALESCE(SUM((quantity_grams / 100.0) * fn.value_per_100g), 0)
+              FROM public.meal_items mi
+              JOIN public.food_nutrients fn ON mi.food_id = fn.food_id
+              JOIN public.nutrient_types nt ON fn.nutrient_id = nt.nutrient_id
+              WHERE mi.meal_id = ${mealId} AND (nt.name ILIKE '%fat%' OR nt.name ILIKE '%lipid%')
+            )
+        WHERE meal_id = ${mealId};
       `;
 
-      // Also log the correction in ai_match_log
+      // 4. Also log the correction in ai_match_log
       await tx.ai_match_log.create({
         data: {
           detected_label: mealItem.food_id.toString(),
@@ -589,65 +560,8 @@ export const addMealItem = async (req: AuthRequest, res: Response) => {
     );
     const estimated_calories = energyNutrient ? (Number(energyNutrient.value_per_100g) / 100) * quantity : 0;
 
-    let updatedMeal: any;
-
     await prisma.$transaction(async (tx) => {
-      // 1. Create the new meal item
-      await tx.meal_items.create({
-        data: {
-          meal_id: mealId,
-          food_id: foodId,
-          quantity_grams: quantity,
-          estimated_calories: estimated_calories,
-          user_corrected: true
-        }
-      });
-
-      // 2. Fetch all items in meal to recalculate totals
-      const allItems = await tx.meal_items.findMany({
-        where: { meal_id: mealId },
-        include: {
-          food: {
-            include: {
-              food_nutrients: {
-                include: { nutrient: true }
-              }
-            }
-          }
-        }
-      });
-
-      let totalCal = 0, totalPro = 0, totalCarb = 0, totalFat = 0;
-      for (const item of allItems) {
-        const qtyMultiplier = Number(item.quantity_grams) / 100;
-        const energy = item.food.food_nutrients.find(n => n.nutrient_id === 1 || n.nutrient?.name?.toLowerCase() === 'energy' || n.nutrient?.name?.toLowerCase() === 'calories');
-        const protein = item.food.food_nutrients.find(n => n.nutrient_id === 2 || n.nutrient?.name?.toLowerCase() === 'protein');
-        const carbs = item.food.food_nutrients.find(n => n.nutrient_id === 3 || n.nutrient?.name?.toLowerCase() === 'carbohydrate' || n.nutrient?.name?.toLowerCase() === 'carbs');
-        const fat = item.food.food_nutrients.find(n => n.nutrient_id === 4 || n.nutrient?.name?.toLowerCase() === 'fat' || n.nutrient?.name?.toLowerCase() === 'total lipid (fat)');
-
-        if (energy) totalCal += Number(energy.value_per_100g) * qtyMultiplier;
-        if (protein) totalPro += Number(protein.value_per_100g) * qtyMultiplier;
-        if (carbs) totalCarb += Number(carbs.value_per_100g) * qtyMultiplier;
-        if (fat) totalFat += Number(fat.value_per_100g) * qtyMultiplier;
-      }
-
-      // 3. Update parent meal totals
-      updatedMeal = await tx.meals.update({
-        where: { meal_id: mealId },
-        data: {
-          total_calories: totalCal,
-          total_protein_g: totalPro,
-          total_carbs_g: totalCarb,
-          total_fat_g: totalFat
-        },
-        include: {
-          meal_items: {
-            include: { food: true }
-          }
-        }
-      });
-
-      // 4. Ensure daily_logs row exists
+      // 1. Ensure daily_logs row exists for today
       const profile = await tx.user_profiles.findUnique({ where: { user_id } });
       const targetCalories = profile ? Number(profile.daily_calorie_target) : 2000;
 
@@ -665,32 +579,62 @@ export const addMealItem = async (req: AuthRequest, res: Response) => {
         ON CONFLICT (user_id, log_date) DO NOTHING;
       `;
 
-      // 5. Update daily_logs with raw SQL
+      // 2. Create the new meal item
+      await tx.meal_items.create({
+        data: {
+          meal_id: mealId,
+          food_id: foodId,
+          quantity_grams: quantity,
+          estimated_calories: estimated_calories,
+          user_corrected: true
+        }
+      });
+
+      // 3. Delegate meal totals recalculation to SQL engine
       await tx.$executeRaw`
-        UPDATE public.daily_logs
+        UPDATE public.meals
         SET total_calories = (
-              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              SELECT COALESCE(SUM(estimated_calories), 0)
+              FROM public.meal_items
+              WHERE meal_id = ${mealId}
             ),
             total_protein_g = (
-              SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              SELECT COALESCE(SUM((quantity_grams / 100.0) * fn.value_per_100g), 0)
+              FROM public.meal_items mi
+              JOIN public.food_nutrients fn ON mi.food_id = fn.food_id
+              JOIN public.nutrient_types nt ON fn.nutrient_id = nt.nutrient_id
+              WHERE mi.meal_id = ${mealId} AND nt.name ILIKE '%protein%'
             ),
             total_carbs_g = (
-              SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              SELECT COALESCE(SUM((quantity_grams / 100.0) * fn.value_per_100g), 0)
+              FROM public.meal_items mi
+              JOIN public.food_nutrients fn ON mi.food_id = fn.food_id
+              JOIN public.nutrient_types nt ON fn.nutrient_id = nt.nutrient_id
+              WHERE mi.meal_id = ${mealId} AND (nt.name ILIKE '%carbohydrate%' OR nt.name ILIKE '%carbs%')
             ),
             total_fat_g = (
-              SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
-            ),
-            remaining_calories = target_calories - (
-              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
-            ) + calories_burned
-        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE;
+              SELECT COALESCE(SUM((quantity_grams / 100.0) * fn.value_per_100g), 0)
+              FROM public.meal_items mi
+              JOIN public.food_nutrients fn ON mi.food_id = fn.food_id
+              JOIN public.nutrient_types nt ON fn.nutrient_id = nt.nutrient_id
+              WHERE mi.meal_id = ${mealId} AND (nt.name ILIKE '%fat%' OR nt.name ILIKE '%lipid%')
+            )
+        WHERE meal_id = ${mealId};
       `;
     });
+
+    const updatedMeal = await prisma.meals.findUnique({
+      where: { meal_id: mealId },
+      include: {
+        meal_items: {
+          include: { food: true }
+        }
+      }
+    });
+
+    if (!updatedMeal) {
+      return res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to retrieve updated meal' });
+    }
 
     const items = updatedMeal.meal_items.map((item: any) => ({
       item_id: item.item_id,
