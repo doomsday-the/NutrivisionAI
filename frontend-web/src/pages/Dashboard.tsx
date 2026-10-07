@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Activity, Flame, Utensils } from 'lucide-react';
+import { Flame, Utensils } from 'lucide-react';
 
 interface DashboardData {
   date: string;
