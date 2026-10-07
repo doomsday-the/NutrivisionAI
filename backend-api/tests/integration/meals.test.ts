@@ -233,4 +233,82 @@ describe('Meals API', () => {
     expect(dailyLog).not.toBeNull();
     expect(Number(dailyLog?.total_calories)).toBe(Number(addItemRes.body.total_calories));
   });
+
+  it('should return 404 when attempting to delete a non-existent meal', async () => {
+    const res = await request(app)
+      .delete('/api/meals/999999')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('NOT_FOUND');
+  });
+
+  it('should filter meal history by date', async () => {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Create meal yesterday
+    await prisma.meals.create({
+      data: {
+        user_id: user.user_id,
+        meal_type: 'breakfast',
+        total_calories: 200,
+        logged_at: yesterday
+      }
+    });
+
+    // Create meal today
+    await prisma.meals.create({
+      data: {
+        user_id: user.user_id,
+        meal_type: 'lunch',
+        total_calories: 400,
+        logged_at: new Date()
+      }
+    });
+
+    // Query for yesterday only
+    const res = await request(app)
+      .get(`/api/meals/history?date=${yesterdayStr}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.meals).toHaveLength(1);
+    expect(res.body.meals[0].meal_type).toBe('breakfast');
+
+    // Query for today only
+    const resToday = await request(app)
+      .get(`/api/meals/history?date=${todayStr}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(resToday.status).toBe(200);
+    expect(resToday.body.meals).toHaveLength(1);
+    expect(resToday.body.meals[0].meal_type).toBe('lunch');
+  });
+
+  it('should validate inputs when adding a meal item', async () => {
+    const createRes = await request(app)
+      .post('/api/meals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ meal_type: 'snack' });
+
+    const mealId = createRes.body.meal_id;
+
+    // Non-existent food item
+    const resNonExistent = await request(app)
+      .post(`/api/meals/${mealId}/items`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ food_id: 999999, quantity_grams: 100 });
+
+    expect(resNonExistent.status).toBe(404);
+
+    // Invalid negative quantity
+    const resInvalidQty = await request(app)
+      .post(`/api/meals/${mealId}/items`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ food_id: 12, quantity_grams: -50 });
+
+    expect(resInvalidQty.status).toBe(400);
+  });
 });
