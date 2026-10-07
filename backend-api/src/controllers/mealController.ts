@@ -1,9 +1,22 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import FormData from 'form-data';
 import { AuthRequest } from '../middlewares/auth';
 import crypto from 'crypto';
+
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay,
+  retryCondition: (error) => {
+    return (
+      axiosRetry.isNetworkError(error) ||
+      (error.response?.status ? error.response.status >= 500 : false)
+    );
+  },
+  shouldResetTimeout: true,
+});
 
 const prisma = new PrismaClient();
 
