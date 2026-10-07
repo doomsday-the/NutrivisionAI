@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Activity as ActivityIcon, Flame, Footprints, Calendar, CheckCircle2, AlertCircle, ArrowRight, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 
 interface SyncResponse {
   log_date: string;
@@ -51,7 +52,7 @@ export default function Activity() {
     try {
       setLoading(true);
       const res = await axios.post<SyncResponse>(
-        'http://localhost:3000/api/activity/sync',
+        `${API_BASE_URL}/api/activity/sync`,
         {
           log_date: logDate,
           steps: Math.floor(stepsNum),
