@@ -78,10 +78,11 @@ Ran all test suites.
 - **docker build**: PASS (`docker compose build` completed with images `nutritiondb-ai-service` and `nutritiondb-backend-api` built successfully)
 
 ## Known Issues
-- None. All test suites pass, TypeScript compilation succeeds with zero errors in both frontend and backend, and all Docker containers build cleanly.
+- **UTC Timezone Partitioning on Date Filtering**: In `GET /api/meals/history?date=YYYY-MM-DD` and `GET /api/activity/dashboard?date=YYYY-MM-DD`, day boundaries are currently computed relative to UTC midnight (`T00:00:00.000Z` to `T23:59:59.999Z`). Users in offset timezones (e.g., IST at UTC+05:30) who log meals late in the local evening (after 18:30 UTC) or early morning will have those entries attributed to adjacent UTC calendar dates. Documented under ADR-008.
 
 ## Requires Human Review
-- The plate center 40% median depth proxy in `ai-service/src/depth.py` currently uses a linear heuristic mapping to weight grams. When the third-party CV model arrives with per-item bounding boxes, the center crop proxy should be updated to compute depth medians per bounding box mask.
+- **Timezone Resolution Strategy**: Ratify the v2 approach for date boundaries (e.g. adding `timezone` to `user_profiles` vs. client header `X-Timezone-Offset` vs. client-side date boundary querying).
+- **Plate Center 40% Depth Proxy**: The plate center 40% median depth proxy in `ai-service/src/depth.py` currently uses a linear heuristic mapping to weight grams. When the third-party CV model arrives with per-item bounding boxes, the center crop proxy should be updated to compute depth medians per bounding box mask.
 
 ## Recommended Next Task
 - Ingest the remaining dataset records from IFCT 2017 and USDA into production Postgres using the ETL scripts in `ai-service/etl/` and add frontend search autocomplete filters by meal category.
