@@ -1,0 +1,16 @@
+IFCT_Code,Food_Name,Food_Group,Energy (kcal),Protein (g),Fat (g),Carbohydrate (g),Dietary Fibre (g),Sodium (mg)
+IFCT-001,Rice (raw),Cereals,345,6.8,0.5,78.2,2.8,2
+IFCT-002,Rice (cooked/boiled),Cereals,130,2.7,0.3,28.0,0.4,1
+IFCT-003,Roti (wheat),Cereals,297,9.0,3.5,58.0,4.0,150
+IFCT-004,Dal (cooked),Pulses,116,9.0,0.4,20.0,8.0,200
+IFCT-005,Paneer,Dairy,265,18.0,20.0,1.2,0.0,18
+IFCT-006,Chicken (grilled),Meat,239,27.0,14.0,0.0,0.0,82
+IFCT-007,Egg (boiled),Egg,155,13.0,11.0,1.1,0.0,124
+IFCT-008,Dosa,Cereals,168,3.9,3.7,29.0,0.9,94
+IFCT-009,Idli,Cereals,58,1.6,0.4,12.0,1.5,35
+IFCT-010,Biryani (chicken),Mixed,293,13.0,9.0,39.0,1.5,400
+IFCT-011,Curd,Dairy,98,11.0,4.3,3.4,0.0,36
+IFCT-012,Ghee,Dairy,900,0.0,100.0,0.0,0.0,0
+IFCT-013,Milk (cow's),Dairy,61,3.2,3.3,4.8,0.0,44
+IFCT-014,Rajma (cooked),Pulses,127,8.7,0.5,22.8,6.4,200
+IFCT-015,Chana (cooked),Pulses,164,8.9,2.6,27.4,7.6,150

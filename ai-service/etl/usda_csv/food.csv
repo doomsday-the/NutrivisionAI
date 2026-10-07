@@ -1,0 +1,11 @@
+fdc_id,data_type,description,food_category_id,publication_date
+10001,branded,Pizza (cheese),1,2024-04-18
+10002,branded,Burger (beef),1,2024-04-18
+10003,branded,Pasta (cooked),1,2024-04-18
+10004,branded,Oats (cooked),1,2024-04-18
+10005,branded,Bread (white),1,2024-04-18
+10006,branded,Apple,1,2024-04-18
+10007,branded,Banana,1,2024-04-18
+10008,branded,Chicken breast (grilled),1,2024-04-18
+10009,branded,Almonds,1,2024-04-18
+10010,branded,Yogurt (plain),1,2024-04-18

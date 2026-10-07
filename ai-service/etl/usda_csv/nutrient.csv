@@ -1,0 +1,8 @@
+id,name,unit_name,nutrient_nbr,rank
+1008,Energy,kcal,208,1
+1003,Protein,g,203,2
+1005,Carbohydrate, by difference,g,205,3
+1004,Total lipid (fat),g,204,4
+1079,Fiber, total dietary,g,291,5
+1093,Sodium, Na,mg,307,6
+2000,Sugars, total including NLEA,g,269,7

@@ -4,7 +4,7 @@
 
 ---
 
-## Phase 1: Comprehensive Database Architecture
+## ✅ Phase 1: Comprehensive Database Architecture
 Build out the highly-normalized PostgreSQL database mapped exactly to your uploaded schema design.
 *   **Core Entities**: `food_items`, `food_categories`, `food_sources`, `food_aliases`.
 *   **Nutritional Mapping**: `nutrient_types`, `food_nutrients` (handling macro/micronutrients).
@@ -13,7 +13,7 @@ Build out the highly-normalized PostgreSQL database mapped exactly to your uploa
 *   **AI Logging**: `ai_match_log` to track AI detections, confidence scores, and user corrections.
 *   **Staging Tables**: Create `staging.icmr_food`, `staging.usda_food`, `staging.usda_nutrient` to prepare for the bulk ETL pipelines.
 
-## Phase 2: Dual-Source Data Seeding & ETL (Extract, Transform, Load)
+## ✅ Phase 2: Dual-Source Data Seeding & ETL (Extract, Transform, Load)
 Instead of relying on inaccurate crowdsourced APIs (like MyFitnessPal), we will build an authoritative scientific database layer.
 *   **Step 2a: Source Registration**: Populate `food_sources` with `ICMR-NIN IFCT 2017` and `USDA FoodData Central`.
 *   **Step 2b: Indian Food Ingestion (Primary)**: Build a Python ETL script to parse IFCT 2017 data (extracting items like Dal, Roti, Dosa, Idli, Paneer, and regional cooked foods) into the staging tables, then migrating to `food_items` and `food_nutrients`.
