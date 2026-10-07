@@ -116,3 +116,163 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
     });
   }
 };
+
+export const correctMealItem = async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.user_id;
+  const mealId = parseInt(req.params.mealId);
+  const itemId = parseInt(req.params.itemId);
+  const { new_food_id, quantity_grams } = req.body;
+
+  if (isNaN(mealId) || isNaN(itemId) || !new_food_id || !quantity_grams) {
+    return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid parameters' });
+  }
+
+  try {
+    // Verify the meal belongs to the user
+    const meal = await prisma.meals.findUnique({
+      where: { meal_id: mealId }
+    });
+
+    if (!meal || meal.user_id !== user_id) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: 'Meal not found' });
+    }
+
+    // Verify the item belongs to the meal
+    const mealItem = await prisma.meal_items.findUnique({
+      where: { item_id: itemId }
+    });
+
+    if (!mealItem || mealItem.meal_id !== mealId) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: 'Meal item not found' });
+    }
+
+    // Get the new food to calculate calories
+    const newFood = await prisma.food_items.findUnique({
+      where: { food_id: new_food_id },
+      include: {
+        food_nutrients: {
+          include: { nutrient: true }
+        }
+      }
+    });
+
+    if (!newFood) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: 'New food item not found' });
+    }
+
+    // Calculate new calories (Energy is usually nutrient_id or by name)
+    const energyNutrient = newFood.food_nutrients.find(n => 
+      n.nutrient.name.toLowerCase() === 'energy' || n.nutrient.name.toLowerCase() === 'calories'
+    );
+    
+    let estimated_calories = 0;
+    if (energyNutrient) {
+      estimated_calories = (Number(energyNutrient.value_per_100g) / 100) * Number(quantity_grams);
+    }
+
+    // Since we need to update the meal totals, we can do this in a transaction
+    // Or call a stored procedure if available. For now, we will do it with Prisma.
+    // 1. Update the meal_item
+    // 2. Re-calculate the whole meal totals
+    
+    await prisma.$transaction(async (tx) => {
+      // Update item
+      await tx.meal_items.update({
+        where: { item_id: itemId },
+        data: {
+          food_id: new_food_id,
+          quantity_grams: quantity_grams,
+          estimated_calories: estimated_calories,
+          user_corrected: true
+        }
+      });
+
+      // Recalculate meal totals
+      const allItems = await tx.meal_items.findMany({
+        where: { meal_id: mealId },
+        include: {
+          food: {
+            include: {
+              food_nutrients: {
+                include: { nutrient: true }
+              }
+            }
+          }
+        }
+      });
+
+      let totalCal = 0, totalPro = 0, totalCarb = 0, totalFat = 0;
+      
+      for (const item of allItems) {
+        const qtyMultiplier = Number(item.quantity_grams) / 100;
+        
+        const energy = item.food.food_nutrients.find(n => n.nutrient.name.toLowerCase() === 'energy' || n.nutrient.name.toLowerCase() === 'calories');
+        const protein = item.food.food_nutrients.find(n => n.nutrient.name.toLowerCase() === 'protein');
+        const carbs = item.food.food_nutrients.find(n => n.nutrient.name.toLowerCase() === 'carbohydrate' || n.nutrient.name.toLowerCase() === 'carbs');
+        const fat = item.food.food_nutrients.find(n => n.nutrient.name.toLowerCase() === 'fat' || n.nutrient.name.toLowerCase() === 'total lipid (fat)');
+
+        if (energy) totalCal += Number(energy.value_per_100g) * qtyMultiplier;
+        if (protein) totalPro += Number(protein.value_per_100g) * qtyMultiplier;
+        if (carbs) totalCarb += Number(carbs.value_per_100g) * qtyMultiplier;
+        if (fat) totalFat += Number(fat.value_per_100g) * qtyMultiplier;
+      }
+
+      await tx.meals.update({
+        where: { meal_id: mealId },
+        data: {
+          total_calories: totalCal,
+          total_protein_g: totalPro,
+          total_carbs_g: totalCarb,
+          total_fat_g: totalFat
+        }
+      });
+
+      // Also log the correction in ai_match_log
+      // find the latest ai_match_log for this user/session and update it
+      // this is tricky without session_id on meal_item, but we'll insert a basic correction log
+      await tx.ai_match_log.create({
+        data: {
+          detected_label: mealItem.food_id.toString(), // we don't have the original label string easily here
+          matched_food_id: mealItem.food_id,
+          user_corrected: true,
+          corrected_food_id: new_food_id,
+          weight_grams: quantity_grams
+        }
+      });
+    });
+
+    // Fetch updated meal to return
+    const updatedMeal = await prisma.meals.findUnique({
+      where: { meal_id: mealId },
+      include: {
+        meal_items: {
+          include: { food: true }
+        }
+      }
+    });
+
+    const items = updatedMeal!.meal_items.map((item) => ({
+      item_id: item.item_id,
+      food_id: item.food_id,
+      food_name: item.food?.name || 'Unknown food',
+      quantity_grams: Number(item.quantity_grams),
+      estimated_calories: Number(item.estimated_calories),
+      user_corrected: item.user_corrected,
+      food: item.food
+    }));
+
+    return res.status(200).json({
+      meal_id: updatedMeal!.meal_id,
+      meal_type: updatedMeal!.meal_type,
+      total_calories: Number(updatedMeal!.total_calories),
+      total_protein_g: Number(updatedMeal!.total_protein_g),
+      total_carbs_g: Number(updatedMeal!.total_carbs_g),
+      total_fat_g: Number(updatedMeal!.total_fat_g),
+      items
+    });
+
+  } catch (error) {
+    console.error('[Correct Meal Item Error]', error);
+    return res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to correct meal item' });
+  }
+};
