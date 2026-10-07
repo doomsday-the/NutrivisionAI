@@ -84,7 +84,11 @@ export const devLogin = async (req: Request, res: Response) => {
   }
 
   try {
-    let user = await prisma.users.findUnique({ where: { email: 'dev@test.com' } });
+    let user = await prisma.users.findUnique({ where: { google_id: 'dev_user_123' } });
+
+    if (!user) {
+      user = await prisma.users.findUnique({ where: { email: 'dev@test.com' } });
+    }
 
     if (!user) {
       const salt = await bcrypt.genSalt(10);
@@ -99,6 +103,11 @@ export const devLogin = async (req: Request, res: Response) => {
           password_hash,
           last_login_at: new Date(),
         }
+      });
+    } else {
+      user = await prisma.users.update({
+        where: { user_id: user.user_id },
+        data: { last_login_at: new Date() }
       });
     }
 
