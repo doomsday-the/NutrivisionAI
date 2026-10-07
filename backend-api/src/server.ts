@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.routes';
 import profileRoutes from './routes/profile.routes';
 import mealRoutes from './routes/meal.routes';
 import activityRoutes from './routes/activity.routes';
+import foodRoutes from './routes/food.routes';
 import { getDashboard } from './controllers/activityController';
 import { authenticate } from './middlewares/auth';
 
@@ -38,6 +39,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/foods', foodRoutes);
 app.get('/api/dashboard', authenticate, getDashboard);
 
 // Global Error Handler (F-002, F-008, F-010 covered here)

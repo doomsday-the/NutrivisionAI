@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { analyzeMeal } from '../controllers/mealController';
+import { analyzeMeal, correctMealItem } from '../controllers/mealController';
 import { authenticate } from '../middlewares/auth';
 import { validate } from '../middlewares/validate';
 import { mealAnalyzeSchema } from '../schemas';
@@ -26,5 +26,8 @@ router.post(
   validate(mealAnalyzeSchema),
   analyzeMeal
 );
+
+// Manual item correction
+router.put('/:mealId/items/:itemId', correctMealItem);
 
 export default router;
