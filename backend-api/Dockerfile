@@ -6,6 +6,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+RUN npx prisma generate
 
 # Build step omitted for dev mode, we use ts-node via nodemon in dev
 EXPOSE 3000
