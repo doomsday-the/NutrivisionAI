@@ -45,11 +45,11 @@ def load_midas() -> Any:
         _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         logger.info(f"Loading MiDaS DPT_Hybrid model on {_device}...")
 
-        _model = torch.hub.load("intel-isl/MiDaS", "DPT_Hybrid", pretrained=True)
+        _model = torch.hub.load("intel-isl/MiDaS", "DPT_Hybrid", pretrained=True, trust_repo=True)
         _model.to(_device)
         _model.eval()
 
-        midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
+        midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms", trust_repo=True)
         _transform = midas_transforms.dpt_transform
         logger.info("MiDaS model and transforms initialized successfully.")
     except Exception as e:

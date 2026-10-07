@@ -4,10 +4,7 @@ from typing import List, Optional
 from fastapi import FastAPI, File, UploadFile, Header, HTTPException, Form
 from pydantic import BaseModel
 
-try:
-    from src.depth import estimate_weights, is_model_loaded
-except ImportError:
-    from depth import estimate_weights, is_model_loaded
+from src.depth import estimate_weights, is_model_loaded
 
 logger = logging.getLogger("ai_service")
 
