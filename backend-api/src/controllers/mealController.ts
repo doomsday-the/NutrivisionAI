@@ -47,13 +47,16 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
 
     const { detections } = aiResponse.data;
 
+    const sanitizedFilename = file.originalname ? file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_') : 'meal.jpg';
+    const imageUrl = `/uploads/meals/${session_id}_${sanitizedFilename}`;
+
     // 2. Call Stored Procedure for atomic transaction
     // sp_log_meal(p_user_id INT, p_meal_type VARCHAR, p_image_url TEXT, p_detections JSONB, p_session_id VARCHAR)
     const result: any = await prisma.$queryRaw`
       CALL public.sp_log_meal(
         ${user_id}::INT,
         ${meal_type}::VARCHAR,
-        ${'http://mock-image-url.com/img.jpg'}::TEXT,
+        ${imageUrl}::TEXT,
         ${JSON.stringify(detections)}::JSONB,
         ${session_id}::VARCHAR,
         null
