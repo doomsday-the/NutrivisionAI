@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Activity, Target, Save, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 interface ProfileData {
   age?: number;
@@ -38,7 +39,7 @@ export default function Profile() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await axios.get<UserProfileResponse>('http://localhost:3000/api/profile');
+        const res = await axios.get<UserProfileResponse>(`${API_BASE_URL}/api/profile`);
         setUserData(res.data);
         if (res.data.profile) {
           setAge(res.data.profile.age ?? '');
@@ -97,7 +98,7 @@ export default function Profile() {
         goal: goal,
       };
 
-      const res = await axios.put<UserProfileResponse>('http://localhost:3000/api/profile', payload);
+      const res = await axios.put<UserProfileResponse>(`${API_BASE_URL}/api/profile`, payload);
       setUserData(res.data);
       setSuccessMessage('Health profile & calorie target updated successfully!');
       setTimeout(() => setSuccessMessage(''), 4000);

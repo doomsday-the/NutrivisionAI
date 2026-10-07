@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Flame, Utensils, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 
 interface MealSummary {
   meal_id: number;
@@ -59,7 +60,7 @@ export default function Dashboard() {
         setLoading(true);
         const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
         const res = await axios.get<DashboardData>(
-          `http://localhost:3000/api/activity/dashboard?date=${formattedDate}`,
+          `${API_BASE_URL}/api/activity/dashboard?date=${formattedDate}`,
           { headers }
         );
         setData(res.data);
