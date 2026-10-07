@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import LogMeal from './pages/LogMeal';
 import Profile from './pages/Profile';
 import Activity from './pages/Activity';
+import MealHistory from './pages/MealHistory';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy-client-id';
 
@@ -23,6 +24,7 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/log-meal" element={<LogMeal />} />
+                <Route path="/history" element={<MealHistory />} />
                 <Route path="/activity" element={<Activity />} />
                 <Route path="/profile" element={<Profile />} />
               </Route>
