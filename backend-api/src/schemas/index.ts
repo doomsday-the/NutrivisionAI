@@ -43,6 +43,8 @@ export const mealHistorySchema = z.object({
     page: z.string().regex(/^\d+$/, 'page must be a positive integer').optional(),
     limit: z.string().regex(/^\d+$/, 'limit must be a positive integer').optional(),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be YYYY-MM-DD').optional(),
+    start: z.string().optional(),
+    end: z.string().optional(),
   }),
 });
 

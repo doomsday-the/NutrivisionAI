@@ -422,6 +422,8 @@ export const getMealHistory = async (req: AuthRequest, res: Response) => {
   const page = Math.max(1, parseInt((req.query.page as string) || '1', 10));
   const limit = Math.max(1, Math.min(100, parseInt((req.query.limit as string) || '10', 10)));
   const dateStr = req.query.date as string | undefined;
+  const startParam = req.query.start as string | undefined;
+  const endParam = req.query.end as string | undefined;
 
   const skip = (page - 1) * limit;
 
@@ -429,7 +431,12 @@ export const getMealHistory = async (req: AuthRequest, res: Response) => {
     user_id
   };
 
-  if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+  if (startParam && endParam) {
+    whereClause.logged_at = {
+      gte: new Date(startParam),
+      lte: new Date(endParam)
+    };
+  } else if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     const startOfDay = new Date(`${dateStr}T00:00:00.000Z`);
     const endOfDay = new Date(`${dateStr}T23:59:59.999Z`);
     whereClause.logged_at = {
