@@ -285,6 +285,17 @@ describe('Meals API', () => {
     expect(resToday.status).toBe(200);
     expect(resToday.body.meals).toHaveLength(1);
     expect(resToday.body.meals[0].meal_type).toBe('lunch');
+
+    // Query using start and end ISO strings (ADR-008)
+    const startIso = new Date(yesterday.getTime() - 60000).toISOString();
+    const endIso = new Date(yesterday.getTime() + 60000).toISOString();
+    const resIso = await request(app)
+      .get(`/api/meals/history?start=${startIso}&end=${endIso}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(resIso.status).toBe(200);
+    expect(resIso.body.meals).toHaveLength(1);
+    expect(resIso.body.meals[0].meal_type).toBe('breakfast');
   });
 
   it('should validate inputs when adding a meal item', async () => {

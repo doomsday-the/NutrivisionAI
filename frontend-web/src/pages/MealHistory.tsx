@@ -37,6 +37,7 @@ interface HistoryResponse {
 export default function MealHistory() {
   const { token } = useAuth();
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
@@ -44,7 +45,7 @@ export default function MealHistory() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState<string>('');
 
-  const fetchMeals = async (targetPage: number, append: boolean = false) => {
+  const fetchMeals = async (targetPage: number, append: boolean = false, dateFilter: string = selectedDate) => {
     try {
       if (append) {
         setLoadingMore(true);
@@ -53,8 +54,19 @@ export default function MealHistory() {
       }
       setError('');
 
+      let url = `${API_BASE_URL}/api/meals/history?page=${targetPage}&limit=10`;
+      if (dateFilter) {
+        const [year, month, day] = dateFilter.split('-').map(Number);
+        const currentDate = new Date(year, month - 1, day);
+        const startOfDay = new Date(currentDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(currentDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        url += `&start=${startOfDay.toISOString()}&end=${endOfDay.toISOString()}`;
+      }
+
       const res = await axios.get<HistoryResponse>(
-        `${API_BASE_URL}/api/meals/history?page=${targetPage}&limit=10`,
+        url,
         {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         }
@@ -143,12 +155,39 @@ export default function MealHistory() {
             </p>
           </div>
         </div>
-        <Link
-          to="/log-meal"
-          className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition"
-        >
-          <Plus size={18} /> Log Meal
-        </Link>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs">
+            <span className="text-gray-500 font-medium">Filter date:</span>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                fetchMeals(1, false, e.target.value);
+              }}
+              className="text-xs text-gray-700 outline-none"
+            />
+            {selectedDate && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedDate('');
+                  fetchMeals(1, false, '');
+                }}
+                className="text-gray-400 hover:text-gray-600 font-bold ml-1"
+                title="Clear filter"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <Link
+            to="/log-meal"
+            className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition text-sm"
+          >
+            <Plus size={16} /> Log Meal
+          </Link>
+        </div>
       </div>
 
       {error && (

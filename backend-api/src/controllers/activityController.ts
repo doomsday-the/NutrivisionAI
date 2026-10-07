@@ -52,28 +52,41 @@ export const syncActivity = async (req: AuthRequest, res: Response) => {
 export const getDashboard = async (req: AuthRequest, res: Response) => {
   try {
     const user_id = req.user!.user_id;
-    let log_date = req.query.date as string;
+    const startParam = req.query.start as string | undefined;
+    const endParam = req.query.end as string | undefined;
+    let log_date = req.query.date as string | undefined;
 
-    if (!log_date) {
-      log_date = new Date().toISOString().split('T')[0];
+    let startOfDay: Date;
+    let endOfDay: Date;
+    let isInclusiveEnd = false;
+
+    if (startParam && endParam) {
+      startOfDay = new Date(startParam);
+      endOfDay = new Date(endParam);
+      isInclusiveEnd = true;
+      log_date = startOfDay.toISOString().split('T')[0];
+    } else {
+      if (!log_date) {
+        log_date = new Date().toISOString().split('T')[0];
+      }
+      startOfDay = new Date(`${log_date}T00:00:00.000Z`);
+      endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+      isInclusiveEnd = false;
     }
-    const logDateObj = new Date(log_date);
 
-    const startOfDay = new Date(`${log_date}T00:00:00.000Z`);
-    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+    const dailyLogDate = new Date(`${log_date}T00:00:00.000Z`);
 
     const [dailyLog, profile, meals] = await Promise.all([
       prisma.daily_logs.findUnique({
-        where: { user_id_log_date: { user_id, log_date: startOfDay } }
+        where: { user_id_log_date: { user_id, log_date: dailyLogDate } }
       }),
       prisma.user_profiles.findUnique({ where: { user_id } }),
       prisma.meals.findMany({
         where: {
           user_id,
-          logged_at: {
-            gte: startOfDay,
-            lt: endOfDay
-          }
+          logged_at: isInclusiveEnd
+            ? { gte: startOfDay, lte: endOfDay }
+            : { gte: startOfDay, lt: endOfDay }
         },
         select: {
           meal_id: true,
@@ -88,17 +101,21 @@ export const getDashboard = async (req: AuthRequest, res: Response) => {
     const target = profile ? Number(profile.daily_calorie_target) : 2000;
 
     if (!dailyLog) {
+      const mealCalories = meals.reduce((acc, m) => acc + Number(m.total_calories || 0), 0);
       return res.status(200).json({
         date: log_date,
         target_calories: target,
-        total_calories: 0,
+        total_calories: mealCalories,
         calories_burned: 0,
-        remaining_calories: target,
+        remaining_calories: target - mealCalories,
         total_protein_g: 0,
         total_carbs_g: 0,
         total_fat_g: 0,
         steps: 0,
-        meals: []
+        meals: meals.map(m => ({
+          ...m,
+          total_calories: Number(m.total_calories)
+        }))
       });
     }
 
