@@ -31,3 +31,37 @@ export const profileUpdateSchema = z.object({
     goal: z.enum(['lose', 'maintain', 'gain']).optional(),
   }),
 });
+
+export const deleteMealSchema = z.object({
+  params: z.object({
+    mealId: z.string().regex(/^\d+$/, 'mealId must be a positive integer'),
+  }),
+});
+
+export const mealHistorySchema = z.object({
+  query: z.object({
+    page: z.string().regex(/^\d+$/, 'page must be a positive integer').optional(),
+    limit: z.string().regex(/^\d+$/, 'limit must be a positive integer').optional(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be YYYY-MM-DD').optional(),
+    start: z.string().optional(),
+    end: z.string().optional(),
+  }),
+});
+
+export const createMealSchema = z.object({
+  body: z.object({
+    meal_type: z.enum(['breakfast', 'lunch', 'dinner', 'snack'], {
+      message: 'meal_type must be breakfast, lunch, dinner, or snack',
+    }),
+  }),
+});
+
+export const addMealItemSchema = z.object({
+  params: z.object({
+    mealId: z.string().regex(/^\d+$/, 'mealId must be a positive integer'),
+  }),
+  body: z.object({
+    food_id: z.coerce.number().int().positive('food_id must be a positive integer'),
+    quantity_grams: z.coerce.number().positive('quantity_grams must be greater than 0'),
+  }),
+});

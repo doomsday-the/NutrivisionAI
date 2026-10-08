@@ -1,0 +1,541 @@
+fdc_id,data_type,description,food_category_id,publication_date
+10001,branded,Pizza,1,2024-04-18
+10002,branded,Pizza (Light),1,2024-04-18
+10003,branded,Pizza (Extra),1,2024-04-18
+10004,branded,Pizza (Classic),1,2024-04-18
+10005,branded,Pizza (Spicy),1,2024-04-18
+10006,branded,Pizza (Mild),1,2024-04-18
+10007,branded,Pizza (Low Fat),1,2024-04-18
+10008,branded,Pizza (Full Fat),1,2024-04-18
+10009,branded,Pizza (Sugar Free),1,2024-04-18
+10010,branded,Pizza (Gluten Free),1,2024-04-18
+10011,branded,Pizza (Vegan),1,2024-04-18
+10012,branded,Pizza (Original),1,2024-04-18
+10013,branded,Pizza (Premium),1,2024-04-18
+10014,branded,Pizza (Value),1,2024-04-18
+10015,branded,Pizza (Gourmet),1,2024-04-18
+10016,branded,Pizza (Artisan),1,2024-04-18
+10017,branded,Pizza (Homestyle),1,2024-04-18
+10018,branded,Pizza (Smoked),1,2024-04-18
+10019,branded,Pizza (Roasted),1,2024-04-18
+10020,branded,Pizza (Fried),1,2024-04-18
+10021,branded,Pizza (Baked),1,2024-04-18
+10022,branded,Pizza (Grilled),1,2024-04-18
+10023,branded,Pizza (Crispy),1,2024-04-18
+10024,branded,Pizza (Tender),1,2024-04-18
+10025,branded,Pizza (Juicy),1,2024-04-18
+10026,branded,Pizza (Fresh),1,2024-04-18
+10027,branded,Pizza (Frozen),1,2024-04-18
+10028,branded,Burger,1,2024-04-18
+10029,branded,Burger (Light),1,2024-04-18
+10030,branded,Burger (Extra),1,2024-04-18
+10031,branded,Burger (Classic),1,2024-04-18
+10032,branded,Burger (Spicy),1,2024-04-18
+10033,branded,Burger (Mild),1,2024-04-18
+10034,branded,Burger (Low Fat),1,2024-04-18
+10035,branded,Burger (Full Fat),1,2024-04-18
+10036,branded,Burger (Sugar Free),1,2024-04-18
+10037,branded,Burger (Gluten Free),1,2024-04-18
+10038,branded,Burger (Vegan),1,2024-04-18
+10039,branded,Burger (Original),1,2024-04-18
+10040,branded,Burger (Premium),1,2024-04-18
+10041,branded,Burger (Value),1,2024-04-18
+10042,branded,Burger (Gourmet),1,2024-04-18
+10043,branded,Burger (Artisan),1,2024-04-18
+10044,branded,Burger (Homestyle),1,2024-04-18
+10045,branded,Burger (Smoked),1,2024-04-18
+10046,branded,Burger (Roasted),1,2024-04-18
+10047,branded,Burger (Fried),1,2024-04-18
+10048,branded,Burger (Baked),1,2024-04-18
+10049,branded,Burger (Grilled),1,2024-04-18
+10050,branded,Burger (Crispy),1,2024-04-18
+10051,branded,Burger (Tender),1,2024-04-18
+10052,branded,Burger (Juicy),1,2024-04-18
+10053,branded,Burger (Fresh),1,2024-04-18
+10054,branded,Burger (Frozen),1,2024-04-18
+10055,branded,Pasta,1,2024-04-18
+10056,branded,Pasta (Light),1,2024-04-18
+10057,branded,Pasta (Extra),1,2024-04-18
+10058,branded,Pasta (Classic),1,2024-04-18
+10059,branded,Pasta (Spicy),1,2024-04-18
+10060,branded,Pasta (Mild),1,2024-04-18
+10061,branded,Pasta (Low Fat),1,2024-04-18
+10062,branded,Pasta (Full Fat),1,2024-04-18
+10063,branded,Pasta (Sugar Free),1,2024-04-18
+10064,branded,Pasta (Gluten Free),1,2024-04-18
+10065,branded,Pasta (Vegan),1,2024-04-18
+10066,branded,Pasta (Original),1,2024-04-18
+10067,branded,Pasta (Premium),1,2024-04-18
+10068,branded,Pasta (Value),1,2024-04-18
+10069,branded,Pasta (Gourmet),1,2024-04-18
+10070,branded,Pasta (Artisan),1,2024-04-18
+10071,branded,Pasta (Homestyle),1,2024-04-18
+10072,branded,Pasta (Smoked),1,2024-04-18
+10073,branded,Pasta (Roasted),1,2024-04-18
+10074,branded,Pasta (Fried),1,2024-04-18
+10075,branded,Pasta (Baked),1,2024-04-18
+10076,branded,Pasta (Grilled),1,2024-04-18
+10077,branded,Pasta (Crispy),1,2024-04-18
+10078,branded,Pasta (Tender),1,2024-04-18
+10079,branded,Pasta (Juicy),1,2024-04-18
+10080,branded,Pasta (Fresh),1,2024-04-18
+10081,branded,Pasta (Frozen),1,2024-04-18
+10082,branded,Oats,1,2024-04-18
+10083,branded,Oats (Light),1,2024-04-18
+10084,branded,Oats (Extra),1,2024-04-18
+10085,branded,Oats (Classic),1,2024-04-18
+10086,branded,Oats (Spicy),1,2024-04-18
+10087,branded,Oats (Mild),1,2024-04-18
+10088,branded,Oats (Low Fat),1,2024-04-18
+10089,branded,Oats (Full Fat),1,2024-04-18
+10090,branded,Oats (Sugar Free),1,2024-04-18
+10091,branded,Oats (Gluten Free),1,2024-04-18
+10092,branded,Oats (Vegan),1,2024-04-18
+10093,branded,Oats (Original),1,2024-04-18
+10094,branded,Oats (Premium),1,2024-04-18
+10095,branded,Oats (Value),1,2024-04-18
+10096,branded,Oats (Gourmet),1,2024-04-18
+10097,branded,Oats (Artisan),1,2024-04-18
+10098,branded,Oats (Homestyle),1,2024-04-18
+10099,branded,Oats (Smoked),1,2024-04-18
+10100,branded,Oats (Roasted),1,2024-04-18
+10101,branded,Oats (Fried),1,2024-04-18
+10102,branded,Oats (Baked),1,2024-04-18
+10103,branded,Oats (Grilled),1,2024-04-18
+10104,branded,Oats (Crispy),1,2024-04-18
+10105,branded,Oats (Tender),1,2024-04-18
+10106,branded,Oats (Juicy),1,2024-04-18
+10107,branded,Oats (Fresh),1,2024-04-18
+10108,branded,Oats (Frozen),1,2024-04-18
+10109,branded,Bread,1,2024-04-18
+10110,branded,Bread (Light),1,2024-04-18
+10111,branded,Bread (Extra),1,2024-04-18
+10112,branded,Bread (Classic),1,2024-04-18
+10113,branded,Bread (Spicy),1,2024-04-18
+10114,branded,Bread (Mild),1,2024-04-18
+10115,branded,Bread (Low Fat),1,2024-04-18
+10116,branded,Bread (Full Fat),1,2024-04-18
+10117,branded,Bread (Sugar Free),1,2024-04-18
+10118,branded,Bread (Gluten Free),1,2024-04-18
+10119,branded,Bread (Vegan),1,2024-04-18
+10120,branded,Bread (Original),1,2024-04-18
+10121,branded,Bread (Premium),1,2024-04-18
+10122,branded,Bread (Value),1,2024-04-18
+10123,branded,Bread (Gourmet),1,2024-04-18
+10124,branded,Bread (Artisan),1,2024-04-18
+10125,branded,Bread (Homestyle),1,2024-04-18
+10126,branded,Bread (Smoked),1,2024-04-18
+10127,branded,Bread (Roasted),1,2024-04-18
+10128,branded,Bread (Fried),1,2024-04-18
+10129,branded,Bread (Baked),1,2024-04-18
+10130,branded,Bread (Grilled),1,2024-04-18
+10131,branded,Bread (Crispy),1,2024-04-18
+10132,branded,Bread (Tender),1,2024-04-18
+10133,branded,Bread (Juicy),1,2024-04-18
+10134,branded,Bread (Fresh),1,2024-04-18
+10135,branded,Bread (Frozen),1,2024-04-18
+10136,branded,Almonds,1,2024-04-18
+10137,branded,Almonds (Light),1,2024-04-18
+10138,branded,Almonds (Extra),1,2024-04-18
+10139,branded,Almonds (Classic),1,2024-04-18
+10140,branded,Almonds (Spicy),1,2024-04-18
+10141,branded,Almonds (Mild),1,2024-04-18
+10142,branded,Almonds (Low Fat),1,2024-04-18
+10143,branded,Almonds (Full Fat),1,2024-04-18
+10144,branded,Almonds (Sugar Free),1,2024-04-18
+10145,branded,Almonds (Gluten Free),1,2024-04-18
+10146,branded,Almonds (Vegan),1,2024-04-18
+10147,branded,Almonds (Original),1,2024-04-18
+10148,branded,Almonds (Premium),1,2024-04-18
+10149,branded,Almonds (Value),1,2024-04-18
+10150,branded,Almonds (Gourmet),1,2024-04-18
+10151,branded,Almonds (Artisan),1,2024-04-18
+10152,branded,Almonds (Homestyle),1,2024-04-18
+10153,branded,Almonds (Smoked),1,2024-04-18
+10154,branded,Almonds (Roasted),1,2024-04-18
+10155,branded,Almonds (Fried),1,2024-04-18
+10156,branded,Almonds (Baked),1,2024-04-18
+10157,branded,Almonds (Grilled),1,2024-04-18
+10158,branded,Almonds (Crispy),1,2024-04-18
+10159,branded,Almonds (Tender),1,2024-04-18
+10160,branded,Almonds (Juicy),1,2024-04-18
+10161,branded,Almonds (Fresh),1,2024-04-18
+10162,branded,Almonds (Frozen),1,2024-04-18
+10163,branded,Yogurt,1,2024-04-18
+10164,branded,Yogurt (Light),1,2024-04-18
+10165,branded,Yogurt (Extra),1,2024-04-18
+10166,branded,Yogurt (Classic),1,2024-04-18
+10167,branded,Yogurt (Spicy),1,2024-04-18
+10168,branded,Yogurt (Mild),1,2024-04-18
+10169,branded,Yogurt (Low Fat),1,2024-04-18
+10170,branded,Yogurt (Full Fat),1,2024-04-18
+10171,branded,Yogurt (Sugar Free),1,2024-04-18
+10172,branded,Yogurt (Gluten Free),1,2024-04-18
+10173,branded,Yogurt (Vegan),1,2024-04-18
+10174,branded,Yogurt (Original),1,2024-04-18
+10175,branded,Yogurt (Premium),1,2024-04-18
+10176,branded,Yogurt (Value),1,2024-04-18
+10177,branded,Yogurt (Gourmet),1,2024-04-18
+10178,branded,Yogurt (Artisan),1,2024-04-18
+10179,branded,Yogurt (Homestyle),1,2024-04-18
+10180,branded,Yogurt (Smoked),1,2024-04-18
+10181,branded,Yogurt (Roasted),1,2024-04-18
+10182,branded,Yogurt (Fried),1,2024-04-18
+10183,branded,Yogurt (Baked),1,2024-04-18
+10184,branded,Yogurt (Grilled),1,2024-04-18
+10185,branded,Yogurt (Crispy),1,2024-04-18
+10186,branded,Yogurt (Tender),1,2024-04-18
+10187,branded,Yogurt (Juicy),1,2024-04-18
+10188,branded,Yogurt (Fresh),1,2024-04-18
+10189,branded,Yogurt (Frozen),1,2024-04-18
+10190,branded,Cheese,1,2024-04-18
+10191,branded,Cheese (Light),1,2024-04-18
+10192,branded,Cheese (Extra),1,2024-04-18
+10193,branded,Cheese (Classic),1,2024-04-18
+10194,branded,Cheese (Spicy),1,2024-04-18
+10195,branded,Cheese (Mild),1,2024-04-18
+10196,branded,Cheese (Low Fat),1,2024-04-18
+10197,branded,Cheese (Full Fat),1,2024-04-18
+10198,branded,Cheese (Sugar Free),1,2024-04-18
+10199,branded,Cheese (Gluten Free),1,2024-04-18
+10200,branded,Cheese (Vegan),1,2024-04-18
+10201,branded,Cheese (Original),1,2024-04-18
+10202,branded,Cheese (Premium),1,2024-04-18
+10203,branded,Cheese (Value),1,2024-04-18
+10204,branded,Cheese (Gourmet),1,2024-04-18
+10205,branded,Cheese (Artisan),1,2024-04-18
+10206,branded,Cheese (Homestyle),1,2024-04-18
+10207,branded,Cheese (Smoked),1,2024-04-18
+10208,branded,Cheese (Roasted),1,2024-04-18
+10209,branded,Cheese (Fried),1,2024-04-18
+10210,branded,Cheese (Baked),1,2024-04-18
+10211,branded,Cheese (Grilled),1,2024-04-18
+10212,branded,Cheese (Crispy),1,2024-04-18
+10213,branded,Cheese (Tender),1,2024-04-18
+10214,branded,Cheese (Juicy),1,2024-04-18
+10215,branded,Cheese (Fresh),1,2024-04-18
+10216,branded,Cheese (Frozen),1,2024-04-18
+10217,branded,Bacon,1,2024-04-18
+10218,branded,Bacon (Light),1,2024-04-18
+10219,branded,Bacon (Extra),1,2024-04-18
+10220,branded,Bacon (Classic),1,2024-04-18
+10221,branded,Bacon (Spicy),1,2024-04-18
+10222,branded,Bacon (Mild),1,2024-04-18
+10223,branded,Bacon (Low Fat),1,2024-04-18
+10224,branded,Bacon (Full Fat),1,2024-04-18
+10225,branded,Bacon (Sugar Free),1,2024-04-18
+10226,branded,Bacon (Gluten Free),1,2024-04-18
+10227,branded,Bacon (Vegan),1,2024-04-18
+10228,branded,Bacon (Original),1,2024-04-18
+10229,branded,Bacon (Premium),1,2024-04-18
+10230,branded,Bacon (Value),1,2024-04-18
+10231,branded,Bacon (Gourmet),1,2024-04-18
+10232,branded,Bacon (Artisan),1,2024-04-18
+10233,branded,Bacon (Homestyle),1,2024-04-18
+10234,branded,Bacon (Smoked),1,2024-04-18
+10235,branded,Bacon (Roasted),1,2024-04-18
+10236,branded,Bacon (Fried),1,2024-04-18
+10237,branded,Bacon (Baked),1,2024-04-18
+10238,branded,Bacon (Grilled),1,2024-04-18
+10239,branded,Bacon (Crispy),1,2024-04-18
+10240,branded,Bacon (Tender),1,2024-04-18
+10241,branded,Bacon (Juicy),1,2024-04-18
+10242,branded,Bacon (Fresh),1,2024-04-18
+10243,branded,Bacon (Frozen),1,2024-04-18
+10244,branded,Sausage,1,2024-04-18
+10245,branded,Sausage (Light),1,2024-04-18
+10246,branded,Sausage (Extra),1,2024-04-18
+10247,branded,Sausage (Classic),1,2024-04-18
+10248,branded,Sausage (Spicy),1,2024-04-18
+10249,branded,Sausage (Mild),1,2024-04-18
+10250,branded,Sausage (Low Fat),1,2024-04-18
+10251,branded,Sausage (Full Fat),1,2024-04-18
+10252,branded,Sausage (Sugar Free),1,2024-04-18
+10253,branded,Sausage (Gluten Free),1,2024-04-18
+10254,branded,Sausage (Vegan),1,2024-04-18
+10255,branded,Sausage (Original),1,2024-04-18
+10256,branded,Sausage (Premium),1,2024-04-18
+10257,branded,Sausage (Value),1,2024-04-18
+10258,branded,Sausage (Gourmet),1,2024-04-18
+10259,branded,Sausage (Artisan),1,2024-04-18
+10260,branded,Sausage (Homestyle),1,2024-04-18
+10261,branded,Sausage (Smoked),1,2024-04-18
+10262,branded,Sausage (Roasted),1,2024-04-18
+10263,branded,Sausage (Fried),1,2024-04-18
+10264,branded,Sausage (Baked),1,2024-04-18
+10265,branded,Sausage (Grilled),1,2024-04-18
+10266,branded,Sausage (Crispy),1,2024-04-18
+10267,branded,Sausage (Tender),1,2024-04-18
+10268,branded,Sausage (Juicy),1,2024-04-18
+10269,branded,Sausage (Fresh),1,2024-04-18
+10270,branded,Sausage (Frozen),1,2024-04-18
+10271,branded,Ice Cream,1,2024-04-18
+10272,branded,Ice Cream (Light),1,2024-04-18
+10273,branded,Ice Cream (Extra),1,2024-04-18
+10274,branded,Ice Cream (Classic),1,2024-04-18
+10275,branded,Ice Cream (Spicy),1,2024-04-18
+10276,branded,Ice Cream (Mild),1,2024-04-18
+10277,branded,Ice Cream (Low Fat),1,2024-04-18
+10278,branded,Ice Cream (Full Fat),1,2024-04-18
+10279,branded,Ice Cream (Sugar Free),1,2024-04-18
+10280,branded,Ice Cream (Gluten Free),1,2024-04-18
+10281,branded,Ice Cream (Vegan),1,2024-04-18
+10282,branded,Ice Cream (Original),1,2024-04-18
+10283,branded,Ice Cream (Premium),1,2024-04-18
+10284,branded,Ice Cream (Value),1,2024-04-18
+10285,branded,Ice Cream (Gourmet),1,2024-04-18
+10286,branded,Ice Cream (Artisan),1,2024-04-18
+10287,branded,Ice Cream (Homestyle),1,2024-04-18
+10288,branded,Ice Cream (Smoked),1,2024-04-18
+10289,branded,Ice Cream (Roasted),1,2024-04-18
+10290,branded,Ice Cream (Fried),1,2024-04-18
+10291,branded,Ice Cream (Baked),1,2024-04-18
+10292,branded,Ice Cream (Grilled),1,2024-04-18
+10293,branded,Ice Cream (Crispy),1,2024-04-18
+10294,branded,Ice Cream (Tender),1,2024-04-18
+10295,branded,Ice Cream (Juicy),1,2024-04-18
+10296,branded,Ice Cream (Fresh),1,2024-04-18
+10297,branded,Ice Cream (Frozen),1,2024-04-18
+10298,branded,Chocolate,1,2024-04-18
+10299,branded,Chocolate (Light),1,2024-04-18
+10300,branded,Chocolate (Extra),1,2024-04-18
+10301,branded,Chocolate (Classic),1,2024-04-18
+10302,branded,Chocolate (Spicy),1,2024-04-18
+10303,branded,Chocolate (Mild),1,2024-04-18
+10304,branded,Chocolate (Low Fat),1,2024-04-18
+10305,branded,Chocolate (Full Fat),1,2024-04-18
+10306,branded,Chocolate (Sugar Free),1,2024-04-18
+10307,branded,Chocolate (Gluten Free),1,2024-04-18
+10308,branded,Chocolate (Vegan),1,2024-04-18
+10309,branded,Chocolate (Original),1,2024-04-18
+10310,branded,Chocolate (Premium),1,2024-04-18
+10311,branded,Chocolate (Value),1,2024-04-18
+10312,branded,Chocolate (Gourmet),1,2024-04-18
+10313,branded,Chocolate (Artisan),1,2024-04-18
+10314,branded,Chocolate (Homestyle),1,2024-04-18
+10315,branded,Chocolate (Smoked),1,2024-04-18
+10316,branded,Chocolate (Roasted),1,2024-04-18
+10317,branded,Chocolate (Fried),1,2024-04-18
+10318,branded,Chocolate (Baked),1,2024-04-18
+10319,branded,Chocolate (Grilled),1,2024-04-18
+10320,branded,Chocolate (Crispy),1,2024-04-18
+10321,branded,Chocolate (Tender),1,2024-04-18
+10322,branded,Chocolate (Juicy),1,2024-04-18
+10323,branded,Chocolate (Fresh),1,2024-04-18
+10324,branded,Chocolate (Frozen),1,2024-04-18
+10325,branded,Peanut Butter,1,2024-04-18
+10326,branded,Peanut Butter (Light),1,2024-04-18
+10327,branded,Peanut Butter (Extra),1,2024-04-18
+10328,branded,Peanut Butter (Classic),1,2024-04-18
+10329,branded,Peanut Butter (Spicy),1,2024-04-18
+10330,branded,Peanut Butter (Mild),1,2024-04-18
+10331,branded,Peanut Butter (Low Fat),1,2024-04-18
+10332,branded,Peanut Butter (Full Fat),1,2024-04-18
+10333,branded,Peanut Butter (Sugar Free),1,2024-04-18
+10334,branded,Peanut Butter (Gluten Free),1,2024-04-18
+10335,branded,Peanut Butter (Vegan),1,2024-04-18
+10336,branded,Peanut Butter (Original),1,2024-04-18
+10337,branded,Peanut Butter (Premium),1,2024-04-18
+10338,branded,Peanut Butter (Value),1,2024-04-18
+10339,branded,Peanut Butter (Gourmet),1,2024-04-18
+10340,branded,Peanut Butter (Artisan),1,2024-04-18
+10341,branded,Peanut Butter (Homestyle),1,2024-04-18
+10342,branded,Peanut Butter (Smoked),1,2024-04-18
+10343,branded,Peanut Butter (Roasted),1,2024-04-18
+10344,branded,Peanut Butter (Fried),1,2024-04-18
+10345,branded,Peanut Butter (Baked),1,2024-04-18
+10346,branded,Peanut Butter (Grilled),1,2024-04-18
+10347,branded,Peanut Butter (Crispy),1,2024-04-18
+10348,branded,Peanut Butter (Tender),1,2024-04-18
+10349,branded,Peanut Butter (Juicy),1,2024-04-18
+10350,branded,Peanut Butter (Fresh),1,2024-04-18
+10351,branded,Peanut Butter (Frozen),1,2024-04-18
+10352,branded,Walnuts,1,2024-04-18
+10353,branded,Walnuts (Light),1,2024-04-18
+10354,branded,Walnuts (Extra),1,2024-04-18
+10355,branded,Walnuts (Classic),1,2024-04-18
+10356,branded,Walnuts (Spicy),1,2024-04-18
+10357,branded,Walnuts (Mild),1,2024-04-18
+10358,branded,Walnuts (Low Fat),1,2024-04-18
+10359,branded,Walnuts (Full Fat),1,2024-04-18
+10360,branded,Walnuts (Sugar Free),1,2024-04-18
+10361,branded,Walnuts (Gluten Free),1,2024-04-18
+10362,branded,Walnuts (Vegan),1,2024-04-18
+10363,branded,Walnuts (Original),1,2024-04-18
+10364,branded,Walnuts (Premium),1,2024-04-18
+10365,branded,Walnuts (Value),1,2024-04-18
+10366,branded,Walnuts (Gourmet),1,2024-04-18
+10367,branded,Walnuts (Artisan),1,2024-04-18
+10368,branded,Walnuts (Homestyle),1,2024-04-18
+10369,branded,Walnuts (Smoked),1,2024-04-18
+10370,branded,Walnuts (Roasted),1,2024-04-18
+10371,branded,Walnuts (Fried),1,2024-04-18
+10372,branded,Walnuts (Baked),1,2024-04-18
+10373,branded,Walnuts (Grilled),1,2024-04-18
+10374,branded,Walnuts (Crispy),1,2024-04-18
+10375,branded,Walnuts (Tender),1,2024-04-18
+10376,branded,Walnuts (Juicy),1,2024-04-18
+10377,branded,Walnuts (Fresh),1,2024-04-18
+10378,branded,Walnuts (Frozen),1,2024-04-18
+10379,branded,Milk,1,2024-04-18
+10380,branded,Milk (Light),1,2024-04-18
+10381,branded,Milk (Extra),1,2024-04-18
+10382,branded,Milk (Classic),1,2024-04-18
+10383,branded,Milk (Spicy),1,2024-04-18
+10384,branded,Milk (Mild),1,2024-04-18
+10385,branded,Milk (Low Fat),1,2024-04-18
+10386,branded,Milk (Full Fat),1,2024-04-18
+10387,branded,Milk (Sugar Free),1,2024-04-18
+10388,branded,Milk (Gluten Free),1,2024-04-18
+10389,branded,Milk (Vegan),1,2024-04-18
+10390,branded,Milk (Original),1,2024-04-18
+10391,branded,Milk (Premium),1,2024-04-18
+10392,branded,Milk (Value),1,2024-04-18
+10393,branded,Milk (Gourmet),1,2024-04-18
+10394,branded,Milk (Artisan),1,2024-04-18
+10395,branded,Milk (Homestyle),1,2024-04-18
+10396,branded,Milk (Smoked),1,2024-04-18
+10397,branded,Milk (Roasted),1,2024-04-18
+10398,branded,Milk (Fried),1,2024-04-18
+10399,branded,Milk (Baked),1,2024-04-18
+10400,branded,Milk (Grilled),1,2024-04-18
+10401,branded,Milk (Crispy),1,2024-04-18
+10402,branded,Milk (Tender),1,2024-04-18
+10403,branded,Milk (Juicy),1,2024-04-18
+10404,branded,Milk (Fresh),1,2024-04-18
+10405,branded,Milk (Frozen),1,2024-04-18
+10406,branded,Tofu,1,2024-04-18
+10407,branded,Tofu (Light),1,2024-04-18
+10408,branded,Tofu (Extra),1,2024-04-18
+10409,branded,Tofu (Classic),1,2024-04-18
+10410,branded,Tofu (Spicy),1,2024-04-18
+10411,branded,Tofu (Mild),1,2024-04-18
+10412,branded,Tofu (Low Fat),1,2024-04-18
+10413,branded,Tofu (Full Fat),1,2024-04-18
+10414,branded,Tofu (Sugar Free),1,2024-04-18
+10415,branded,Tofu (Gluten Free),1,2024-04-18
+10416,branded,Tofu (Vegan),1,2024-04-18
+10417,branded,Tofu (Original),1,2024-04-18
+10418,branded,Tofu (Premium),1,2024-04-18
+10419,branded,Tofu (Value),1,2024-04-18
+10420,branded,Tofu (Gourmet),1,2024-04-18
+10421,branded,Tofu (Artisan),1,2024-04-18
+10422,branded,Tofu (Homestyle),1,2024-04-18
+10423,branded,Tofu (Smoked),1,2024-04-18
+10424,branded,Tofu (Roasted),1,2024-04-18
+10425,branded,Tofu (Fried),1,2024-04-18
+10426,branded,Tofu (Baked),1,2024-04-18
+10427,branded,Tofu (Grilled),1,2024-04-18
+10428,branded,Tofu (Crispy),1,2024-04-18
+10429,branded,Tofu (Tender),1,2024-04-18
+10430,branded,Tofu (Juicy),1,2024-04-18
+10431,branded,Tofu (Fresh),1,2024-04-18
+10432,branded,Tofu (Frozen),1,2024-04-18
+10433,branded,Soy Milk,1,2024-04-18
+10434,branded,Soy Milk (Light),1,2024-04-18
+10435,branded,Soy Milk (Extra),1,2024-04-18
+10436,branded,Soy Milk (Classic),1,2024-04-18
+10437,branded,Soy Milk (Spicy),1,2024-04-18
+10438,branded,Soy Milk (Mild),1,2024-04-18
+10439,branded,Soy Milk (Low Fat),1,2024-04-18
+10440,branded,Soy Milk (Full Fat),1,2024-04-18
+10441,branded,Soy Milk (Sugar Free),1,2024-04-18
+10442,branded,Soy Milk (Gluten Free),1,2024-04-18
+10443,branded,Soy Milk (Vegan),1,2024-04-18
+10444,branded,Soy Milk (Original),1,2024-04-18
+10445,branded,Soy Milk (Premium),1,2024-04-18
+10446,branded,Soy Milk (Value),1,2024-04-18
+10447,branded,Soy Milk (Gourmet),1,2024-04-18
+10448,branded,Soy Milk (Artisan),1,2024-04-18
+10449,branded,Soy Milk (Homestyle),1,2024-04-18
+10450,branded,Soy Milk (Smoked),1,2024-04-18
+10451,branded,Soy Milk (Roasted),1,2024-04-18
+10452,branded,Soy Milk (Fried),1,2024-04-18
+10453,branded,Soy Milk (Baked),1,2024-04-18
+10454,branded,Soy Milk (Grilled),1,2024-04-18
+10455,branded,Soy Milk (Crispy),1,2024-04-18
+10456,branded,Soy Milk (Tender),1,2024-04-18
+10457,branded,Soy Milk (Juicy),1,2024-04-18
+10458,branded,Soy Milk (Fresh),1,2024-04-18
+10459,branded,Soy Milk (Frozen),1,2024-04-18
+10460,branded,Pork,1,2024-04-18
+10461,branded,Pork (Light),1,2024-04-18
+10462,branded,Pork (Extra),1,2024-04-18
+10463,branded,Pork (Classic),1,2024-04-18
+10464,branded,Pork (Spicy),1,2024-04-18
+10465,branded,Pork (Mild),1,2024-04-18
+10466,branded,Pork (Low Fat),1,2024-04-18
+10467,branded,Pork (Full Fat),1,2024-04-18
+10468,branded,Pork (Sugar Free),1,2024-04-18
+10469,branded,Pork (Gluten Free),1,2024-04-18
+10470,branded,Pork (Vegan),1,2024-04-18
+10471,branded,Pork (Original),1,2024-04-18
+10472,branded,Pork (Premium),1,2024-04-18
+10473,branded,Pork (Value),1,2024-04-18
+10474,branded,Pork (Gourmet),1,2024-04-18
+10475,branded,Pork (Artisan),1,2024-04-18
+10476,branded,Pork (Homestyle),1,2024-04-18
+10477,branded,Pork (Smoked),1,2024-04-18
+10478,branded,Pork (Roasted),1,2024-04-18
+10479,branded,Pork (Fried),1,2024-04-18
+10480,branded,Pork (Baked),1,2024-04-18
+10481,branded,Pork (Grilled),1,2024-04-18
+10482,branded,Pork (Crispy),1,2024-04-18
+10483,branded,Pork (Tender),1,2024-04-18
+10484,branded,Pork (Juicy),1,2024-04-18
+10485,branded,Pork (Fresh),1,2024-04-18
+10486,branded,Pork (Frozen),1,2024-04-18
+10487,branded,Beef,1,2024-04-18
+10488,branded,Beef (Light),1,2024-04-18
+10489,branded,Beef (Extra),1,2024-04-18
+10490,branded,Beef (Classic),1,2024-04-18
+10491,branded,Beef (Spicy),1,2024-04-18
+10492,branded,Beef (Mild),1,2024-04-18
+10493,branded,Beef (Low Fat),1,2024-04-18
+10494,branded,Beef (Full Fat),1,2024-04-18
+10495,branded,Beef (Sugar Free),1,2024-04-18
+10496,branded,Beef (Gluten Free),1,2024-04-18
+10497,branded,Beef (Vegan),1,2024-04-18
+10498,branded,Beef (Original),1,2024-04-18
+10499,branded,Beef (Premium),1,2024-04-18
+10500,branded,Beef (Value),1,2024-04-18
+10501,branded,Beef (Gourmet),1,2024-04-18
+10502,branded,Beef (Artisan),1,2024-04-18
+10503,branded,Beef (Homestyle),1,2024-04-18
+10504,branded,Beef (Smoked),1,2024-04-18
+10505,branded,Beef (Roasted),1,2024-04-18
+10506,branded,Beef (Fried),1,2024-04-18
+10507,branded,Beef (Baked),1,2024-04-18
+10508,branded,Beef (Grilled),1,2024-04-18
+10509,branded,Beef (Crispy),1,2024-04-18
+10510,branded,Beef (Tender),1,2024-04-18
+10511,branded,Beef (Juicy),1,2024-04-18
+10512,branded,Beef (Fresh),1,2024-04-18
+10513,branded,Beef (Frozen),1,2024-04-18
+10514,branded,Turkey,1,2024-04-18
+10515,branded,Turkey (Light),1,2024-04-18
+10516,branded,Turkey (Extra),1,2024-04-18
+10517,branded,Turkey (Classic),1,2024-04-18
+10518,branded,Turkey (Spicy),1,2024-04-18
+10519,branded,Turkey (Mild),1,2024-04-18
+10520,branded,Turkey (Low Fat),1,2024-04-18
+10521,branded,Turkey (Full Fat),1,2024-04-18
+10522,branded,Turkey (Sugar Free),1,2024-04-18
+10523,branded,Turkey (Gluten Free),1,2024-04-18
+10524,branded,Turkey (Vegan),1,2024-04-18
+10525,branded,Turkey (Original),1,2024-04-18
+10526,branded,Turkey (Premium),1,2024-04-18
+10527,branded,Turkey (Value),1,2024-04-18
+10528,branded,Turkey (Gourmet),1,2024-04-18
+10529,branded,Turkey (Artisan),1,2024-04-18
+10530,branded,Turkey (Homestyle),1,2024-04-18
+10531,branded,Turkey (Smoked),1,2024-04-18
+10532,branded,Turkey (Roasted),1,2024-04-18
+10533,branded,Turkey (Fried),1,2024-04-18
+10534,branded,Turkey (Baked),1,2024-04-18
+10535,branded,Turkey (Grilled),1,2024-04-18
+10536,branded,Turkey (Crispy),1,2024-04-18
+10537,branded,Turkey (Tender),1,2024-04-18
+10538,branded,Turkey (Juicy),1,2024-04-18
+10539,branded,Turkey (Fresh),1,2024-04-18
+10540,branded,Turkey (Frozen),1,2024-04-18
