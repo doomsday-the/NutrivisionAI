@@ -1,17 +1,8 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Flame, Utensils, ChevronLeft, ChevronRight, Calendar, TrendingUp, Activity, PieChart } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../config';
-import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { Activity, Flame, Utensils, Target, Footprints, Coffee, Sun, Moon, Apple } from 'lucide-react';
 
-interface MealSummary {
-  meal_id: number;
-  meal_type: string;
-  total_calories: number;
-  logged_at?: string;
-}
-
+// ── TypeScript interfaces (unchanged) ────────────────────────
 interface DashboardData {
   date: string;
   target_calories: number;
@@ -22,297 +13,377 @@ interface DashboardData {
   total_carbs_g: number;
   total_fat_g: number;
   steps: number;
-  meals: MealSummary[];
+  meals: any[];
 }
 
-interface WeeklyData {
-  day: string;
-  date: string;
-  calories: number;
-  target: number;
+// ── Helpers ──────────────────────────────────────────────────
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
 }
 
+function todayLabel(): string {
+  return new Date().toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric',
+  });
+}
+
+// ── Calorie Ring ─────────────────────────────────────────────
+function CalorieRing({ eaten, target }: { eaten: number; target: number }) {
+  const radius = 70;
+  const stroke = 10;
+  const norm = radius - stroke / 2;
+  const circ = 2 * Math.PI * norm;
+  const pct = target > 0 ? Math.min(eaten / target, 1) : 0;
+  const offset = circ * (1 - pct);
+  const remaining = Math.max(target - eaten, 0);
+
+  return (
+    <div className="flex flex-col items-center justify-center p-6">
+      <div className="relative" style={{ width: radius * 2, height: radius * 2 }}>
+        <svg width={radius * 2} height={radius * 2} className="rotate-[-90deg]">
+          {/* Track */}
+          <circle
+            cx={radius} cy={radius} r={norm}
+            fill="none" stroke="rgba(255,255,255,0.06)"
+            strokeWidth={stroke}
+          />
+          {/* Progress */}
+          <circle
+            cx={radius} cy={radius} r={norm}
+            fill="none"
+            stroke="url(#ringGrad)"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={circ}
+            strokeDashoffset={offset}
+            style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)' }}
+          />
+          <defs>
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stopColor="#4ade80" />
+              <stop offset="100%" stopColor="#2dd4bf" />
+            </linearGradient>
+          </defs>
+        </svg>
+        {/* Center text */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-3xl font-black text-white leading-none">{eaten}</span>
+          <span className="text-xs text-slate-400 font-medium mt-0.5">kcal eaten</span>
+        </div>
+      </div>
+      <p className="text-slate-400 text-sm mt-3">
+        <span className="text-emerald-400 font-bold">{remaining}</span> kcal remaining
+      </p>
+    </div>
+  );
+}
+
+// ── Stat Card ────────────────────────────────────────────────
+interface StatCardProps {
+  label: string;
+  value: number | string;
+  unit?: string;
+  icon: React.ReactNode;
+  gradient: string;
+  glowColor: string;
+}
+
+function StatCard({ label, value, unit = 'kcal', icon, gradient, glowColor }: StatCardProps) {
+  return (
+    <div
+      className="relative rounded-2xl p-5 overflow-hidden group transition-transform duration-200 hover:-translate-y-0.5"
+      style={{
+        background: gradient,
+        boxShadow: `0 4px 24px ${glowColor}`,
+        border: '1px solid rgba(255,255,255,0.1)',
+      }}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+          {icon}
+        </div>
+      </div>
+      <div className="text-3xl font-black text-white leading-none mb-1">{value}</div>
+      <div className="text-xs font-medium text-white/60 uppercase tracking-widest">{unit}</div>
+      <div className="text-sm font-semibold text-white/80 mt-1">{label}</div>
+      {/* Subtle shine */}
+      <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10 pointer-events-none"
+        style={{ background: 'radial-gradient(circle, white, transparent)', transform: 'translate(30%, -30%)' }} />
+    </div>
+  );
+}
+
+// ── Macro Bar ────────────────────────────────────────────────
+function MacroBar({ label, value, max, color, bg }: {
+  label: string; value: number; max: number; color: string; bg: string;
+}) {
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between text-sm">
+        <span className="font-semibold text-slate-300">{label}</span>
+        <span className="font-bold" style={{ color }}>{value}g</span>
+      </div>
+      <div className="h-2.5 rounded-full overflow-hidden" style={{ background: bg }}>
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${pct}%`, background: color }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── Meal Type Config ─────────────────────────────────────────
+const mealTypeConfig: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
+  breakfast: { icon: <Coffee size={16} />,  color: '#eab308', bg: 'rgba(234,179,8,0.12)'   },
+  lunch:     { icon: <Sun size={16} />,     color: '#22c55e', bg: 'rgba(34,197,94,0.12)'    },
+  dinner:    { icon: <Moon size={16} />,    color: '#3b82f6', bg: 'rgba(59,130,246,0.12)'   },
+  snack:     { icon: <Apple size={16} />,   color: '#a855f7', bg: 'rgba(168,85,247,0.12)'   },
+};
+
+// ── Skeleton ──────────────────────────────────────────────────
+function Skeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="h-8 w-56 rounded-xl bg-white/8" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-36 rounded-2xl bg-white/8" />
+        ))}
+      </div>
+      <div className="h-48 rounded-2xl bg-white/8" />
+      <div className="h-40 rounded-2xl bg-white/8" />
+    </div>
+  );
+}
+
+// ── Dashboard ────────────────────────────────────────────────
 export default function Dashboard() {
-  const { token } = useAuth();
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [data, setData] = useState<DashboardData | null>(null);
-  const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const formattedDate = currentDate.toLocaleDateString('en-CA');
-  const todayFormatted = new Date().toLocaleDateString('en-CA');
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayFormatted = yesterday.toLocaleDateString('en-CA');
-
-  const isToday = formattedDate === todayFormatted;
-  const isYesterday = formattedDate === yesterdayFormatted;
-
-  let headingText = "Today's Overview";
-  if (isToday) headingText = "Today's Overview";
-  else if (isYesterday) headingText = "Yesterday's Overview";
-  else {
-    headingText = currentDate.toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric'
-    });
-  }
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        setLoading(true);
-        const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-
-        const [res, weeklyRes] = await Promise.all([
-          axios.get<DashboardData>(
-            `${API_BASE_URL}/api/activity/dashboard?date=${formattedDate}`,
-            { headers }
-          ),
-          axios.get<WeeklyData[]>(
-            `${API_BASE_URL}/api/activity/weekly?date=${formattedDate}`,
-            { headers }
-          ).catch(() => ({ data: [] as WeeklyData[] }))
-        ]);
+        const res = await axios.get('http://localhost:3000/api/activity/dashboard');
         setData(res.data);
-        setWeeklyData(weeklyRes.data);
       } catch (err) {
         console.error('Failed to load dashboard', err);
-        setData({
-          date: formattedDate, target_calories: 2000, total_calories: 0,
-          calories_burned: 0, remaining_calories: 2000, total_protein_g: 0,
-          total_carbs_g: 0, total_fat_g: 0, steps: 0, meals: []
-        });
-        setWeeklyData([]);
       } finally {
         setLoading(false);
       }
     };
     fetchDashboard();
-  }, [currentDate, formattedDate, token]);
+  }, []);
 
-  const targetCalories = Number(data?.target_calories ?? 2000);
-  const totalCalories = Number(data?.total_calories ?? 0);
-  const caloriesBurned = Number(data?.calories_burned ?? 0);
-  const remainingCalories = Math.max(0, targetCalories - totalCalories + caloriesBurned);
-  const totalProtein = Number(data?.total_protein_g ?? 0);
-  const totalCarbs = Number(data?.total_carbs_g ?? 0);
-  const totalFat = Number(data?.total_fat_g ?? 0);
-  const mealsList = data?.meals ?? [];
+  if (loading) return <Skeleton />;
 
-  const macroData = [
-    { name: 'Protein', value: totalProtein, color: '#3b82f6' },
-    { name: 'Carbs', value: totalCarbs, color: '#f59e0b' },
-    { name: 'Fat', value: totalFat, color: '#ef4444' },
-  ];
-  const totalMacros = totalProtein + totalCarbs + totalFat;
-
-  // Mock weekly data for the beautiful bar chart - removed, using dynamic data
-  // The weeklyData state is mapped directly to the Recharts BarChart
+  if (!data) return (
+    <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in">
+      <div className="text-6xl mb-4">😕</div>
+      <h2 className="text-xl font-bold text-white mb-2">Couldn't load dashboard</h2>
+      <p className="text-slate-400 text-sm">Make sure the backend is running on port 3000.</p>
+    </div>
+  );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div className="space-y-6 animate-fade-in">
+      {/* ── Header ─────────────────────────────────────── */}
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{headingText}</h1>
-          <p className="text-gray-500 mt-1 flex items-center gap-2 font-medium">
-            <Calendar size={16} /> {formattedDate}
-          </p>
+          <h1 className="text-2xl font-black text-white">
+            {getGreeting()} 👋
+          </h1>
+          <p className="text-slate-400 text-sm mt-0.5">{todayLabel()}</p>
         </div>
-
-        <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-200 p-1">
-          <button
-            onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() - 1); setCurrentDate(d); }}
-            className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          {!isToday && (
-            <button
-              onClick={() => setCurrentDate(new Date())}
-              className="px-4 py-1.5 text-sm font-bold text-primary-600 hover:bg-primary-50 rounded-lg transition"
-            >
-              Today
-            </button>
-          )}
-          <button
-            onClick={() => { if(!isToday) { const d = new Date(currentDate); d.setDate(d.getDate() + 1); setCurrentDate(d); } }}
-            disabled={isToday}
-            className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition disabled:opacity-30"
-          >
-            <ChevronRight size={20} />
-          </button>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{ background: 'linear-gradient(135deg, #22c55e, #14b8a6)' }}>
+          <Activity size={20} className="text-white" />
         </div>
       </div>
 
-      {loading && !data ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      {/* ── Hero: Ring + Stats ───────────────────────── */}
+      <div
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+          {/* Calorie ring */}
+          <div className="flex items-center justify-center border-b md:border-b-0 md:border-r border-white/8 py-2">
+            <CalorieRing eaten={data.total_calories} target={data.target_calories} />
+          </div>
+          {/* Quick stats */}
+          <div className="grid grid-cols-2 gap-0">
+            {[
+              { label: 'Target',    value: data.target_calories,  color: '#3b82f6', icon: <Target size={16} className="text-blue-400" /> },
+              { label: 'Eaten',     value: data.total_calories,   color: '#22c55e', icon: <Utensils size={16} className="text-emerald-400" /> },
+              { label: 'Burned',    value: data.calories_burned,  color: '#f97316', icon: <Flame size={16} className="text-orange-400" /> },
+              { label: 'Remaining', value: data.remaining_calories, color: '#a855f7', icon: <Activity size={16} className="text-purple-400" /> },
+            ].map((item, i) => (
+              <div
+                key={item.label}
+                className={`p-5 flex flex-col gap-1 ${i % 2 === 0 ? 'border-r' : ''} ${i < 2 ? 'border-b' : ''} border-white/8`}
+              >
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold uppercase tracking-wider">
+                  {item.icon} {item.label}
+                </div>
+                <div className="text-2xl font-black" style={{ color: item.color }}>
+                  {item.value}
+                </div>
+                <div className="text-xs text-slate-500">kcal</div>
+              </div>
+            ))}
+          </div>
         </div>
-      ) : (
-        <>
-          {/* Main Stat Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-gray-100 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                <Activity size={64} />
-              </div>
-              <div className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Target</div>
-              <div className="text-4xl font-extrabold text-gray-900">{Math.round(targetCalories)}</div>
-              <div className="text-sm font-medium text-gray-400 mt-2">kcal / day</div>
-            </div>
+      </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-2xl shadow-[0_2px_20px_-5px_rgba(16,185,129,0.15)] border border-green-100 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-green-600">
-                <Utensils size={64} />
-              </div>
-              <div className="text-xs font-bold uppercase tracking-wider text-green-700 mb-2">Eaten</div>
-              <div className="text-4xl font-extrabold text-green-900">{Math.round(totalCalories)}</div>
-              <div className="text-sm font-medium text-green-600 mt-2">logged today</div>
-            </div>
+      {/* ── 4 Stat Cards ────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard
+          label="Target"
+          value={data.target_calories}
+          icon={<Target size={20} className="text-white" />}
+          gradient="linear-gradient(135deg, #1d4ed8, #2563eb)"
+          glowColor="rgba(59,130,246,0.25)"
+        />
+        <StatCard
+          label="Eaten"
+          value={data.total_calories}
+          icon={<Utensils size={20} className="text-white" />}
+          gradient="linear-gradient(135deg, #15803d, #22c55e)"
+          glowColor="rgba(34,197,94,0.25)"
+        />
+        <StatCard
+          label="Burned"
+          value={data.calories_burned}
+          icon={<Flame size={20} className="text-white" />}
+          gradient="linear-gradient(135deg, #c2410c, #f97316)"
+          glowColor="rgba(249,115,22,0.25)"
+        />
+        <StatCard
+          label="Remaining"
+          value={data.remaining_calories}
+          icon={<Activity size={20} className="text-white" />}
+          gradient="linear-gradient(135deg, #7e22ce, #a855f7)"
+          glowColor="rgba(168,85,247,0.25)"
+        />
+      </div>
 
-            <div className="bg-gradient-to-br from-orange-50 to-amber-100 p-6 rounded-2xl shadow-[0_2px_20px_-5px_rgba(245,158,11,0.15)] border border-orange-100 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-orange-600">
-                <Flame size={64} />
-              </div>
-              <div className="text-xs font-bold uppercase tracking-wider text-orange-700 mb-2">Burned</div>
-              <div className="text-4xl font-extrabold text-orange-900">{Math.round(caloriesBurned)}</div>
-              <div className="text-sm font-medium text-orange-600 mt-2">active calories</div>
-            </div>
+      {/* ── Macros ──────────────────────────────────── */}
+      <div
+        className="rounded-2xl p-6"
+        style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <h2 className="text-base font-bold text-white mb-5 flex items-center gap-2">
+          <span className="w-1.5 h-5 rounded-full inline-block"
+            style={{ background: 'linear-gradient(180deg, #22c55e, #14b8a6)' }} />
+          Macronutrients
+        </h2>
+        <div className="space-y-4">
+          <MacroBar label="Protein" value={data.total_protein_g} max={150} color="#a855f7" bg="rgba(168,85,247,0.12)" />
+          <MacroBar label="Carbs"   value={data.total_carbs_g}   max={300} color="#eab308" bg="rgba(234,179,8,0.12)"   />
+          <MacroBar label="Fat"     value={data.total_fat_g}     max={80}  color="#f97316" bg="rgba(249,115,22,0.12)"  />
+        </div>
+      </div>
 
-            <div className="bg-gradient-to-br from-primary-500 to-indigo-600 p-6 rounded-2xl shadow-[0_4px_25px_-5px_rgba(99,102,241,0.4)] border border-primary-600 relative overflow-hidden group text-white">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                <TrendingUp size={64} />
-              </div>
-              <div className="text-xs font-bold uppercase tracking-wider text-primary-100 mb-2">Remaining</div>
-              <div className="text-4xl font-extrabold">{Math.round(remainingCalories)}</div>
-              <div className="text-sm font-medium text-primary-200 mt-2">left for today</div>
-            </div>
+      {/* ── Steps ───────────────────────────────────── */}
+      <div
+        className="rounded-2xl p-6 flex items-center gap-5"
+        style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg, #0ea5e9, #6366f1)' }}>
+          <Footprints size={28} className="text-white" />
+        </div>
+        <div>
+          <div className="text-3xl font-black text-white">
+            {data.steps.toLocaleString()}
           </div>
+          <div className="text-sm text-slate-400 font-medium">steps today</div>
+        </div>
+        <div className="ml-auto text-xs text-slate-500 font-medium text-right hidden sm:block">
+          Goal<br />
+          <span className="text-slate-300 font-bold text-base">10,000</span>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Macros Donut Chart */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-              <div className="flex items-center gap-2 mb-6">
-                <PieChart className="text-primary-500" size={24} />
-                <h2 className="text-xl font-bold text-gray-900">Macros</h2>
-              </div>
-              {totalMacros > 0 ? (
-                <div className="flex-1 flex flex-col justify-center">
-                  <div className="h-48 relative">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RePieChart>
-                        <Pie
-                          data={macroData}
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {macroData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          formatter={(value: any) => [`${Math.round(value)}g`, undefined]}
-                          contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                        />
-                      </RePieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                      <span className="text-2xl font-bold text-gray-900">{Math.round(totalMacros)}g</span>
-                      <span className="text-xs text-gray-500">Total</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between mt-4">
-                    {macroData.map(m => (
-                      <div key={m.name} className="text-center">
-                        <div className="flex items-center justify-center gap-1.5 mb-1">
-                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }}></div>
-                          <span className="text-xs font-semibold text-gray-500 uppercase">{m.name}</span>
-                        </div>
-                        <div className="font-bold text-gray-900">{Math.round(m.value)}g</div>
-                        <div className="text-[10px] text-gray-400">
-                          {Math.round((m.value / totalMacros) * 100)}%
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex-1 flex items-center justify-center flex-col text-gray-400">
-                  <PieChart size={48} className="mb-3 opacity-20" />
-                  <p className="text-sm font-medium">No macros logged today</p>
-                </div>
-              )}
-            </div>
+      {/* ── Meals List ──────────────────────────────── */}
+      <div
+        className="rounded-2xl p-6"
+        style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <h2 className="text-base font-bold text-white mb-5 flex items-center gap-2">
+          <span className="w-1.5 h-5 rounded-full inline-block"
+            style={{ background: 'linear-gradient(180deg, #f97316, #eab308)' }} />
+          Logged Meals
+        </h2>
 
-            {/* Weekly Trend Chart */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="text-primary-500" size={24} />
-                  <h2 className="text-xl font-bold text-gray-900">Weekly Trend</h2>
-                </div>
-              </div>
-              <div className="flex-1 h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                    <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
-                    <Tooltip
-                      cursor={{ fill: '#f9fafb' }}
-                      contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    />
-                    <Bar dataKey="calories" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={32} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+        {data.meals.length === 0 ? (
+          <div className="flex flex-col items-center py-12 text-center animate-fade-in">
+            <div className="text-5xl mb-3">🍽️</div>
+            <p className="text-slate-300 font-semibold">No meals logged yet</p>
+            <p className="text-slate-500 text-sm mt-1">
+              Head over to <span className="text-emerald-400 font-medium">Log Meal</span> to add your first meal!
+            </p>
           </div>
-
-          {/* Meals List */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">Meals Today</h2>
-              <span className="bg-primary-50 text-primary-700 text-xs font-bold px-3 py-1 rounded-full">
-                {mealsList.length} logged
-              </span>
-            </div>
-            
-            {mealsList.length === 0 ? (
-              <div className="p-12 flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                  <Utensils className="text-gray-400" size={32} />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">No meals logged yet</h3>
-                <p className="text-gray-500 text-sm mb-6 max-w-sm">You haven't logged any food for this day. Track your meals to see insights here.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-50">
-                {mealsList.map((meal, idx) => (
-                  <div key={meal.meal_id || idx} className="p-5 flex items-center justify-between hover:bg-gray-50 transition group">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center text-primary-600">
-                        <Utensils size={24} />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-gray-900 capitalize text-lg group-hover:text-primary-600 transition">{meal.meal_type}</h4>
-                        <p className="text-xs text-gray-500 font-medium">Logged today</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xl font-extrabold text-gray-900">{Math.round(meal.total_calories)}</div>
-                      <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Kcal</div>
-                    </div>
+        ) : (
+          <div className="space-y-3">
+            {data.meals.map((meal, idx) => {
+              const cfg = mealTypeConfig[meal.meal_type] ?? {
+                icon: <Utensils size={16} />,
+                color: '#94a3b8',
+                bg: 'rgba(148,163,184,0.1)',
+              };
+              return (
+                <div
+                  key={idx}
+                  className="flex items-center gap-4 p-4 rounded-xl transition-transform duration-150 hover:-translate-y-0.5"
+                  style={{
+                    background: cfg.bg,
+                    borderLeft: `3px solid ${cfg.color}`,
+                    border: `1px solid rgba(255,255,255,0.06)`,
+                    borderLeftWidth: '3px',
+                    borderLeftColor: cfg.color,
+                  }}
+                >
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: cfg.bg, color: cfg.color }}
+                  >
+                    {cfg.icon}
                   </div>
-                ))}
-              </div>
-            )}
+                  <span
+                    className="flex-1 font-semibold capitalize text-sm"
+                    style={{ color: cfg.color }}
+                  >
+                    {meal.meal_type}
+                  </span>
+                  <span className="text-white font-black text-base">
+                    {meal.total_calories}
+                    <span className="text-slate-500 text-xs font-medium ml-1">kcal</span>
+                  </span>
+                </div>
+              );
+            })}
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }
