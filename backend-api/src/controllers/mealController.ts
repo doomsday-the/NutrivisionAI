@@ -106,6 +106,7 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
       meal_id: meal.meal_id,
       meal_type: meal.meal_type,
       logged_at: meal.logged_at.toISOString(),
+      notes: meal.notes,
       total_calories: Number(meal.total_calories || 0),
       total_protein_g: Number(meal.total_protein_g || 0),
       total_carbs_g: Number(meal.total_carbs_g || 0),
@@ -478,6 +479,7 @@ export const getMealHistory = async (req: AuthRequest, res: Response) => {
       meal_id: meal.meal_id,
       meal_type: meal.meal_type,
       logged_at: meal.logged_at.toISOString(),
+      notes: meal.notes,
       total_calories: Number(meal.total_calories || 0),
       total_protein_g: Number(meal.total_protein_g || 0),
       total_carbs_g: Number(meal.total_carbs_g || 0),
@@ -510,29 +512,81 @@ export const getMealHistory = async (req: AuthRequest, res: Response) => {
 
 export const createMeal = async (req: AuthRequest, res: Response) => {
   const user_id = req.user!.user_id;
-  const { meal_type } = req.body;
+  const {
+    meal_type,
+    notes,
+    total_calories = 0,
+    total_protein_g = 0,
+    total_carbs_g = 0,
+    total_fat_g = 0,
+  } = req.body;
 
   try {
-    const meal = await prisma.meals.create({
-      data: {
-        user_id,
-        meal_type,
-        total_calories: 0,
-        total_protein_g: 0,
-        total_carbs_g: 0,
-        total_fat_g: 0,
-        logged_at: new Date()
-      }
+    const meal = await prisma.$transaction(async (tx) => {
+      const createdMeal = await tx.meals.create({
+        data: {
+          user_id,
+          meal_type,
+          notes: notes || null,
+          total_calories,
+          total_protein_g,
+          total_carbs_g,
+          total_fat_g,
+          logged_at: new Date()
+        }
+      });
+
+      const logDate = new Date(Date.UTC(
+        createdMeal.logged_at.getUTCFullYear(),
+        createdMeal.logged_at.getUTCMonth(),
+        createdMeal.logged_at.getUTCDate()
+      ));
+      const [profile, existingLog] = await Promise.all([
+        tx.user_profiles.findUnique({ where: { user_id } }),
+        tx.daily_logs.findUnique({ where: { user_id_log_date: { user_id, log_date: logDate } } })
+      ]);
+      const targetCalories = Number(existingLog?.target_calories ?? profile?.daily_calorie_target ?? 2000);
+      const caloriesBurned = Number(existingLog?.calories_burned ?? 0);
+      const totalCalories = Number(existingLog?.total_calories ?? 0) + total_calories;
+      const totalProtein = Number(existingLog?.total_protein_g ?? 0) + total_protein_g;
+      const totalCarbs = Number(existingLog?.total_carbs_g ?? 0) + total_carbs_g;
+      const totalFat = Number(existingLog?.total_fat_g ?? 0) + total_fat_g;
+
+      await tx.daily_logs.upsert({
+        where: { user_id_log_date: { user_id, log_date: logDate } },
+        create: {
+          user_id,
+          log_date: logDate,
+          target_calories: targetCalories,
+          total_calories: totalCalories,
+          total_protein_g: totalProtein,
+          total_carbs_g: totalCarbs,
+          total_fat_g: totalFat,
+          calories_burned: caloriesBurned,
+          remaining_calories: targetCalories - totalCalories + caloriesBurned,
+          steps: existingLog?.steps ?? 0
+        },
+        update: {
+          total_calories: totalCalories,
+          total_protein_g: totalProtein,
+          total_carbs_g: totalCarbs,
+          total_fat_g: totalFat,
+          remaining_calories: targetCalories - totalCalories + caloriesBurned
+        }
+      });
+
+      return createdMeal;
     });
 
     return res.status(201).json({
       meal_id: meal.meal_id,
       meal_type: meal.meal_type,
       logged_at: meal.logged_at.toISOString(),
-      total_calories: 0,
-      total_protein_g: 0,
-      total_carbs_g: 0,
-      total_fat_g: 0,
+      notes: meal.notes,
+      total_calories: Number(meal.total_calories),
+      total_protein_g: Number(meal.total_protein_g),
+      total_carbs_g: Number(meal.total_carbs_g),
+      total_fat_g: Number(meal.total_fat_g),
       items: []
     });
   } catch (error) {

@@ -53,6 +53,11 @@ export const createMealSchema = z.object({
     meal_type: z.enum(['breakfast', 'lunch', 'dinner', 'snack'], {
       message: 'meal_type must be breakfast, lunch, dinner, or snack',
     }),
+    notes: z.string().trim().max(255, 'Meal description must be 255 characters or fewer').optional(),
+    total_calories: z.number().min(0, 'Calories must be non-negative').optional(),
+    total_protein_g: z.number().min(0, 'Protein must be non-negative').optional(),
+    total_carbs_g: z.number().min(0, 'Carbohydrates must be non-negative').optional(),
+    total_fat_g: z.number().min(0, 'Fat must be non-negative').optional(),
   }),
 });
 

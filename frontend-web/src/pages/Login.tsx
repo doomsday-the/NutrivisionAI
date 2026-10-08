@@ -3,10 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
-import { Activity, Camera, Flame, Zap } from 'lucide-react';
+import { Activity, Camera, Flame, Moon, Sun, Zap } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Login() {
   const { login } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [error, setError] = useState('');
 
@@ -33,12 +35,16 @@ export default function Login() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden animate-gradient-shift"
-      style={{
-        background: 'linear-gradient(135deg, #0f172a, #064e3b, #0f172a, #134e4a, #0f172a)',
-      }}
-    >
+    <div className="login-page min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="theme-toggle login-theme-toggle"
+        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      >
+        {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
       {/* Decorative blobs */}
       <div className="absolute top-[-10%] left-[-5%] w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none"
         style={{ background: 'radial-gradient(circle, #22c55e, transparent)' }} />
@@ -49,7 +55,7 @@ export default function Login() {
 
       {/* Glass card */}
       <div
-        className="relative w-full max-w-md animate-slide-up"
+        className="login-card relative w-full max-w-md animate-slide-up"
         style={{
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',

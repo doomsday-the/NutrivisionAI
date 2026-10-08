@@ -191,11 +191,11 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="dashboard-page space-y-6 animate-fade-in">
       {/* ── Header ─────────────────────────────────────── */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white">
+          <h1 className="dashboard-title text-2xl font-black text-white">
             {getGreeting()} 👋
           </h1>
           <p className="text-slate-400 text-sm mt-0.5">{todayLabel()}</p>
@@ -208,7 +208,7 @@ export default function Dashboard() {
 
       {/* ── Hero: Ring + Stats ───────────────────────── */}
       <div
-        className="rounded-2xl overflow-hidden"
+        className="dashboard-panel rounded-2xl overflow-hidden"
         style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -278,7 +278,7 @@ export default function Dashboard() {
 
       {/* ── Macros ──────────────────────────────────── */}
       <div
-        className="rounded-2xl p-6"
+        className="dashboard-panel rounded-2xl p-6"
         style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -298,7 +298,7 @@ export default function Dashboard() {
 
       {/* ── Steps ───────────────────────────────────── */}
       <div
-        className="rounded-2xl p-6 flex items-center gap-5"
+        className="dashboard-panel rounded-2xl p-6 flex items-center gap-5"
         style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -322,7 +322,7 @@ export default function Dashboard() {
 
       {/* ── Meals List ──────────────────────────────── */}
       <div
-        className="rounded-2xl p-6"
+        className="dashboard-panel rounded-2xl p-6"
         style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
