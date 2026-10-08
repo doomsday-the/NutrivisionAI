@@ -4,6 +4,8 @@ import { AuthRequest } from '../middlewares/auth';
 
 const prisma = new PrismaClient();
 
+const toNullableNumber = (val: unknown): number | null => (val != null ? Number(val) : null);
+
 export const getProfile = async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.users.findUnique({
@@ -18,13 +20,14 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
       email: user.email,
       display_name: user.display_name,
       avatar_url: user.avatar_url,
+      role: user.role,
       profile: user.profile ? {
-        age: user.profile.age,
-        height_cm: Number(user.profile.height_cm),
-        weight_kg: Number(user.profile.weight_kg),
+        age: toNullableNumber(user.profile.age),
+        height_cm: toNullableNumber(user.profile.height_cm),
+        weight_kg: toNullableNumber(user.profile.weight_kg),
         activity_level: user.profile.activity_level,
         goal: user.profile.goal,
-        daily_calorie_target: Number(user.profile.daily_calorie_target)
+        daily_calorie_target: toNullableNumber(user.profile.daily_calorie_target)
       } : null
     });
   } catch (error) {
@@ -35,13 +38,13 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
 export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
     const { age, height_cm, weight_kg, activity_level, goal } = req.body;
-    
+
     // TDEE Calculation
     let target_calories = 2000; // default fallback
     if (age && height_cm && weight_kg && activity_level && goal) {
       // Mifflin-St Jeor (Male default per NFRs)
       let bmr = (10 * weight_kg) + (6.25 * height_cm) - (5 * age) + 5;
-      
+
       const multipliers: Record<string, number> = {
         sedentary: 1.2,
         light: 1.375,
@@ -49,9 +52,9 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
         active: 1.725,
         very_active: 1.9
       };
-      
+
       let tdee = bmr * (multipliers[activity_level] || 1.2);
-      
+
       if (goal === 'lose') target_calories = tdee - 300;
       else if (goal === 'gain') target_calories = tdee + 300;
       else target_calories = tdee;
@@ -63,13 +66,24 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
       create: { user_id: req.user!.user_id, age, height_cm, weight_kg, activity_level, goal, daily_calorie_target: target_calories }
     });
 
+    const user = await prisma.users.findUnique({
+      where: { user_id: req.user!.user_id }
+    });
+
     res.status(200).json({
-      age: updated.age,
-      height_cm: Number(updated.height_cm),
-      weight_kg: Number(updated.weight_kg),
-      activity_level: updated.activity_level,
-      goal: updated.goal,
-      daily_calorie_target: Number(updated.daily_calorie_target)
+      user_id: user!.user_id,
+      email: user!.email,
+      display_name: user!.display_name,
+      avatar_url: user!.avatar_url,
+      role: user!.role,
+      profile: {
+        age: toNullableNumber(updated.age),
+        height_cm: toNullableNumber(updated.height_cm),
+        weight_kg: toNullableNumber(updated.weight_kg),
+        activity_level: updated.activity_level,
+        goal: updated.goal,
+        daily_calorie_target: toNullableNumber(updated.daily_calorie_target)
+      }
     });
   } catch (error) {
     res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to update profile' });

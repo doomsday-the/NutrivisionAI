@@ -1,0 +1,541 @@
+IFCT_Code,Food_Name,Food_Group,Energy (kcal),Protein (g),Fat (g),Carbohydrate (g),Dietary Fibre (g),Sodium (mg)
+IFCT-0001,Rice,Cereals,130,2.7,0.3,28.0,0.4,1
+IFCT-0002,Rice (Boiled),Cereals,133,2.8,0.3,28.7,0.4,1.0
+IFCT-0003,Rice (Fried),Cereals,167,3.5,0.4,35.9,0.5,1.3
+IFCT-0004,Rice (Roasted),Cereals,152,3.2,0.4,32.8,0.5,1.2
+IFCT-0005,Rice (Grilled),Cereals,189,3.9,0.4,40.6,0.6,1.5
+IFCT-0006,Rice (Baked),Cereals,183,3.8,0.4,39.4,0.6,1.4
+IFCT-0007,Rice (Curry),Cereals,146,3.0,0.3,31.5,0.4,1.1
+IFCT-0008,Rice (Spicy),Cereals,114,2.4,0.3,24.5,0.4,0.9
+IFCT-0009,Rice (Sweet),Cereals,171,3.6,0.4,36.9,0.5,1.3
+IFCT-0010,Rice (Raw),Cereals,129,2.7,0.3,27.7,0.4,1.0
+IFCT-0011,Rice (Steamed),Cereals,126,2.6,0.3,27.1,0.4,1.0
+IFCT-0012,Rice (Mashed),Cereals,162,3.4,0.4,34.8,0.5,1.2
+IFCT-0013,Rice (Tikka),Cereals,143,3.0,0.3,30.9,0.4,1.1
+IFCT-0014,Rice (Masala),Cereals,149,3.1,0.3,32.0,0.5,1.1
+IFCT-0015,Rice (Kebab),Cereals,124,2.6,0.3,26.7,0.4,1.0
+IFCT-0016,Rice (Soup),Cereals,149,3.1,0.3,32.2,0.5,1.1
+IFCT-0017,Rice (Salad),Cereals,153,3.2,0.4,32.8,0.5,1.2
+IFCT-0018,Rice (Pickled),Cereals,170,3.5,0.4,36.6,0.5,1.3
+IFCT-0019,Rice (Smoked),Cereals,157,3.3,0.4,33.8,0.5,1.2
+IFCT-0020,Rice (Dry),Cereals,183,3.8,0.4,39.5,0.6,1.4
+IFCT-0021,Rice (Gravy),Cereals,119,2.5,0.3,25.6,0.4,0.9
+IFCT-0022,Rice (Special),Cereals,129,2.7,0.3,27.9,0.4,1.0
+IFCT-0023,Rice (Homestyle),Cereals,169,3.5,0.4,36.3,0.5,1.3
+IFCT-0024,Rice (Restaurant Style),Cereals,169,3.5,0.4,36.5,0.5,1.3
+IFCT-0025,Rice (Premium),Cereals,183,3.8,0.4,39.5,0.6,1.4
+IFCT-0026,Rice (Organic),Cereals,119,2.5,0.3,25.6,0.4,0.9
+IFCT-0027,Rice (Farm Fresh),Cereals,110,2.3,0.3,23.7,0.3,0.8
+IFCT-0028,Roti,Cereals,297,9.0,3.5,58.0,4.0,150
+IFCT-0029,Roti (Boiled),Cereals,285,8.6,3.4,55.6,3.8,143.9
+IFCT-0030,Roti (Fried),Cereals,246,7.5,2.9,48.1,3.3,124.5
+IFCT-0031,Roti (Roasted),Cereals,337,10.2,4.0,65.8,4.5,170.3
+IFCT-0032,Roti (Grilled),Cereals,367,11.1,4.3,71.7,4.9,185.3
+IFCT-0033,Roti (Baked),Cereals,345,10.4,4.1,67.3,4.6,174.0
+IFCT-0034,Roti (Curry),Cereals,310,9.4,3.7,60.5,4.2,156.5
+IFCT-0035,Roti (Spicy),Cereals,363,11.0,4.3,70.9,4.9,183.5
+IFCT-0036,Roti (Sweet),Cereals,344,10.4,4.1,67.2,4.6,173.9
+IFCT-0037,Roti (Raw),Cereals,273,8.3,3.2,53.3,3.7,137.9
+IFCT-0038,Roti (Steamed),Cereals,374,11.3,4.4,73.0,5.0,188.9
+IFCT-0039,Roti (Mashed),Cereals,346,10.5,4.1,67.6,4.7,174.9
+IFCT-0040,Roti (Tikka),Cereals,302,9.2,3.6,59.0,4.1,152.5
+IFCT-0041,Roti (Masala),Cereals,297,9.0,3.5,58.1,4.0,150.2
+IFCT-0042,Roti (Kebab),Cereals,425,12.9,5.0,83.0,5.7,214.7
+IFCT-0043,Roti (Soup),Cereals,317,9.6,3.7,61.9,4.3,160.2
+IFCT-0044,Roti (Salad),Cereals,289,8.8,3.4,56.4,3.9,146.0
+IFCT-0045,Roti (Pickled),Cereals,406,12.3,4.8,79.3,5.5,205.0
+IFCT-0046,Roti (Smoked),Cereals,402,12.2,4.7,78.5,5.4,203.1
+IFCT-0047,Roti (Dry),Cereals,351,10.6,4.1,68.5,4.7,177.3
+IFCT-0048,Roti (Gravy),Cereals,247,7.5,2.9,48.2,3.3,124.6
+IFCT-0049,Roti (Special),Cereals,305,9.3,3.6,59.6,4.1,154.2
+IFCT-0050,Roti (Homestyle),Cereals,249,7.5,2.9,48.5,3.3,125.5
+IFCT-0051,Roti (Restaurant Style),Cereals,433,13.1,5.1,84.6,5.8,218.8
+IFCT-0052,Roti (Premium),Cereals,251,7.6,3.0,49.1,3.4,126.9
+IFCT-0053,Roti (Organic),Cereals,422,12.8,5.0,82.4,5.7,213.2
+IFCT-0054,Roti (Farm Fresh),Cereals,420,12.7,4.9,82.0,5.7,211.9
+IFCT-0055,Dal,Pulses,116,9.0,0.4,20.0,8.0,200
+IFCT-0056,Dal (Boiled),Pulses,149,11.5,0.5,25.6,10.3,256.4
+IFCT-0057,Dal (Fried),Pulses,164,12.7,0.6,28.3,11.3,282.8
+IFCT-0058,Dal (Roasted),Pulses,169,13.1,0.6,29.1,11.6,291.2
+IFCT-0059,Dal (Grilled),Pulses,111,8.6,0.4,19.1,7.6,191.1
+IFCT-0060,Dal (Baked),Pulses,145,11.3,0.5,25.1,10.0,250.7
+IFCT-0061,Dal (Curry),Pulses,157,12.2,0.5,27.0,10.8,270.3
+IFCT-0062,Dal (Spicy),Pulses,169,13.1,0.6,29.1,11.6,290.7
+IFCT-0063,Dal (Sweet),Pulses,128,9.9,0.4,22.0,8.8,219.9
+IFCT-0064,Dal (Raw),Pulses,161,12.5,0.6,27.7,11.1,276.9
+IFCT-0065,Dal (Steamed),Pulses,128,9.9,0.4,22.1,8.8,220.9
+IFCT-0066,Dal (Mashed),Pulses,106,8.3,0.4,18.3,7.3,183.4
+IFCT-0067,Dal (Tikka),Pulses,97,7.5,0.3,16.6,6.7,166.4
+IFCT-0068,Dal (Masala),Pulses,126,9.8,0.4,21.8,8.7,217.9
+IFCT-0069,Dal (Kebab),Pulses,124,9.6,0.4,21.4,8.6,213.8
+IFCT-0070,Dal (Soup),Pulses,158,12.3,0.5,27.2,10.9,272.4
+IFCT-0071,Dal (Salad),Pulses,96,7.4,0.3,16.5,6.6,165.2
+IFCT-0072,Dal (Pickled),Pulses,163,12.6,0.6,28.0,11.2,280.2
+IFCT-0073,Dal (Smoked),Pulses,104,8.1,0.4,18.0,7.2,179.8
+IFCT-0074,Dal (Dry),Pulses,125,9.7,0.4,21.6,8.6,215.9
+IFCT-0075,Dal (Gravy),Pulses,155,12.0,0.5,26.7,10.7,266.8
+IFCT-0076,Dal (Special),Pulses,99,7.7,0.3,17.0,6.8,170.4
+IFCT-0077,Dal (Homestyle),Pulses,155,12.1,0.5,26.8,10.7,267.9
+IFCT-0078,Dal (Restaurant Style),Pulses,99,7.7,0.3,17.1,6.8,171.0
+IFCT-0079,Dal (Premium),Pulses,154,12.0,0.5,26.6,10.6,265.8
+IFCT-0080,Dal (Organic),Pulses,124,9.6,0.4,21.4,8.6,214.4
+IFCT-0081,Dal (Farm Fresh),Pulses,146,11.3,0.5,25.2,10.1,252.2
+IFCT-0082,Paneer,Dairy,265,18.0,20.0,1.2,0.0,18
+IFCT-0083,Paneer (Boiled),Dairy,384,26.1,29.0,1.7,0.0,26.1
+IFCT-0084,Paneer (Fried),Dairy,214,14.6,16.2,1.0,0.0,14.6
+IFCT-0085,Paneer (Roasted),Dairy,253,17.2,19.1,1.1,0.0,17.2
+IFCT-0086,Paneer (Grilled),Dairy,372,25.2,28.0,1.7,0.0,25.2
+IFCT-0087,Paneer (Baked),Dairy,288,19.6,21.7,1.3,0.0,19.6
+IFCT-0088,Paneer (Curry),Dairy,373,25.4,28.2,1.7,0.0,25.4
+IFCT-0089,Paneer (Spicy),Dairy,375,25.5,28.3,1.7,0.0,25.5
+IFCT-0090,Paneer (Sweet),Dairy,359,24.4,27.1,1.6,0.0,24.4
+IFCT-0091,Paneer (Raw),Dairy,232,15.7,17.5,1.0,0.0,15.7
+IFCT-0092,Paneer (Steamed),Dairy,318,21.6,24.0,1.4,0.0,21.6
+IFCT-0093,Paneer (Mashed),Dairy,298,20.2,22.5,1.3,0.0,20.2
+IFCT-0094,Paneer (Tikka),Dairy,367,24.9,27.7,1.7,0.0,24.9
+IFCT-0095,Paneer (Masala),Dairy,322,21.9,24.3,1.5,0.0,21.9
+IFCT-0096,Paneer (Kebab),Dairy,242,16.4,18.3,1.1,0.0,16.4
+IFCT-0097,Paneer (Soup),Dairy,327,22.2,24.7,1.5,0.0,22.2
+IFCT-0098,Paneer (Salad),Dairy,310,21.1,23.4,1.4,0.0,21.1
+IFCT-0099,Paneer (Pickled),Dairy,303,20.6,22.9,1.4,0.0,20.6
+IFCT-0100,Paneer (Smoked),Dairy,244,16.6,18.4,1.1,0.0,16.6
+IFCT-0101,Paneer (Dry),Dairy,216,14.7,16.3,1.0,0.0,14.7
+IFCT-0102,Paneer (Gravy),Dairy,241,16.3,18.2,1.1,0.0,16.3
+IFCT-0103,Paneer (Special),Dairy,297,20.2,22.4,1.3,0.0,20.2
+IFCT-0104,Paneer (Homestyle),Dairy,248,16.9,18.7,1.1,0.0,16.9
+IFCT-0105,Paneer (Restaurant Style),Dairy,297,20.2,22.4,1.3,0.0,20.2
+IFCT-0106,Paneer (Premium),Dairy,313,21.3,23.6,1.4,0.0,21.3
+IFCT-0107,Paneer (Organic),Dairy,327,22.2,24.7,1.5,0.0,22.2
+IFCT-0108,Paneer (Farm Fresh),Dairy,296,20.1,22.4,1.3,0.0,20.1
+IFCT-0109,Chicken,Meat,239,27.0,14.0,0.0,0.0,82
+IFCT-0110,Chicken (Boiled),Meat,343,38.7,20.1,0.0,0.0,117.5
+IFCT-0111,Chicken (Fried),Meat,290,32.8,17.0,0.0,0.0,99.6
+IFCT-0112,Chicken (Roasted),Meat,226,25.5,13.2,0.0,0.0,77.4
+IFCT-0113,Chicken (Grilled),Meat,297,33.6,17.4,0.0,0.0,102.0
+IFCT-0114,Chicken (Baked),Meat,299,33.7,17.5,0.0,0.0,102.5
+IFCT-0115,Chicken (Curry),Meat,208,23.5,12.2,0.0,0.0,71.2
+IFCT-0116,Chicken (Spicy),Meat,224,25.3,13.1,0.0,0.0,76.9
+IFCT-0117,Chicken (Sweet),Meat,258,29.1,15.1,0.0,0.0,88.5
+IFCT-0118,Chicken (Raw),Meat,224,25.3,13.1,0.0,0.0,77.0
+IFCT-0119,Chicken (Steamed),Meat,226,25.6,13.3,0.0,0.0,77.7
+IFCT-0120,Chicken (Mashed),Meat,305,34.5,17.9,0.0,0.0,104.8
+IFCT-0121,Chicken (Tikka),Meat,222,25.1,13.0,0.0,0.0,76.1
+IFCT-0122,Chicken (Masala),Meat,305,34.4,17.9,0.0,0.0,104.6
+IFCT-0123,Chicken (Kebab),Meat,266,30.0,15.6,0.0,0.0,91.2
+IFCT-0124,Chicken (Soup),Meat,288,32.5,16.9,0.0,0.0,98.7
+IFCT-0125,Chicken (Salad),Meat,255,28.8,14.9,0.0,0.0,87.4
+IFCT-0126,Chicken (Pickled),Meat,194,21.9,11.4,0.0,0.0,66.6
+IFCT-0127,Chicken (Smoked),Meat,286,32.3,16.8,0.0,0.0,98.1
+IFCT-0128,Chicken (Dry),Meat,201,22.7,11.8,0.0,0.0,69.0
+IFCT-0129,Chicken (Gravy),Meat,254,28.6,14.9,0.0,0.0,87.0
+IFCT-0130,Chicken (Special),Meat,320,36.1,18.7,0.0,0.0,109.7
+IFCT-0131,Chicken (Homestyle),Meat,327,37.0,19.2,0.0,0.0,112.3
+IFCT-0132,Chicken (Restaurant Style),Meat,273,30.8,16.0,0.0,0.0,93.5
+IFCT-0133,Chicken (Premium),Meat,268,30.3,15.7,0.0,0.0,92.1
+IFCT-0134,Chicken (Organic),Meat,205,23.2,12.0,0.0,0.0,70.5
+IFCT-0135,Chicken (Farm Fresh),Meat,236,26.7,13.8,0.0,0.0,81.1
+IFCT-0136,Egg,Egg,155,13.0,11.0,1.1,0.0,124
+IFCT-0137,Egg (Boiled),Egg,222,18.6,15.8,1.6,0.0,177.9
+IFCT-0138,Egg (Fried),Egg,199,16.7,14.1,1.4,0.0,159.0
+IFCT-0139,Egg (Roasted),Egg,214,17.9,15.2,1.5,0.0,171.1
+IFCT-0140,Egg (Grilled),Egg,177,14.8,12.5,1.3,0.0,141.5
+IFCT-0141,Egg (Baked),Egg,230,19.3,16.3,1.6,0.0,183.9
+IFCT-0142,Egg (Curry),Egg,154,12.9,10.9,1.1,0.0,122.9
+IFCT-0143,Egg (Spicy),Egg,136,11.4,9.7,1.0,0.0,109.0
+IFCT-0144,Egg (Sweet),Egg,139,11.7,9.9,1.0,0.0,111.2
+IFCT-0145,Egg (Raw),Egg,218,18.3,15.5,1.5,0.0,174.5
+IFCT-0146,Egg (Steamed),Egg,195,16.4,13.9,1.4,0.0,156.4
+IFCT-0147,Egg (Mashed),Egg,157,13.1,11.1,1.1,0.0,125.4
+IFCT-0148,Egg (Tikka),Egg,132,11.1,9.4,0.9,0.0,105.5
+IFCT-0149,Egg (Masala),Egg,174,14.6,12.4,1.2,0.0,139.5
+IFCT-0150,Egg (Kebab),Egg,143,12.0,10.2,1.0,0.0,114.7
+IFCT-0151,Egg (Soup),Egg,159,13.3,11.3,1.1,0.0,127.1
+IFCT-0152,Egg (Salad),Egg,137,11.5,9.7,1.0,0.0,109.2
+IFCT-0153,Egg (Pickled),Egg,129,10.8,9.2,0.9,0.0,103.4
+IFCT-0154,Egg (Smoked),Egg,188,15.8,13.3,1.3,0.0,150.3
+IFCT-0155,Egg (Dry),Egg,168,14.1,11.9,1.2,0.0,134.3
+IFCT-0156,Egg (Gravy),Egg,199,16.7,14.1,1.4,0.0,159.2
+IFCT-0157,Egg (Special),Egg,232,19.5,16.5,1.6,0.0,186.0
+IFCT-0158,Egg (Homestyle),Egg,232,19.4,16.4,1.6,0.0,185.4
+IFCT-0159,Egg (Restaurant Style),Egg,212,17.8,15.0,1.5,0.0,169.5
+IFCT-0160,Egg (Premium),Egg,149,12.5,10.6,1.1,0.0,119.0
+IFCT-0161,Egg (Organic),Egg,133,11.1,9.4,0.9,0.0,106.0
+IFCT-0162,Egg (Farm Fresh),Egg,215,18.1,15.3,1.5,0.0,172.2
+IFCT-0163,Dosa,Cereals,168,3.9,3.7,29.0,0.9,94
+IFCT-0164,Dosa (Boiled),Cereals,229,5.3,5.0,39.5,1.2,128.1
+IFCT-0165,Dosa (Fried),Cereals,231,5.4,5.1,39.8,1.2,129.1
+IFCT-0166,Dosa (Roasted),Cereals,151,3.5,3.3,26.1,0.8,84.6
+IFCT-0167,Dosa (Grilled),Cereals,143,3.3,3.2,24.8,0.8,80.2
+IFCT-0168,Dosa (Baked),Cereals,164,3.8,3.6,28.3,0.9,91.6
+IFCT-0169,Dosa (Curry),Cereals,147,3.4,3.2,25.4,0.8,82.3
+IFCT-0170,Dosa (Spicy),Cereals,160,3.7,3.5,27.7,0.9,89.7
+IFCT-0171,Dosa (Sweet),Cereals,227,5.3,5.0,39.2,1.2,126.9
+IFCT-0172,Dosa (Raw),Cereals,160,3.7,3.5,27.6,0.9,89.4
+IFCT-0173,Dosa (Steamed),Cereals,162,3.8,3.6,28.0,0.9,90.7
+IFCT-0174,Dosa (Mashed),Cereals,249,5.8,5.5,43.0,1.3,139.5
+IFCT-0175,Dosa (Tikka),Cereals,153,3.5,3.4,26.4,0.8,85.5
+IFCT-0176,Dosa (Masala),Cereals,179,4.2,3.9,30.9,1.0,100.2
+IFCT-0177,Dosa (Kebab),Cereals,209,4.9,4.6,36.1,1.1,117.1
+IFCT-0178,Dosa (Soup),Cereals,209,4.8,4.6,36.0,1.1,116.9
+IFCT-0179,Dosa (Salad),Cereals,178,4.1,3.9,30.8,1.0,99.8
+IFCT-0180,Dosa (Pickled),Cereals,196,4.6,4.3,33.9,1.1,109.9
+IFCT-0181,Dosa (Smoked),Cereals,239,5.6,5.3,41.3,1.3,133.9
+IFCT-0182,Dosa (Dry),Cereals,212,4.9,4.7,36.6,1.1,118.7
+IFCT-0183,Dosa (Gravy),Cereals,235,5.4,5.2,40.5,1.3,131.2
+IFCT-0184,Dosa (Special),Cereals,180,4.2,4.0,31.1,1.0,100.7
+IFCT-0185,Dosa (Homestyle),Cereals,245,5.7,5.4,42.4,1.3,137.3
+IFCT-0186,Dosa (Restaurant Style),Cereals,252,5.8,5.5,43.5,1.3,140.9
+IFCT-0187,Dosa (Premium),Cereals,193,4.5,4.2,33.2,1.0,107.8
+IFCT-0188,Dosa (Organic),Cereals,200,4.6,4.4,34.6,1.1,112.0
+IFCT-0189,Dosa (Farm Fresh),Cereals,246,5.7,5.4,42.5,1.3,137.7
+IFCT-0190,Idli,Cereals,58,1.6,0.4,12.0,1.5,35
+IFCT-0191,Idli (Boiled),Cereals,48,1.3,0.3,9.9,1.2,29.0
+IFCT-0192,Idli (Fried),Cereals,56,1.5,0.4,11.5,1.4,33.5
+IFCT-0193,Idli (Roasted),Cereals,50,1.4,0.3,10.4,1.3,30.4
+IFCT-0194,Idli (Grilled),Cereals,59,1.6,0.4,12.3,1.5,35.7
+IFCT-0195,Idli (Baked),Cereals,53,1.5,0.4,11.0,1.4,32.1
+IFCT-0196,Idli (Curry),Cereals,58,1.6,0.4,12.1,1.5,35.3
+IFCT-0197,Idli (Spicy),Cereals,65,1.8,0.5,13.5,1.7,39.4
+IFCT-0198,Idli (Sweet),Cereals,73,2.0,0.5,15.1,1.9,43.9
+IFCT-0199,Idli (Raw),Cereals,80,2.2,0.6,16.6,2.1,48.5
+IFCT-0200,Idli (Steamed),Cereals,85,2.4,0.6,17.6,2.2,51.4
+IFCT-0201,Idli (Mashed),Cereals,79,2.2,0.5,16.3,2.0,47.5
+IFCT-0202,Idli (Tikka),Cereals,56,1.5,0.4,11.5,1.4,33.7
+IFCT-0203,Idli (Masala),Cereals,82,2.3,0.6,17.0,2.1,49.6
+IFCT-0204,Idli (Kebab),Cereals,66,1.8,0.5,13.6,1.7,39.7
+IFCT-0205,Idli (Soup),Cereals,47,1.3,0.3,9.7,1.2,28.1
+IFCT-0206,Idli (Salad),Cereals,48,1.3,0.3,9.9,1.2,28.8
+IFCT-0207,Idli (Pickled),Cereals,49,1.4,0.3,10.2,1.3,29.8
+IFCT-0208,Idli (Smoked),Cereals,76,2.1,0.5,15.8,2.0,46.0
+IFCT-0209,Idli (Dry),Cereals,68,1.9,0.5,14.1,1.8,41.3
+IFCT-0210,Idli (Gravy),Cereals,65,1.8,0.5,13.5,1.7,39.4
+IFCT-0211,Idli (Special),Cereals,75,2.1,0.5,15.6,2.0,45.5
+IFCT-0212,Idli (Homestyle),Cereals,71,2.0,0.5,14.6,1.8,42.7
+IFCT-0213,Idli (Restaurant Style),Cereals,47,1.3,0.3,9.8,1.2,28.6
+IFCT-0214,Idli (Premium),Cereals,63,1.7,0.4,13.0,1.6,37.8
+IFCT-0215,Idli (Organic),Cereals,48,1.3,0.3,10.0,1.3,29.2
+IFCT-0216,Idli (Farm Fresh),Cereals,48,1.3,0.3,9.9,1.2,29.0
+IFCT-0217,Biryani,Mixed,293,13.0,9.0,39.0,1.5,400
+IFCT-0218,Biryani (Boiled),Mixed,354,15.7,10.9,47.1,1.8,482.6
+IFCT-0219,Biryani (Fried),Mixed,236,10.5,7.2,31.4,1.2,322.0
+IFCT-0220,Biryani (Roasted),Mixed,279,12.4,8.6,37.2,1.4,381.2
+IFCT-0221,Biryani (Grilled),Mixed,390,17.3,12.0,51.9,2.0,532.2
+IFCT-0222,Biryani (Baked),Mixed,287,12.7,8.8,38.2,1.5,391.3
+IFCT-0223,Biryani (Curry),Mixed,337,14.9,10.3,44.8,1.7,459.8
+IFCT-0224,Biryani (Spicy),Mixed,309,13.7,9.5,41.1,1.6,421.2
+IFCT-0225,Biryani (Sweet),Mixed,426,18.9,13.1,56.7,2.2,581.7
+IFCT-0226,Biryani (Raw),Mixed,365,16.2,11.2,48.6,1.9,498.7
+IFCT-0227,Biryani (Steamed),Mixed,308,13.7,9.5,41.0,1.6,420.1
+IFCT-0228,Biryani (Mashed),Mixed,386,17.1,11.9,51.4,2.0,527.2
+IFCT-0229,Biryani (Tikka),Mixed,250,11.1,7.7,33.3,1.3,341.7
+IFCT-0230,Biryani (Masala),Mixed,290,12.9,8.9,38.6,1.5,396.3
+IFCT-0231,Biryani (Kebab),Mixed,240,10.7,7.4,32.0,1.2,328.2
+IFCT-0232,Biryani (Soup),Mixed,282,12.5,8.7,37.6,1.4,385.2
+IFCT-0233,Biryani (Salad),Mixed,296,13.1,9.1,39.4,1.5,404.4
+IFCT-0234,Biryani (Pickled),Mixed,400,17.8,12.3,53.3,2.0,546.5
+IFCT-0235,Biryani (Smoked),Mixed,252,11.2,7.7,33.5,1.3,344.1
+IFCT-0236,Biryani (Dry),Mixed,394,17.5,12.1,52.4,2.0,537.8
+IFCT-0237,Biryani (Gravy),Mixed,290,12.9,8.9,38.6,1.5,396.1
+IFCT-0238,Biryani (Special),Mixed,290,12.9,8.9,38.6,1.5,395.8
+IFCT-0239,Biryani (Homestyle),Mixed,323,14.4,9.9,43.1,1.7,441.6
+IFCT-0240,Biryani (Restaurant Style),Mixed,393,17.4,12.1,52.3,2.0,536.2
+IFCT-0241,Biryani (Premium),Mixed,401,17.8,12.3,53.4,2.1,547.3
+IFCT-0242,Biryani (Organic),Mixed,254,11.3,7.8,33.9,1.3,347.3
+IFCT-0243,Biryani (Farm Fresh),Mixed,419,18.6,12.9,55.8,2.1,572.6
+IFCT-0244,Curd,Dairy,98,11.0,4.3,3.4,0.0,36
+IFCT-0245,Curd (Boiled),Dairy,141,15.9,6.2,4.9,0.0,51.9
+IFCT-0246,Curd (Fried),Dairy,127,14.3,5.6,4.4,0.0,46.7
+IFCT-0247,Curd (Roasted),Dairy,88,9.9,3.9,3.1,0.0,32.5
+IFCT-0248,Curd (Grilled),Dairy,87,9.7,3.8,3.0,0.0,31.9
+IFCT-0249,Curd (Baked),Dairy,108,12.1,4.7,3.7,0.0,39.5
+IFCT-0250,Curd (Curry),Dairy,94,10.6,4.1,3.3,0.0,34.6
+IFCT-0251,Curd (Spicy),Dairy,142,15.9,6.2,4.9,0.0,52.0
+IFCT-0252,Curd (Sweet),Dairy,137,15.4,6.0,4.8,0.0,50.4
+IFCT-0253,Curd (Raw),Dairy,97,10.9,4.3,3.4,0.0,35.8
+IFCT-0254,Curd (Steamed),Dairy,92,10.3,4.0,3.2,0.0,33.7
+IFCT-0255,Curd (Mashed),Dairy,141,15.8,6.2,4.9,0.0,51.7
+IFCT-0256,Curd (Tikka),Dairy,139,15.6,6.1,4.8,0.0,51.1
+IFCT-0257,Curd (Masala),Dairy,116,13.0,5.1,4.0,0.0,42.6
+IFCT-0258,Curd (Kebab),Dairy,101,11.4,4.4,3.5,0.0,37.2
+IFCT-0259,Curd (Soup),Dairy,95,10.6,4.2,3.3,0.0,34.7
+IFCT-0260,Curd (Salad),Dairy,115,12.9,5.0,4.0,0.0,42.2
+IFCT-0261,Curd (Pickled),Dairy,145,16.3,6.4,5.0,0.0,53.2
+IFCT-0262,Curd (Smoked),Dairy,123,13.9,5.4,4.3,0.0,45.4
+IFCT-0263,Curd (Dry),Dairy,130,14.6,5.7,4.5,0.0,47.7
+IFCT-0264,Curd (Gravy),Dairy,79,8.9,3.5,2.8,0.0,29.2
+IFCT-0265,Curd (Special),Dairy,131,14.7,5.7,4.5,0.0,48.0
+IFCT-0266,Curd (Homestyle),Dairy,109,12.3,4.8,3.8,0.0,40.2
+IFCT-0267,Curd (Restaurant Style),Dairy,94,10.5,4.1,3.2,0.0,34.4
+IFCT-0268,Curd (Premium),Dairy,108,12.1,4.7,3.8,0.0,39.7
+IFCT-0269,Curd (Organic),Dairy,146,16.3,6.4,5.1,0.0,53.5
+IFCT-0270,Curd (Farm Fresh),Dairy,139,15.6,6.1,4.8,0.0,51.0
+IFCT-0271,Fish,Meat,200,20.0,10.0,0.0,0.0,70
+IFCT-0272,Fish (Boiled),Meat,224,22.4,11.2,0.0,0.0,78.5
+IFCT-0273,Fish (Fried),Meat,229,22.9,11.5,0.0,0.0,80.2
+IFCT-0274,Fish (Roasted),Meat,173,17.3,8.6,0.0,0.0,60.5
+IFCT-0275,Fish (Grilled),Meat,227,22.7,11.3,0.0,0.0,79.4
+IFCT-0276,Fish (Baked),Meat,274,27.4,13.7,0.0,0.0,96.1
+IFCT-0277,Fish (Curry),Meat,296,29.6,14.8,0.0,0.0,103.6
+IFCT-0278,Fish (Spicy),Meat,198,19.8,9.9,0.0,0.0,69.2
+IFCT-0279,Fish (Sweet),Meat,194,19.4,9.7,0.0,0.0,68.0
+IFCT-0280,Fish (Raw),Meat,214,21.4,10.7,0.0,0.0,75.0
+IFCT-0281,Fish (Steamed),Meat,279,27.9,13.9,0.0,0.0,97.5
+IFCT-0282,Fish (Mashed),Meat,235,23.5,11.7,0.0,0.0,82.2
+IFCT-0283,Fish (Tikka),Meat,247,24.7,12.3,0.0,0.0,86.4
+IFCT-0284,Fish (Masala),Meat,246,24.6,12.3,0.0,0.0,86.1
+IFCT-0285,Fish (Kebab),Meat,278,27.8,13.9,0.0,0.0,97.4
+IFCT-0286,Fish (Soup),Meat,294,29.4,14.7,0.0,0.0,102.9
+IFCT-0287,Fish (Salad),Meat,199,19.9,9.9,0.0,0.0,69.6
+IFCT-0288,Fish (Pickled),Meat,179,17.9,9.0,0.0,0.0,62.7
+IFCT-0289,Fish (Smoked),Meat,174,17.4,8.7,0.0,0.0,60.8
+IFCT-0290,Fish (Dry),Meat,185,18.5,9.3,0.0,0.0,64.8
+IFCT-0291,Fish (Gravy),Meat,186,18.6,9.3,0.0,0.0,64.9
+IFCT-0292,Fish (Special),Meat,210,21.0,10.5,0.0,0.0,73.5
+IFCT-0293,Fish (Homestyle),Meat,173,17.3,8.6,0.0,0.0,60.5
+IFCT-0294,Fish (Restaurant Style),Meat,251,25.1,12.6,0.0,0.0,87.9
+IFCT-0295,Fish (Premium),Meat,229,22.9,11.4,0.0,0.0,80.0
+IFCT-0296,Fish (Organic),Meat,287,28.7,14.3,0.0,0.0,100.4
+IFCT-0297,Fish (Farm Fresh),Meat,162,16.2,8.1,0.0,0.0,56.9
+IFCT-0298,Mutton,Meat,295,25.0,21.0,0.0,0.0,80
+IFCT-0299,Mutton (Boiled),Meat,254,21.5,18.1,0.0,0.0,68.9
+IFCT-0300,Mutton (Fried),Meat,247,20.9,17.6,0.0,0.0,67.0
+IFCT-0301,Mutton (Roasted),Meat,347,29.4,24.7,0.0,0.0,94.0
+IFCT-0302,Mutton (Grilled),Meat,258,21.9,18.4,0.0,0.0,69.9
+IFCT-0303,Mutton (Baked),Meat,263,22.3,18.7,0.0,0.0,71.3
+IFCT-0304,Mutton (Curry),Meat,268,22.7,19.1,0.0,0.0,72.7
+IFCT-0305,Mutton (Spicy),Meat,306,25.9,21.8,0.0,0.0,83.0
+IFCT-0306,Mutton (Sweet),Meat,322,27.3,22.9,0.0,0.0,87.4
+IFCT-0307,Mutton (Raw),Meat,282,23.9,20.1,0.0,0.0,76.5
+IFCT-0308,Mutton (Steamed),Meat,395,33.5,28.1,0.0,0.0,107.2
+IFCT-0309,Mutton (Mashed),Meat,371,31.4,26.4,0.0,0.0,100.6
+IFCT-0310,Mutton (Tikka),Meat,237,20.1,16.9,0.0,0.0,64.4
+IFCT-0311,Mutton (Masala),Meat,380,32.2,27.0,0.0,0.0,103.0
+IFCT-0312,Mutton (Kebab),Meat,423,35.8,30.1,0.0,0.0,114.6
+IFCT-0313,Mutton (Soup),Meat,406,34.4,28.9,0.0,0.0,110.0
+IFCT-0314,Mutton (Salad),Meat,386,32.7,27.5,0.0,0.0,104.6
+IFCT-0315,Mutton (Pickled),Meat,251,21.2,17.8,0.0,0.0,68.0
+IFCT-0316,Mutton (Smoked),Meat,369,31.3,26.3,0.0,0.0,100.2
+IFCT-0317,Mutton (Dry),Meat,253,21.4,18.0,0.0,0.0,68.6
+IFCT-0318,Mutton (Gravy),Meat,384,32.6,27.3,0.0,0.0,104.2
+IFCT-0319,Mutton (Special),Meat,437,37.1,31.1,0.0,0.0,118.6
+IFCT-0320,Mutton (Homestyle),Meat,412,34.9,29.3,0.0,0.0,111.8
+IFCT-0321,Mutton (Restaurant Style),Meat,314,26.6,22.3,0.0,0.0,85.1
+IFCT-0322,Mutton (Premium),Meat,284,24.0,20.2,0.0,0.0,76.9
+IFCT-0323,Mutton (Organic),Meat,374,31.7,26.6,0.0,0.0,101.5
+IFCT-0324,Mutton (Farm Fresh),Meat,279,23.6,19.8,0.0,0.0,75.6
+IFCT-0325,Potato,Vegetables,86,1.6,0.1,20.0,1.8,5
+IFCT-0326,Potato (Boiled),Vegetables,106,2.0,0.1,24.7,2.2,6.2
+IFCT-0327,Potato (Fried),Vegetables,106,2.0,0.1,24.5,2.2,6.1
+IFCT-0328,Potato (Roasted),Vegetables,79,1.5,0.1,18.4,1.7,4.6
+IFCT-0329,Potato (Grilled),Vegetables,80,1.5,0.1,18.6,1.7,4.7
+IFCT-0330,Potato (Baked),Vegetables,128,2.4,0.1,29.8,2.7,7.4
+IFCT-0331,Potato (Curry),Vegetables,113,2.1,0.1,26.3,2.4,6.6
+IFCT-0332,Potato (Spicy),Vegetables,107,2.0,0.1,24.8,2.2,6.2
+IFCT-0333,Potato (Sweet),Vegetables,111,2.1,0.1,25.9,2.3,6.5
+IFCT-0334,Potato (Raw),Vegetables,125,2.3,0.1,29.1,2.6,7.3
+IFCT-0335,Potato (Steamed),Vegetables,80,1.5,0.1,18.7,1.7,4.7
+IFCT-0336,Potato (Mashed),Vegetables,72,1.3,0.1,16.7,1.5,4.2
+IFCT-0337,Potato (Tikka),Vegetables,108,2.0,0.1,25.2,2.3,6.3
+IFCT-0338,Potato (Masala),Vegetables,108,2.0,0.1,25.1,2.3,6.3
+IFCT-0339,Potato (Kebab),Vegetables,115,2.1,0.1,26.8,2.4,6.7
+IFCT-0340,Potato (Soup),Vegetables,94,1.8,0.1,21.9,2.0,5.5
+IFCT-0341,Potato (Salad),Vegetables,76,1.4,0.1,17.8,1.6,4.4
+IFCT-0342,Potato (Pickled),Vegetables,74,1.4,0.1,17.1,1.5,4.3
+IFCT-0343,Potato (Smoked),Vegetables,89,1.6,0.1,20.6,1.9,5.2
+IFCT-0344,Potato (Dry),Vegetables,113,2.1,0.1,26.4,2.4,6.6
+IFCT-0345,Potato (Gravy),Vegetables,101,1.9,0.1,23.5,2.1,5.9
+IFCT-0346,Potato (Special),Vegetables,97,1.8,0.1,22.6,2.0,5.6
+IFCT-0347,Potato (Homestyle),Vegetables,89,1.7,0.1,20.8,1.9,5.2
+IFCT-0348,Potato (Restaurant Style),Vegetables,73,1.4,0.1,17.0,1.5,4.3
+IFCT-0349,Potato (Premium),Vegetables,78,1.5,0.1,18.2,1.6,4.5
+IFCT-0350,Potato (Organic),Vegetables,86,1.6,0.1,19.9,1.8,5.0
+IFCT-0351,Potato (Farm Fresh),Vegetables,70,1.3,0.1,16.2,1.5,4.0
+IFCT-0352,Tomato,Vegetables,18,0.9,0.2,3.9,1.2,5
+IFCT-0353,Tomato (Boiled),Vegetables,21,1.0,0.2,4.5,1.4,5.8
+IFCT-0354,Tomato (Fried),Vegetables,19,0.9,0.2,4.1,1.3,5.3
+IFCT-0355,Tomato (Roasted),Vegetables,20,1.0,0.2,4.3,1.3,5.5
+IFCT-0356,Tomato (Grilled),Vegetables,21,1.1,0.2,4.6,1.4,5.9
+IFCT-0357,Tomato (Baked),Vegetables,17,0.8,0.2,3.6,1.1,4.6
+IFCT-0358,Tomato (Curry),Vegetables,16,0.8,0.2,3.4,1.0,4.3
+IFCT-0359,Tomato (Spicy),Vegetables,25,1.3,0.3,5.4,1.7,7.0
+IFCT-0360,Tomato (Sweet),Vegetables,20,1.0,0.2,4.4,1.4,5.7
+IFCT-0361,Tomato (Raw),Vegetables,18,0.9,0.2,3.8,1.2,4.9
+IFCT-0362,Tomato (Steamed),Vegetables,19,0.9,0.2,4.1,1.3,5.2
+IFCT-0363,Tomato (Mashed),Vegetables,17,0.8,0.2,3.7,1.1,4.7
+IFCT-0364,Tomato (Tikka),Vegetables,19,1.0,0.2,4.2,1.3,5.3
+IFCT-0365,Tomato (Masala),Vegetables,27,1.3,0.3,5.8,1.8,7.4
+IFCT-0366,Tomato (Kebab),Vegetables,18,0.9,0.2,3.9,1.2,5.0
+IFCT-0367,Tomato (Soup),Vegetables,16,0.8,0.2,3.5,1.1,4.5
+IFCT-0368,Tomato (Salad),Vegetables,27,1.3,0.3,5.8,1.8,7.4
+IFCT-0369,Tomato (Pickled),Vegetables,15,0.7,0.2,3.2,1.0,4.1
+IFCT-0370,Tomato (Smoked),Vegetables,20,1.0,0.2,4.3,1.3,5.5
+IFCT-0371,Tomato (Dry),Vegetables,22,1.1,0.2,4.7,1.4,6.0
+IFCT-0372,Tomato (Gravy),Vegetables,22,1.1,0.2,4.9,1.5,6.2
+IFCT-0373,Tomato (Special),Vegetables,25,1.3,0.3,5.4,1.7,6.9
+IFCT-0374,Tomato (Homestyle),Vegetables,26,1.3,0.3,5.6,1.7,7.2
+IFCT-0375,Tomato (Restaurant Style),Vegetables,24,1.2,0.3,5.2,1.6,6.7
+IFCT-0376,Tomato (Premium),Vegetables,18,0.9,0.2,3.8,1.2,4.9
+IFCT-0377,Tomato (Organic),Vegetables,25,1.2,0.3,5.4,1.7,6.9
+IFCT-0378,Tomato (Farm Fresh),Vegetables,25,1.2,0.3,5.3,1.6,6.8
+IFCT-0379,Onion,Vegetables,40,1.1,0.1,9.0,1.7,4
+IFCT-0380,Onion (Boiled),Vegetables,54,1.5,0.1,12.1,2.3,5.4
+IFCT-0381,Onion (Fried),Vegetables,47,1.3,0.1,10.5,2.0,4.7
+IFCT-0382,Onion (Roasted),Vegetables,58,1.6,0.1,13.1,2.5,5.8
+IFCT-0383,Onion (Grilled),Vegetables,34,0.9,0.1,7.7,1.4,3.4
+IFCT-0384,Onion (Baked),Vegetables,56,1.5,0.1,12.5,2.4,5.6
+IFCT-0385,Onion (Curry),Vegetables,55,1.5,0.1,12.4,2.3,5.5
+IFCT-0386,Onion (Spicy),Vegetables,36,1.0,0.1,8.0,1.5,3.6
+IFCT-0387,Onion (Sweet),Vegetables,33,0.9,0.1,7.5,1.4,3.3
+IFCT-0388,Onion (Raw),Vegetables,40,1.1,0.1,9.0,1.7,4.0
+IFCT-0389,Onion (Steamed),Vegetables,54,1.5,0.1,12.1,2.3,5.4
+IFCT-0390,Onion (Mashed),Vegetables,54,1.5,0.1,12.1,2.3,5.4
+IFCT-0391,Onion (Tikka),Vegetables,47,1.3,0.1,10.6,2.0,4.7
+IFCT-0392,Onion (Masala),Vegetables,49,1.4,0.1,11.1,2.1,4.9
+IFCT-0393,Onion (Kebab),Vegetables,59,1.6,0.1,13.3,2.5,5.9
+IFCT-0394,Onion (Soup),Vegetables,56,1.6,0.1,12.7,2.4,5.6
+IFCT-0395,Onion (Salad),Vegetables,55,1.5,0.1,12.3,2.3,5.5
+IFCT-0396,Onion (Pickled),Vegetables,59,1.6,0.1,13.3,2.5,5.9
+IFCT-0397,Onion (Smoked),Vegetables,55,1.5,0.1,12.4,2.3,5.5
+IFCT-0398,Onion (Dry),Vegetables,57,1.6,0.1,12.9,2.4,5.7
+IFCT-0399,Onion (Gravy),Vegetables,34,0.9,0.1,7.7,1.4,3.4
+IFCT-0400,Onion (Special),Vegetables,56,1.6,0.1,12.7,2.4,5.6
+IFCT-0401,Onion (Homestyle),Vegetables,43,1.2,0.1,9.6,1.8,4.3
+IFCT-0402,Onion (Restaurant Style),Vegetables,35,0.9,0.1,7.8,1.5,3.5
+IFCT-0403,Onion (Premium),Vegetables,37,1.0,0.1,8.4,1.6,3.7
+IFCT-0404,Onion (Organic),Vegetables,50,1.4,0.1,11.3,2.1,5.0
+IFCT-0405,Onion (Farm Fresh),Vegetables,39,1.1,0.1,8.7,1.6,3.9
+IFCT-0406,Spinach,Vegetables,23,2.9,0.4,3.6,2.2,79
+IFCT-0407,Spinach (Boiled),Vegetables,23,2.9,0.4,3.6,2.2,79.1
+IFCT-0408,Spinach (Fried),Vegetables,34,4.3,0.6,5.3,3.3,117.0
+IFCT-0409,Spinach (Roasted),Vegetables,23,2.9,0.4,3.6,2.2,78.4
+IFCT-0410,Spinach (Grilled),Vegetables,28,3.5,0.5,4.4,2.7,96.6
+IFCT-0411,Spinach (Baked),Vegetables,33,4.2,0.6,5.2,3.2,114.6
+IFCT-0412,Spinach (Curry),Vegetables,24,3.0,0.4,3.7,2.3,81.9
+IFCT-0413,Spinach (Spicy),Vegetables,19,2.4,0.3,3.0,1.8,66.1
+IFCT-0414,Spinach (Sweet),Vegetables,23,2.9,0.4,3.6,2.2,78.8
+IFCT-0415,Spinach (Raw),Vegetables,26,3.3,0.5,4.1,2.5,89.0
+IFCT-0416,Spinach (Steamed),Vegetables,23,2.9,0.4,3.6,2.2,80.0
+IFCT-0417,Spinach (Mashed),Vegetables,19,2.4,0.3,3.0,1.8,65.2
+IFCT-0418,Spinach (Tikka),Vegetables,31,3.9,0.5,4.9,3.0,107.5
+IFCT-0419,Spinach (Masala),Vegetables,26,3.3,0.5,4.1,2.5,89.3
+IFCT-0420,Spinach (Kebab),Vegetables,28,3.6,0.5,4.4,2.7,97.4
+IFCT-0421,Spinach (Soup),Vegetables,31,3.9,0.5,4.9,3.0,107.6
+IFCT-0422,Spinach (Salad),Vegetables,31,3.9,0.5,4.8,2.9,105.5
+IFCT-0423,Spinach (Pickled),Vegetables,33,4.2,0.6,5.2,3.2,113.5
+IFCT-0424,Spinach (Smoked),Vegetables,30,3.8,0.5,4.7,2.9,102.4
+IFCT-0425,Spinach (Dry),Vegetables,34,4.3,0.6,5.3,3.2,116.5
+IFCT-0426,Spinach (Gravy),Vegetables,19,2.4,0.3,3.0,1.8,65.8
+IFCT-0427,Spinach (Special),Vegetables,30,3.8,0.5,4.7,2.9,103.5
+IFCT-0428,Spinach (Homestyle),Vegetables,22,2.8,0.4,3.5,2.1,77.1
+IFCT-0429,Spinach (Restaurant Style),Vegetables,32,4.1,0.6,5.1,3.1,111.1
+IFCT-0430,Spinach (Premium),Vegetables,34,4.2,0.6,5.3,3.2,115.5
+IFCT-0431,Spinach (Organic),Vegetables,34,4.3,0.6,5.3,3.3,117.0
+IFCT-0432,Spinach (Farm Fresh),Vegetables,32,4.0,0.6,5.0,3.0,109.0
+IFCT-0433,Carrot,Vegetables,41,0.9,0.2,9.6,2.8,69
+IFCT-0434,Carrot (Boiled),Vegetables,57,1.3,0.3,13.4,3.9,96.5
+IFCT-0435,Carrot (Fried),Vegetables,45,1.0,0.2,10.5,3.1,75.4
+IFCT-0436,Carrot (Roasted),Vegetables,46,1.0,0.2,10.7,3.1,77.1
+IFCT-0437,Carrot (Grilled),Vegetables,57,1.3,0.3,13.4,3.9,96.6
+IFCT-0438,Carrot (Baked),Vegetables,39,0.9,0.2,9.1,2.7,65.7
+IFCT-0439,Carrot (Curry),Vegetables,47,1.0,0.2,10.9,3.2,78.3
+IFCT-0440,Carrot (Spicy),Vegetables,46,1.0,0.2,10.8,3.1,77.6
+IFCT-0441,Carrot (Sweet),Vegetables,41,0.9,0.2,9.7,2.8,69.7
+IFCT-0442,Carrot (Raw),Vegetables,55,1.2,0.3,12.8,3.7,92.4
+IFCT-0443,Carrot (Steamed),Vegetables,48,1.1,0.2,11.2,3.3,80.8
+IFCT-0444,Carrot (Mashed),Vegetables,51,1.1,0.3,12.1,3.5,86.6
+IFCT-0445,Carrot (Tikka),Vegetables,50,1.1,0.2,11.7,3.4,84.3
+IFCT-0446,Carrot (Masala),Vegetables,35,0.8,0.2,8.2,2.4,58.8
+IFCT-0447,Carrot (Kebab),Vegetables,39,0.9,0.2,9.1,2.7,65.3
+IFCT-0448,Carrot (Soup),Vegetables,58,1.3,0.3,13.5,3.9,97.1
+IFCT-0449,Carrot (Salad),Vegetables,46,1.0,0.2,10.7,3.1,77.0
+IFCT-0450,Carrot (Pickled),Vegetables,47,1.0,0.2,11.0,3.2,79.1
+IFCT-0451,Carrot (Smoked),Vegetables,55,1.2,0.3,12.8,3.7,91.7
+IFCT-0452,Carrot (Dry),Vegetables,48,1.1,0.2,11.2,3.3,80.6
+IFCT-0453,Carrot (Gravy),Vegetables,47,1.0,0.2,10.9,3.2,78.4
+IFCT-0454,Carrot (Special),Vegetables,35,0.8,0.2,8.3,2.4,59.5
+IFCT-0455,Carrot (Homestyle),Vegetables,58,1.3,0.3,13.7,4.0,98.3
+IFCT-0456,Carrot (Restaurant Style),Vegetables,58,1.3,0.3,13.5,3.9,96.8
+IFCT-0457,Carrot (Premium),Vegetables,61,1.3,0.3,14.2,4.2,102.4
+IFCT-0458,Carrot (Organic),Vegetables,61,1.3,0.3,14.2,4.1,102.2
+IFCT-0459,Carrot (Farm Fresh),Vegetables,58,1.3,0.3,13.5,3.9,97.1
+IFCT-0460,Apple,Fruits,52,0.3,0.2,14.0,2.4,1
+IFCT-0461,Apple (Boiled),Fruits,74,0.4,0.3,19.9,3.4,1.4
+IFCT-0462,Apple (Fried),Fruits,50,0.3,0.2,13.4,2.3,1.0
+IFCT-0463,Apple (Roasted),Fruits,60,0.3,0.2,16.2,2.8,1.2
+IFCT-0464,Apple (Grilled),Fruits,60,0.3,0.2,16.1,2.8,1.2
+IFCT-0465,Apple (Baked),Fruits,51,0.3,0.2,13.8,2.4,1.0
+IFCT-0466,Apple (Curry),Fruits,51,0.3,0.2,13.8,2.4,1.0
+IFCT-0467,Apple (Spicy),Fruits,43,0.2,0.2,11.5,2.0,0.8
+IFCT-0468,Apple (Sweet),Fruits,43,0.2,0.2,11.6,2.0,0.8
+IFCT-0469,Apple (Raw),Fruits,42,0.2,0.2,11.4,1.9,0.8
+IFCT-0470,Apple (Steamed),Fruits,78,0.4,0.3,20.9,3.6,1.5
+IFCT-0471,Apple (Mashed),Fruits,75,0.4,0.3,20.2,3.5,1.4
+IFCT-0472,Apple (Tikka),Fruits,64,0.4,0.2,17.4,3.0,1.2
+IFCT-0473,Apple (Masala),Fruits,74,0.4,0.3,19.8,3.4,1.4
+IFCT-0474,Apple (Kebab),Fruits,64,0.4,0.2,17.1,2.9,1.2
+IFCT-0475,Apple (Soup),Fruits,56,0.3,0.2,15.1,2.6,1.1
+IFCT-0476,Apple (Salad),Fruits,42,0.2,0.2,11.3,1.9,0.8
+IFCT-0477,Apple (Pickled),Fruits,63,0.4,0.2,17.0,2.9,1.2
+IFCT-0478,Apple (Smoked),Fruits,61,0.4,0.2,16.5,2.8,1.2
+IFCT-0479,Apple (Dry),Fruits,48,0.3,0.2,13.0,2.2,0.9
+IFCT-0480,Apple (Gravy),Fruits,46,0.3,0.2,12.3,2.1,0.9
+IFCT-0481,Apple (Special),Fruits,58,0.3,0.2,15.6,2.7,1.1
+IFCT-0482,Apple (Homestyle),Fruits,59,0.3,0.2,15.9,2.7,1.1
+IFCT-0483,Apple (Restaurant Style),Fruits,69,0.4,0.3,18.6,3.2,1.3
+IFCT-0484,Apple (Premium),Fruits,65,0.4,0.2,17.5,3.0,1.2
+IFCT-0485,Apple (Organic),Fruits,55,0.3,0.2,14.8,2.5,1.1
+IFCT-0486,Apple (Farm Fresh),Fruits,66,0.4,0.3,17.8,3.1,1.3
+IFCT-0487,Banana,Fruits,89,1.1,0.3,23.0,2.6,1
+IFCT-0488,Banana (Boiled),Fruits,106,1.3,0.4,27.3,3.1,1.2
+IFCT-0489,Banana (Fried),Fruits,103,1.3,0.3,26.6,3.0,1.2
+IFCT-0490,Banana (Roasted),Fruits,72,0.9,0.2,18.7,2.1,0.8
+IFCT-0491,Banana (Grilled),Fruits,114,1.4,0.4,29.4,3.3,1.3
+IFCT-0492,Banana (Baked),Fruits,104,1.3,0.4,26.9,3.0,1.2
+IFCT-0493,Banana (Curry),Fruits,111,1.4,0.4,28.6,3.2,1.2
+IFCT-0494,Banana (Spicy),Fruits,95,1.2,0.3,24.5,2.8,1.1
+IFCT-0495,Banana (Sweet),Fruits,102,1.3,0.3,26.3,3.0,1.1
+IFCT-0496,Banana (Raw),Fruits,122,1.5,0.4,31.7,3.6,1.4
+IFCT-0497,Banana (Steamed),Fruits,83,1.0,0.3,21.5,2.4,0.9
+IFCT-0498,Banana (Mashed),Fruits,126,1.6,0.4,32.7,3.7,1.4
+IFCT-0499,Banana (Tikka),Fruits,101,1.2,0.3,26.0,2.9,1.1
+IFCT-0500,Banana (Masala),Fruits,89,1.1,0.3,22.9,2.6,1.0
+IFCT-0501,Banana (Kebab),Fruits,96,1.2,0.3,24.7,2.8,1.1
+IFCT-0502,Banana (Soup),Fruits,92,1.1,0.3,23.7,2.7,1.0
+IFCT-0503,Banana (Salad),Fruits,96,1.2,0.3,24.9,2.8,1.1
+IFCT-0504,Banana (Pickled),Fruits,76,0.9,0.3,19.6,2.2,0.9
+IFCT-0505,Banana (Smoked),Fruits,80,1.0,0.3,20.8,2.4,0.9
+IFCT-0506,Banana (Dry),Fruits,119,1.5,0.4,30.8,3.5,1.3
+IFCT-0507,Banana (Gravy),Fruits,100,1.2,0.3,25.7,2.9,1.1
+IFCT-0508,Banana (Special),Fruits,98,1.2,0.3,25.4,2.9,1.1
+IFCT-0509,Banana (Homestyle),Fruits,102,1.3,0.3,26.4,3.0,1.1
+IFCT-0510,Banana (Restaurant Style),Fruits,88,1.1,0.3,22.8,2.6,1.0
+IFCT-0511,Banana (Premium),Fruits,115,1.4,0.4,29.7,3.4,1.3
+IFCT-0512,Banana (Organic),Fruits,118,1.5,0.4,30.5,3.4,1.3
+IFCT-0513,Banana (Farm Fresh),Fruits,109,1.3,0.4,28.2,3.2,1.2
+IFCT-0514,Orange,Fruits,47,0.9,0.1,12.0,2.4,0
+IFCT-0515,Orange (Boiled),Fruits,70,1.3,0.1,17.8,3.6,0.0
+IFCT-0516,Orange (Fried),Fruits,65,1.2,0.1,16.5,3.3,0.0
+IFCT-0517,Orange (Roasted),Fruits,45,0.9,0.1,11.4,2.3,0.0
+IFCT-0518,Orange (Grilled),Fruits,54,1.0,0.1,13.9,2.8,0.0
+IFCT-0519,Orange (Baked),Fruits,50,0.9,0.1,12.7,2.5,0.0
+IFCT-0520,Orange (Curry),Fruits,64,1.2,0.1,16.2,3.2,0.0
+IFCT-0521,Orange (Spicy),Fruits,42,0.8,0.1,10.7,2.1,0.0
+IFCT-0522,Orange (Sweet),Fruits,56,1.1,0.1,14.2,2.8,0.0
+IFCT-0523,Orange (Raw),Fruits,46,0.9,0.1,11.8,2.4,0.0
+IFCT-0524,Orange (Steamed),Fruits,42,0.8,0.1,10.8,2.2,0.0
+IFCT-0525,Orange (Mashed),Fruits,45,0.9,0.1,11.6,2.3,0.0
+IFCT-0526,Orange (Tikka),Fruits,42,0.8,0.1,10.8,2.2,0.0
+IFCT-0527,Orange (Masala),Fruits,41,0.8,0.1,10.5,2.1,0.0
+IFCT-0528,Orange (Kebab),Fruits,38,0.7,0.1,9.7,1.9,0.0
+IFCT-0529,Orange (Soup),Fruits,54,1.0,0.1,13.8,2.8,0.0
+IFCT-0530,Orange (Salad),Fruits,43,0.8,0.1,10.9,2.2,0.0
+IFCT-0531,Orange (Pickled),Fruits,59,1.1,0.1,15.1,3.0,0.0
+IFCT-0532,Orange (Smoked),Fruits,63,1.2,0.1,16.0,3.2,0.0
+IFCT-0533,Orange (Dry),Fruits,63,1.2,0.1,16.2,3.2,0.0
+IFCT-0534,Orange (Gravy),Fruits,57,1.1,0.1,14.5,2.9,0.0
+IFCT-0535,Orange (Special),Fruits,45,0.9,0.1,11.6,2.3,0.0
+IFCT-0536,Orange (Homestyle),Fruits,69,1.3,0.1,17.6,3.5,0.0
+IFCT-0537,Orange (Restaurant Style),Fruits,68,1.3,0.1,17.3,3.5,0.0
+IFCT-0538,Orange (Premium),Fruits,50,1.0,0.1,12.7,2.5,0.0
+IFCT-0539,Orange (Organic),Fruits,66,1.3,0.1,17.0,3.4,0.0
+IFCT-0540,Orange (Farm Fresh),Fruits,50,0.9,0.1,12.6,2.5,0.0
