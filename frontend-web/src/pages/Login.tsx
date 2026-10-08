@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
+import { API_BASE_URL } from '../config';
 
 export default function Login() {
   const { login } = useAuth();
@@ -11,7 +12,7 @@ export default function Login() {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
-      const res = await axios.post('http://localhost:3000/api/auth/google', {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/google`, {
         id_token: credentialResponse.credential,
       });
       login(res.data.token, res.data.user);
@@ -23,7 +24,7 @@ export default function Login() {
 
   const handleDevLogin = async () => {
     try {
-      const res = await axios.post('http://localhost:3000/api/auth/dev-login');
+      const res = await axios.post(`${API_BASE_URL}/api/auth/dev-login`);
       login(res.data.token, res.data.user);
       navigate('/dashboard');
     } catch (err: any) {

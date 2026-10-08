@@ -8,6 +8,9 @@ import authRoutes from './routes/auth.routes';
 import profileRoutes from './routes/profile.routes';
 import mealRoutes from './routes/meal.routes';
 import activityRoutes from './routes/activity.routes';
+import foodRoutes from './routes/food.routes';
+import { getDashboard } from './controllers/activityController';
+import { authenticate } from './middlewares/auth';
 
 dotenv.config();
 
@@ -36,11 +39,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/foods', foodRoutes);
+app.get('/api/dashboard', authenticate, getDashboard);
 
 // Global Error Handler (F-002, F-008, F-010 covered here)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('[Global Error]', err);
-  
+
   if (err.name === 'ZodError') {
     return res.status(400).json({ error: 'VALIDATION_ERROR', message: err.errors });
   }
@@ -52,6 +57,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;

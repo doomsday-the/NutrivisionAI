@@ -6,8 +6,11 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import LogMeal from './pages/LogMeal';
+import Profile from './pages/Profile';
+import Activity from './pages/Activity';
+import MealHistory from './pages/MealHistory';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy-client-id';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '558532335340-jsbgfpii5qojdbdk8oa23tlukjhljrca.apps.googleusercontent.com';
 
 function App() {
   return (
@@ -21,8 +24,9 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/log-meal" element={<LogMeal />} />
-                {/* Profile placeholder */}
-                <Route path="/profile" element={<div className="p-8 text-center text-gray-500">Profile Settings (Coming Soon)</div>} />
+                <Route path="/history" element={<MealHistory />} />
+                <Route path="/activity" element={<Activity />} />
+                <Route path="/profile" element={<Profile />} />
               </Route>
             </Route>
 

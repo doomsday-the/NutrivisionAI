@@ -45,3 +45,12 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Obsidian workspace metadata
+docs/.obsidian/
+
+# Generated Prisma seed output
+backend-api/prisma/seed.js
+backend-api/prisma/seed.js.map
+backend-api/prisma/seed.d.ts
+backend-api/prisma/seed.d.ts.map

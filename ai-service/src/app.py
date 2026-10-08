@@ -1,11 +1,15 @@
+import logging
+import os
+from typing import List, Optional
 from fastapi import FastAPI, File, UploadFile, Header, HTTPException, Form
 from pydantic import BaseModel
-from typing import List, Optional
-import os
+
+from src.depth import estimate_weights, is_model_loaded
+
+logger = logging.getLogger("ai_service")
 
 app = FastAPI(title="NutriVision AI Service")
 
-# Mock Auth Token (In production, read from env)
 X_INTERNAL_TOKEN = os.getenv("X_INTERNAL_TOKEN", "shared_secret_between_node_and_python")
 
 class DetectionItem(BaseModel):
@@ -25,7 +29,10 @@ def verify_token(x_internal_token: str = Header(None)):
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "midas_loaded": is_model_loaded()
+    }
 
 @app.post("/predict", response_model=PredictResponse)
 async def predict(
@@ -42,23 +49,45 @@ async def predict(
             "message": "File must be JPEG or PNG and under 10MB."
         })
 
-    # ADR-005: Mock Response Phase
-    # We return the exact mock JSON specified in the API contract TC-001
+    image_bytes = await image.read()
+
+    # Classification remains strictly mocked per prompt instructions
+    mocked_detections = [
+        {
+            "detected_label": "rice",
+            "matched_food_id": 12,
+            "confidence": 0.9400,
+            "default_weight": 150.00,
+        },
+        {
+            "detected_label": "dal",
+            "matched_food_id": 34,
+            "confidence": 0.8700,
+            "default_weight": 120.00,
+        },
+    ]
+
+    # Dynamically estimate weights via MiDaS depth estimation with graceful fallback
+    try:
+        calculated_weights = estimate_weights(image_bytes, mocked_detections)
+    except Exception as e:
+        logger.warning(f"MiDaS depth weight estimation failed, falling back to default weights: {e}")
+        calculated_weights = [item["default_weight"] for item in mocked_detections]
+
+    detections: List[DetectionItem] = []
+    for i, item in enumerate(mocked_detections):
+        weight = calculated_weights[i] if i < len(calculated_weights) else item["default_weight"]
+        detections.append(
+            DetectionItem(
+                detected_label=item["detected_label"],
+                matched_food_id=item["matched_food_id"],
+                confidence=item["confidence"],
+                suggested_weight_grams=weight,
+            )
+        )
+
     return PredictResponse(
         session_id=session_id,
         match_method="mock",
-        detections=[
-            DetectionItem(
-                detected_label="rice",
-                matched_food_id=12,
-                confidence=0.9400,
-                suggested_weight_grams=150.00
-            ),
-            DetectionItem(
-                detected_label="dal",
-                matched_food_id=34,
-                confidence=0.8700,
-                suggested_weight_grams=120.00
-            )
-        ]
+        detections=detections,
     )
