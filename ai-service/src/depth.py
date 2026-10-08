@@ -60,10 +60,10 @@ def load_midas() -> Any:
     return _model
 
 # Attempt eager load on startup
-try:
-    load_midas()
-except Exception as e:
-    logger.warning(f"Initial eager MiDaS loading skipped: {e}")
+# try:
+#     load_midas()
+# except Exception as e:
+#     logger.warning(f"Initial eager MiDaS loading skipped: {e}")
 
 def is_model_loaded() -> bool:
     """Returns True if the MiDaS model is initialized in memory."""
