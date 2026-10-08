@@ -52,56 +52,39 @@ export const syncActivity = async (req: AuthRequest, res: Response) => {
 export const getDashboard = async (req: AuthRequest, res: Response) => {
   try {
     const user_id = req.user!.user_id;
-    const startParam = req.query.start as string | undefined;
-    const endParam = req.query.end as string | undefined;
-    let log_date = req.query.date as string | undefined;
-
-    let startOfDay: Date;
-    let endOfDay: Date;
-    let isInclusiveEnd = false;
-
-    if (startParam && endParam) {
-      startOfDay = new Date(startParam);
-      endOfDay = new Date(endParam);
-      isInclusiveEnd = true;
-      log_date = startOfDay.toISOString().split('T')[0];
-    } else {
-      if (!log_date) {
-        log_date = new Date().toISOString().split('T')[0];
-      }
-      startOfDay = new Date(`${log_date}T00:00:00.000Z`);
-      endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
-      isInclusiveEnd = false;
+    if (!log_date) {
+      log_date = new Date().toLocaleDateString('en-CA');
     }
 
-    const dailyLogDate = new Date(`${log_date}T00:00:00.000Z`);
-
-    const [dailyLog, profile, meals] = await Promise.all([
-      prisma.daily_logs.findUnique({
-        where: { user_id_log_date: { user_id, log_date: dailyLogDate } }
-      }),
-      prisma.user_profiles.findUnique({ where: { user_id } }),
-      prisma.meals.findMany({
-        where: {
-          user_id,
-          logged_at: isInclusiveEnd
-            ? { gte: startOfDay, lte: endOfDay }
-            : { gte: startOfDay, lt: endOfDay }
-        },
-        select: {
-          meal_id: true,
-          meal_type: true,
-          total_calories: true,
-          logged_at: true
-        },
-        orderBy: { logged_at: 'asc' }
-      })
-    ]);
-
+    const profile = await prisma.user_profiles.findUnique({ where: { user_id } });
     const target = profile ? Number(profile.daily_calorie_target) : 2000;
 
+    // Use raw SQL to query meals by local calendar date (stored as UTC but compared by date string)
+    const [dailyLogRows, mealsRows] = await Promise.all([
+      prisma.$queryRaw<any[]>`
+        SELECT * FROM public.daily_logs
+        WHERE user_id = ${user_id} AND to_char(log_date, 'YYYY-MM-DD') = ${log_date}
+        LIMIT 1
+      `,
+      prisma.$queryRaw<any[]>`
+        SELECT meal_id, meal_type, total_calories, logged_at
+        FROM public.meals
+        WHERE user_id = ${user_id}
+          AND to_char(logged_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD') = ${log_date}
+        ORDER BY logged_at ASC
+      `
+    ]);
+
+    const dailyLog = dailyLogRows[0] || null;
+    const meals = mealsRows.map((m: any) => ({
+      meal_id: m.meal_id,
+      meal_type: m.meal_type,
+      total_calories: Number(m.total_calories || 0),
+      logged_at: m.logged_at
+    }));
+
     if (!dailyLog) {
-      const mealCalories = meals.reduce((acc, m) => acc + Number(m.total_calories || 0), 0);
+      const mealCalories = meals.reduce((acc: number, m: any) => acc + Number(m.total_calories || 0), 0);
       return res.status(200).json({
         date: log_date,
         target_calories: target,
@@ -112,10 +95,7 @@ export const getDashboard = async (req: AuthRequest, res: Response) => {
         total_carbs_g: 0,
         total_fat_g: 0,
         steps: 0,
-        meals: meals.map(m => ({
-          ...m,
-          total_calories: Number(m.total_calories)
-        }))
+        meals
       });
     }
 
@@ -128,11 +108,8 @@ export const getDashboard = async (req: AuthRequest, res: Response) => {
       total_protein_g: Number(dailyLog.total_protein_g),
       total_carbs_g: Number(dailyLog.total_carbs_g),
       total_fat_g: Number(dailyLog.total_fat_g),
-      steps: dailyLog.steps,
-      meals: meals.map(m => ({
-        ...m,
-        total_calories: Number(m.total_calories)
-      }))
+      steps: Number(dailyLog.steps),
+      meals
     });
 
   } catch (error) {

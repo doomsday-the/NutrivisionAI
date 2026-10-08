@@ -63,14 +63,9 @@ export default function Dashboard() {
         setLoading(true);
         const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-        const startOfDay = new Date(currentDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(currentDate);
-        endOfDay.setHours(23, 59, 59, 999);
-
         const [res, weeklyRes] = await Promise.all([
           axios.get<DashboardData>(
-            `${API_BASE_URL}/api/activity/dashboard?start=${startOfDay.toISOString()}&end=${endOfDay.toISOString()}`,
+            `${API_BASE_URL}/api/activity/dashboard?date=${formattedDate}`,
             { headers }
           ),
           axios.get<WeeklyData[]>(
