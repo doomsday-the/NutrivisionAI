@@ -52,6 +52,7 @@ export const syncActivity = async (req: AuthRequest, res: Response) => {
 export const getDashboard = async (req: AuthRequest, res: Response) => {
   try {
     const user_id = req.user!.user_id;
+    let log_date = req.query.date as string | undefined;
     if (!log_date) {
       log_date = new Date().toLocaleDateString('en-CA');
     }
@@ -70,7 +71,8 @@ export const getDashboard = async (req: AuthRequest, res: Response) => {
         SELECT meal_id, meal_type, total_calories, logged_at
         FROM public.meals
         WHERE user_id = ${user_id}
-          AND to_char(logged_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD') = ${log_date}
+          AND logged_at >= ${log_date}::date
+          AND logged_at < (${log_date}::date + interval '1 day')
         ORDER BY logged_at ASC
       `
     ]);

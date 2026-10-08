@@ -71,7 +71,7 @@ export default function Dashboard() {
           axios.get<WeeklyData[]>(
             `${API_BASE_URL}/api/activity/weekly?date=${formattedDate}`,
             { headers }
-          )
+          ).catch(() => ({ data: [] as WeeklyData[] }))
         ]);
         setData(res.data);
         setWeeklyData(weeklyRes.data);
