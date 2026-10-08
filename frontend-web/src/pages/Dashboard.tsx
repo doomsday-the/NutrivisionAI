@@ -25,10 +25,18 @@ interface DashboardData {
   meals: MealSummary[];
 }
 
+interface WeeklyData {
+  day: string;
+  date: string;
+  calories: number;
+  target: number;
+}
+
 export default function Dashboard() {
   const { token } = useAuth();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [data, setData] = useState<DashboardData | null>(null);
+  const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const formattedDate = currentDate.toLocaleDateString('en-CA');
@@ -60,11 +68,18 @@ export default function Dashboard() {
         const endOfDay = new Date(currentDate);
         endOfDay.setHours(23, 59, 59, 999);
 
-        const res = await axios.get<DashboardData>(
-          `${API_BASE_URL}/api/activity/dashboard?start=${startOfDay.toISOString()}&end=${endOfDay.toISOString()}`,
-          { headers }
-        );
+        const [res, weeklyRes] = await Promise.all([
+          axios.get<DashboardData>(
+            `${API_BASE_URL}/api/activity/dashboard?start=${startOfDay.toISOString()}&end=${endOfDay.toISOString()}`,
+            { headers }
+          ),
+          axios.get<WeeklyData[]>(
+            `${API_BASE_URL}/api/activity/weekly?date=${formattedDate}`,
+            { headers }
+          )
+        ]);
         setData(res.data);
+        setWeeklyData(weeklyRes.data);
       } catch (err) {
         console.error('Failed to load dashboard', err);
         setData({
@@ -72,6 +87,7 @@ export default function Dashboard() {
           calories_burned: 0, remaining_calories: 2000, total_protein_g: 0,
           total_carbs_g: 0, total_fat_g: 0, steps: 0, meals: []
         });
+        setWeeklyData([]);
       } finally {
         setLoading(false);
       }
@@ -95,16 +111,8 @@ export default function Dashboard() {
   ];
   const totalMacros = totalProtein + totalCarbs + totalFat;
 
-  // Mock weekly data for the beautiful bar chart
-  const weeklyData = [
-    { day: 'Mon', calories: 1950, target: 2000 },
-    { day: 'Tue', calories: 2100, target: 2000 },
-    { day: 'Wed', calories: 1800, target: 2000 },
-    { day: 'Thu', calories: 2050, target: 2000 },
-    { day: 'Fri', calories: 2300, target: 2000 },
-    { day: 'Sat', calories: 2500, target: 2000 },
-    { day: 'Sun', calories: totalCalories || 1900, target: 2000 },
-  ];
+  // Mock weekly data for the beautiful bar chart - removed, using dynamic data
+  // The weeklyData state is mapped directly to the Recharts BarChart
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

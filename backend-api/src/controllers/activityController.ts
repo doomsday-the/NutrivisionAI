@@ -140,3 +140,52 @@ export const getDashboard = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to load dashboard.' });
   }
 };
+
+export const getWeeklyActivity = async (req: AuthRequest, res: Response) => {
+  try {
+    const user_id = req.user!.user_id;
+    let log_date = req.query.date as string | undefined;
+
+    if (!log_date) {
+      log_date = new Date().toISOString().split('T')[0];
+    }
+    
+    // Get profile to determine target calories
+    const profile = await prisma.user_profiles.findUnique({ where: { user_id } });
+    const target = profile ? Number(profile.daily_calorie_target) : 2000;
+
+    const endDate = new Date(`${log_date}T00:00:00.000Z`);
+    const startDate = new Date(endDate.getTime() - 6 * 24 * 60 * 60 * 1000);
+
+    const logs = await prisma.daily_logs.findMany({
+      where: {
+        user_id,
+        log_date: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      orderBy: { log_date: 'asc' }
+    });
+
+    const weeklyData = [];
+    for (let i = 0; i <= 6; i++) {
+      const current = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      const dayStr = current.toLocaleDateString('en-US', { weekday: 'short' });
+      const log = logs.find(l => l.log_date.toISOString().startsWith(current.toISOString().split('T')[0]));
+      
+      weeklyData.push({
+        day: dayStr,
+        date: current.toISOString().split('T')[0],
+        calories: log ? Number(log.total_calories) : 0,
+        target: log ? Number(log.target_calories) : target
+      });
+    }
+
+    return res.status(200).json(weeklyData);
+
+  } catch (error) {
+    console.error('[Weekly Activity Error]', error);
+    return res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: 'Failed to load weekly activity.' });
+  }
+};
