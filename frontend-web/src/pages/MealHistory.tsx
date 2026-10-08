@@ -17,6 +17,7 @@ interface Meal {
   meal_id: number;
   meal_type: string;
   logged_at: string;
+  notes?: string | null;
   total_calories: number;
   total_protein_g: number;
   total_carbs_g: number;
@@ -231,6 +232,9 @@ export default function MealHistory() {
 
                       {/* Items */}
                       <div className="pl-16 pr-2">
+                        {meal.notes && (
+                          <p className="text-sm font-medium text-gray-700 mb-3">{meal.notes}</p>
+                        )}
                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Contents</h4>
                         {meal.items && meal.items.length > 0 ? (
                           <div className="grid gap-2">
@@ -246,7 +250,9 @@ export default function MealHistory() {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-400 italic font-medium">No items logged.</p>
+                          <p className="text-sm text-gray-400 italic font-medium">
+                            {meal.notes ? 'Nutrition entered manually.' : 'No items logged.'}
+                          </p>
                         )}
                       </div>
                     </div>

@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Upload, Coffee, Sun, Moon, Apple, Loader2 } from 'lucide-react';
+import { Camera, Upload, Coffee, Sun, Moon, Apple, Loader2, PencilLine } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 interface MealTypeOption {
   value: string;
@@ -20,8 +21,14 @@ const MEAL_TYPES: MealTypeOption[] = [
 ];
 
 export default function LogMeal() {
+  const [entryMode, setEntryMode] = useState<'photo' | 'manual'>('photo');
   const [file, setFile] = useState<File | null>(null);
   const [mealType, setMealType] = useState('lunch');
+  const [description, setDescription] = useState('');
+  const [calories, setCalories] = useState('');
+  const [protein, setProtein] = useState('');
+  const [carbs, setCarbs] = useState('');
+  const [fat, setFat] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
@@ -41,12 +48,33 @@ export default function LogMeal() {
     formData.append('meal_type', mealType);
 
     try {
-      await axios.post('http://localhost:3000/api/meals/analyze', formData, {
+      await axios.post(`${API_BASE_URL}/api/meals/analyze`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to analyze meal');
+      setLoading(false);
+    }
+  };
+
+  const handleManualSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      await axios.post(`${API_BASE_URL}/api/meals`, {
+        meal_type: mealType,
+        notes: description.trim(),
+        total_calories: Number(calories),
+        total_protein_g: Number(protein || 0),
+        total_carbs_g: Number(carbs || 0),
+        total_fat_g: Number(fat || 0),
+      });
+      navigate('/history');
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.response?.data?.error || 'Failed to save meal');
       setLoading(false);
     }
   };
@@ -71,7 +99,7 @@ export default function LogMeal() {
   };
 
   return (
-    <div className="max-w-lg mx-auto space-y-6 animate-fade-in">
+    <div className="log-meal-page max-w-lg mx-auto space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div
@@ -91,6 +119,27 @@ export default function LogMeal() {
         </div>
       </div>
 
+      <div className="log-meal-mode-switch grid grid-cols-2 gap-2 rounded-xl p-1">
+        <button
+          type="button"
+          onClick={() => setEntryMode('photo')}
+          className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+            entryMode === 'photo' ? 'mode-option-active' : 'mode-option'
+          }`}
+        >
+          <Camera size={17} /> Photo analysis
+        </button>
+        <button
+          type="button"
+          onClick={() => setEntryMode('manual')}
+          className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+            entryMode === 'manual' ? 'mode-option-active' : 'mode-option'
+          }`}
+        >
+          <PencilLine size={17} /> Manual entry
+        </button>
+      </div>
+
       {/* Error alert */}
       {error && (
         <div
@@ -104,10 +153,10 @@ export default function LogMeal() {
         </div>
       )}
 
-      <form onSubmit={handleUpload} className="space-y-6">
+      {entryMode === 'photo' ? <form onSubmit={handleUpload} className="space-y-6">
         {/* Meal type selector */}
         <div
-          className="rounded-2xl p-5"
+          className="log-meal-panel rounded-2xl p-5"
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
@@ -148,7 +197,7 @@ export default function LogMeal() {
 
         {/* Upload zone */}
         <div
-          className="rounded-2xl p-5"
+          className="log-meal-panel rounded-2xl p-5"
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
@@ -238,12 +287,120 @@ export default function LogMeal() {
             )}
           </span>
         </button>
-      </form>
+      </form> : (
+        <form onSubmit={handleManualSave} className="log-meal-panel space-y-5 rounded-2xl p-5">
+          <p className="text-sm text-slate-400">
+            Enter the meal’s nutrition from its label or your own estimate.
+          </p>
+          <div>
+            <label htmlFor="manual-meal-type" className="log-meal-label mb-1.5 block text-sm font-semibold">
+              Meal type
+            </label>
+            <select
+              id="manual-meal-type"
+              value={mealType}
+              onChange={e => setMealType(e.target.value)}
+              className="log-meal-input w-full rounded-lg border px-3 py-2.5"
+            >
+              {MEAL_TYPES.map(type => (
+                <option key={type.value} value={type.value}>{type.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="manual-meal-description" className="log-meal-label mb-1.5 block text-sm font-semibold">
+              Meal or food
+            </label>
+            <input
+              id="manual-meal-description"
+              type="text"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              maxLength={255}
+              placeholder="e.g. Homemade lentil soup"
+              className="log-meal-input w-full rounded-lg border px-3 py-2.5"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="manual-meal-calories" className="log-meal-label mb-1.5 block text-sm font-semibold">
+                Calories (kcal)
+              </label>
+              <input
+                id="manual-meal-calories"
+                type="number"
+                min="0"
+                step="any"
+                value={calories}
+                onChange={e => setCalories(e.target.value)}
+                placeholder="e.g. 450"
+                className="log-meal-input w-full rounded-lg border px-3 py-2.5"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="manual-meal-protein" className="log-meal-label mb-1.5 block text-sm font-semibold">
+                Protein (g)
+              </label>
+              <input
+                id="manual-meal-protein"
+                type="number"
+                min="0"
+                step="any"
+                value={protein}
+                onChange={e => setProtein(e.target.value)}
+                placeholder="Optional"
+                className="log-meal-input w-full rounded-lg border px-3 py-2.5"
+              />
+            </div>
+            <div>
+              <label htmlFor="manual-meal-carbs" className="log-meal-label mb-1.5 block text-sm font-semibold">
+                Carbohydrates (g)
+              </label>
+              <input
+                id="manual-meal-carbs"
+                type="number"
+                min="0"
+                step="any"
+                value={carbs}
+                onChange={e => setCarbs(e.target.value)}
+                placeholder="Optional"
+                className="log-meal-input w-full rounded-lg border px-3 py-2.5"
+              />
+            </div>
+            <div>
+              <label htmlFor="manual-meal-fat" className="log-meal-label mb-1.5 block text-sm font-semibold">
+                Fat (g)
+              </label>
+              <input
+                id="manual-meal-fat"
+                type="number"
+                min="0"
+                step="any"
+                value={fat}
+                onChange={e => setFat(e.target.value)}
+                placeholder="Optional"
+                className="log-meal-input w-full rounded-lg border px-3 py-2.5"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-primary-600 py-3 font-bold text-white transition hover:bg-primary-700 disabled:opacity-50"
+          >
+            {loading ? 'Saving meal...' : 'Save meal'}
+          </button>
+        </form>
+      )}
 
       {/* Info note */}
-      <p className="text-center text-slate-600 text-xs pb-2">
-        📸 Our AI will identify foods and calculate nutrition automatically
-      </p>
+      {entryMode === 'photo' && (
+        <p className="text-center text-slate-600 text-xs pb-2">
+          📸 Our AI will identify foods and calculate nutrition automatically
+        </p>
+      )}
     </div>
   );
 }

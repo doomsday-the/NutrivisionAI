@@ -116,7 +116,7 @@ export default function Profile() {
   const currentTarget = userData?.profile?.daily_calorie_target || 2000;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="profile-page max-w-4xl mx-auto space-y-8">
       {/* Header Banner */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col sm:flex-row items-center gap-6">
         <img
@@ -180,7 +180,7 @@ export default function Profile() {
                 value={age}
                 onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="e.g. 25"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                className="profile-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 required
               />
             </div>
@@ -195,7 +195,7 @@ export default function Profile() {
                 value={heightCm}
                 onChange={(e) => setHeightCm(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="e.g. 175"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                className="profile-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 required
               />
             </div>
@@ -210,7 +210,7 @@ export default function Profile() {
                 value={weightKg}
                 onChange={(e) => setWeightKg(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="e.g. 70"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                className="profile-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 required
               />
             </div>
@@ -223,7 +223,7 @@ export default function Profile() {
               <select
                 value={activityLevel}
                 onChange={(e) => setActivityLevel(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                className="profile-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
               >
                 <option value="sedentary">Sedentary (little to no exercise)</option>
                 <option value="light">Lightly Active (1–3 days/week)</option>
