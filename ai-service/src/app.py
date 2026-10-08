@@ -51,43 +51,60 @@ async def predict(
 
     image_bytes = await image.read()
 
-    # Classification remains strictly mocked per prompt instructions
-    mocked_detections = [
-        {
-            "detected_label": "rice",
-            "matched_food_id": 12,
-            "confidence": 0.9400,
-            "default_weight": 150.00,
-        },
-        {
-            "detected_label": "dal",
-            "matched_food_id": 34,
-            "confidence": 0.8700,
-            "default_weight": 120.00,
-        },
-    ]
+    import base64
+    import json
+    import urllib.request
+    import os
 
-    # Dynamically estimate weights via MiDaS depth estimation with graceful fallback
-    try:
-        calculated_weights = estimate_weights(image_bytes, mocked_detections)
-    except Exception as e:
-        logger.warning(f"MiDaS depth weight estimation failed, falling back to default weights: {e}")
-        calculated_weights = [item["default_weight"] for item in mocked_detections]
+    api_key = os.getenv("ROBOFLOW_API_KEY", "R6ctDFt29vNejksIHIOC")
+    url = f"https://detect.roboflow.com/indianfoodnet/1?api_key={api_key}"
+
+    req = urllib.request.Request(
+        url,
+        data=base64.b64encode(image_bytes).decode("ascii").encode('ascii'),
+        headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        method='POST'
+    )
 
     detections: List[DetectionItem] = []
-    for i, item in enumerate(mocked_detections):
-        weight = calculated_weights[i] if i < len(calculated_weights) else item["default_weight"]
-        detections.append(
-            DetectionItem(
-                detected_label=item["detected_label"],
-                matched_food_id=item["matched_food_id"],
-                confidence=item["confidence"],
-                suggested_weight_grams=weight,
-            )
-        )
+    
+    CLASS_TO_ID = {
+        "Dosa": 26,
+        "Idli": 27,
+        "CoconutChutney": 28,
+        "Sambar": 29,
+        "Roti": 30,
+        "Samosa": 31,
+        "Vada": 32,
+        "Paneer": 33,
+        "Biryani": 35,
+        "Gulab Jamun": 36,
+        "Rice": 12,
+        "Dal": 34
+    }
+
+    try:
+        with urllib.request.urlopen(req) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                for i, pred in enumerate(data.get("predictions", [])):
+                    cls_name = pred["class"]
+                    safe_id = CLASS_TO_ID.get(cls_name, 12)  # fallback to Rice if unknown
+                    detections.append(
+                        DetectionItem(
+                            detected_label=cls_name,
+                            matched_food_id=safe_id,
+                            confidence=pred["confidence"],
+                            suggested_weight_grams=150.0
+                        )
+                    )
+            else:
+                logger.error(f"Roboflow API error: {response.status}")
+    except Exception as e:
+        logger.error(f"Failed to call Roboflow: {e}")
 
     return PredictResponse(
         session_id=session_id,
-        match_method="mock",
+        match_method="roboflow",
         detections=detections,
     )
