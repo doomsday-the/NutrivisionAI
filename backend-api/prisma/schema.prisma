@@ -92,6 +92,8 @@ model food_items {
   
   ai_match_log_matched   ai_match_log[] @relation("AiMatchLogMatched")
   ai_match_log_corrected ai_match_log[] @relation("AiMatchLogCorrected")
+
+  @@unique([source_id, external_id])
 }
 
 model nutrient_types {

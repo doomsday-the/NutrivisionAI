@@ -70,8 +70,6 @@ export default function LogMeal() {
     }
   };
 
-  const activeMealType = MEAL_TYPES.find(m => m.value === mealType)!;
-
   return (
     <div className="max-w-lg mx-auto space-y-6 animate-fade-in">
       {/* Header */}
