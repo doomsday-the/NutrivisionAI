@@ -10,6 +10,11 @@ interface ProfileData {
   activity_level?: string;
   goal?: string;
   daily_calorie_target?: number;
+  recommended_daily_calorie_target?: number | null;
+  daily_calorie_target_override?: number | null;
+  daily_steps_target?: number;
+  recommended_daily_steps_target?: number | null;
+  daily_steps_target_override?: number | null;
 }
 
 interface UserProfileResponse {
@@ -28,6 +33,8 @@ export default function Profile() {
   const [weightKg, setWeightKg] = useState<number | ''>('');
   const [activityLevel, setActivityLevel] = useState<string>('moderate');
   const [goal, setGoal] = useState<string>('maintain');
+  const [calorieTargetOverride, setCalorieTargetOverride] = useState<number | ''>('');
+  const [stepsTargetOverride, setStepsTargetOverride] = useState<number | ''>('');
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -47,6 +54,8 @@ export default function Profile() {
           setWeightKg(res.data.profile.weight_kg ?? '');
           if (res.data.profile.activity_level) setActivityLevel(res.data.profile.activity_level);
           if (res.data.profile.goal) setGoal(res.data.profile.goal);
+          setCalorieTargetOverride(res.data.profile.daily_calorie_target_override ?? '');
+          setStepsTargetOverride(res.data.profile.daily_steps_target_override ?? '');
         }
       } catch (err: any) {
         setErrorMessage(err.response?.data?.message || 'Failed to load profile data');
@@ -82,6 +91,21 @@ export default function Profile() {
   };
 
   const estimatedTarget = computeEstimatedTarget();
+  const recommendedSteps = (() => {
+    const ageNumber = age === '' ? null : Number(age);
+    if (ageNumber === null) return null;
+
+    const stepsByActivity: Record<string, number> = {
+      sedentary: 7000,
+      light: 8000,
+      moderate: 9000,
+      active: 10000,
+      very_active: 10000,
+    };
+    const baseTarget = stepsByActivity[activityLevel];
+    if (baseTarget === undefined) return null;
+    return Math.max(6000, baseTarget - (ageNumber >= 60 ? 1000 : 0));
+  })();
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,11 +120,15 @@ export default function Profile() {
         weight_kg: weightKg === '' ? undefined : Number(weightKg),
         activity_level: activityLevel,
         goal: goal,
+        daily_calorie_target_override: calorieTargetOverride === '' ? null : Number(calorieTargetOverride),
+        daily_steps_target_override: stepsTargetOverride === '' ? null : Number(stepsTargetOverride),
       };
 
       const res = await axios.put<UserProfileResponse>(`${API_BASE_URL}/api/profile`, payload);
       setUserData(res.data);
-      setSuccessMessage('Health profile & calorie target updated successfully!');
+      setCalorieTargetOverride(res.data.profile?.daily_calorie_target_override ?? '');
+      setStepsTargetOverride(res.data.profile?.daily_steps_target_override ?? '');
+      setSuccessMessage('Profile and daily targets updated successfully!');
       setTimeout(() => setSuccessMessage(''), 4000);
     } catch (err: any) {
       setErrorMessage(err.response?.data?.message || 'Failed to update profile');
@@ -113,7 +141,12 @@ export default function Profile() {
     return <div className="text-center py-16 text-gray-500 font-medium">Loading profile settings...</div>;
   }
 
-  const currentTarget = userData?.profile?.daily_calorie_target || 2000;
+  const currentTarget = calorieTargetOverride === ''
+    ? estimatedTarget ?? userData?.profile?.daily_calorie_target ?? 2000
+    : calorieTargetOverride;
+  const currentStepsTarget = stepsTargetOverride === ''
+    ? recommendedSteps ?? userData?.profile?.daily_steps_target ?? 10000
+    : stepsTargetOverride;
 
   return (
     <div className="profile-page max-w-4xl mx-auto space-y-8">
@@ -137,11 +170,14 @@ export default function Profile() {
         {/* Current Target Card */}
         <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 text-center min-w-[160px]">
           <div className="text-xs font-bold uppercase text-primary-600 tracking-wider flex items-center justify-center gap-1">
-            <Target size={14} /> Active Target
+            <Target size={14} /> Active Daily Targets
           </div>
           <div className="text-3xl font-extrabold text-primary-700 mt-1">
             {currentTarget}
             <span className="text-sm font-normal text-primary-600 ml-1">kcal</span>
+          </div>
+          <div className="mt-1 text-sm font-semibold text-primary-700">
+            {Number(currentStepsTarget).toLocaleString()} steps
           </div>
         </div>
       </div>
@@ -253,8 +289,8 @@ export default function Profile() {
               <div className="flex items-center gap-3">
                 <Sparkles className="text-amber-500" size={24} />
                 <div>
-                  <div className="text-sm font-semibold text-gray-800">Mifflin-St Jeor TDEE Preview</div>
-                  <div className="text-xs text-gray-500">Calculated based on your current inputs above</div>
+                  <div className="text-sm font-semibold text-gray-800">Recommended calorie target</div>
+                  <div className="text-xs text-gray-500">Based on your profile and goal</div>
                 </div>
               </div>
               <div className="text-xl font-bold text-primary-700">
@@ -262,6 +298,80 @@ export default function Profile() {
               </div>
             </div>
           )}
+
+          <div className="space-y-5 rounded-xl border border-gray-200 p-5">
+            <div>
+              <h3 className="text-base font-bold text-gray-800">Daily targets</h3>
+              <p className="mt-1 text-sm text-gray-500">Use the profile recommendations or set your own targets.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label htmlFor="daily-calorie-target" className="block text-sm font-medium text-gray-700">
+                  Active calorie target (kcal/day)
+                </label>
+                <input
+                  id="daily-calorie-target"
+                  type="number"
+                  min="500"
+                  max="10000"
+                  step="1"
+                  value={calorieTargetOverride}
+                  onChange={(e) => setCalorieTargetOverride(e.target.value === '' ? '' : Number(e.target.value))}
+                  placeholder={estimatedTarget === null ? 'Enter a target' : String(estimatedTarget)}
+                  className="profile-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                <p className="text-xs text-gray-500">
+                  Recommended: {estimatedTarget === null ? 'complete your profile' : `${estimatedTarget.toLocaleString()} kcal/day`}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setCalorieTargetOverride('')}
+                  disabled={estimatedTarget === null}
+                  className="text-sm font-semibold text-primary-700 underline disabled:text-gray-400"
+                >
+                  Use recommended calories
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="daily-steps-target" className="block text-sm font-medium text-gray-700">
+                  Active step target (steps/day)
+                </label>
+                <input
+                  id="daily-steps-target"
+                  type="number"
+                  min="1000"
+                  max="50000"
+                  step="100"
+                  value={stepsTargetOverride}
+                  onChange={(e) => setStepsTargetOverride(e.target.value === '' ? '' : Number(e.target.value))}
+                  placeholder={recommendedSteps === null ? '10,000' : recommendedSteps.toLocaleString()}
+                  className="profile-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                <p className="text-xs text-gray-500">
+                  Profile recommendation: {recommendedSteps === null ? 'complete your profile' : `${recommendedSteps.toLocaleString()} steps/day`}
+                </p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  <button
+                    type="button"
+                    onClick={() => setStepsTargetOverride('')}
+                    disabled={recommendedSteps === null}
+                    className="text-sm font-semibold text-primary-700 underline disabled:text-gray-400"
+                  >
+                    Use profile recommendation
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStepsTargetOverride(10000)}
+                    className="text-sm font-semibold text-primary-700 underline"
+                  >
+                    Use 10,000 steps
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="pt-4 flex justify-end">
             <button

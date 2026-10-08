@@ -16,19 +16,72 @@ export const mealAnalyzeSchema = z.object({
 
 export const activitySyncSchema = z.object({
   body: z.object({
-    log_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'log_date must be YYYY-MM-DD'),
+    log_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'log_date must be YYYY-MM-DD').optional(),
     steps: z.number().int().min(0, 'steps must be non-negative'),
     calories_burned: z.number().min(0, 'calories_burned must be non-negative'),
+    activity_types: z.array(z.enum([
+      'gym',
+      'running',
+      'jogging',
+      'swimming',
+      'football',
+      'cycling',
+      'walking',
+      'other',
+    ])).max(8).optional(),
+    activity_type: z.enum([
+      'gym',
+      'running',
+      'jogging',
+      'swimming',
+      'football',
+      'cycling',
+      'walking',
+      'other',
+    ]).optional(),
+    sleep_hours: z.number().min(0.25).max(24).nullable().optional(),
+    include_sleep_calories: z.boolean().optional(),
+  }).superRefine((body, ctx) => {
+    if (body.sleep_hours !== undefined && body.sleep_hours !== null && body.include_sleep_calories !== true) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['include_sleep_calories'],
+        message: 'Explicit confirmation is required to include sleep calories.',
+      });
+    }
+
+    if (body.include_sleep_calories === true && (body.sleep_hours === undefined || body.sleep_hours === null)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['sleep_hours'],
+        message: 'Sleep hours are required to include sleep calories.',
+      });
+    }
+  }),
+});
+
+export const sleepSyncSchema = z.object({
+  body: z.object({
+    sleep_hours: z.number().min(0.25).max(24),
+    include_sleep_calories: z.literal(true),
+  }),
+});
+
+export const sleepEstimateSchema = z.object({
+  body: z.object({
+    sleep_hours: z.number().min(0.25).max(24),
   }),
 });
 
 export const profileUpdateSchema = z.object({
   body: z.object({
-    age: z.number().int().min(1, 'Age must be positive').optional(),
+    age: z.number().int().min(1, 'Age must be positive').max(120, 'Age must be 120 or younger').optional(),
     height_cm: z.number().min(50).max(300).optional(),
     weight_kg: z.number().min(20).max(500).optional(),
     activity_level: z.enum(['sedentary', 'light', 'moderate', 'active', 'very_active']).optional(),
     goal: z.enum(['lose', 'maintain', 'gain']).optional(),
+    daily_calorie_target_override: z.number().min(500).max(10000).nullable().optional(),
+    daily_steps_target_override: z.number().int().min(1000).max(50000).nullable().optional(),
   }),
 });
 
