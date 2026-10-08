@@ -289,6 +289,32 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
         WHERE meal_id = ${mealId};
       `;
 
+      // 3.5 Recalculate daily_logs via raw SQL to ensure totals are perfectly accurate
+      await tx.$executeRaw`
+        UPDATE public.daily_logs
+        SET total_calories = (
+              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_protein_g = (
+              SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_carbs_g = (
+              SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_fat_g = (
+              SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            remaining_calories = target_calories - (
+              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ) + calories_burned
+        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE;
+      `;
+
       // 4. Also log the correction in ai_match_log
       await tx.ai_match_log.create({
         data: {
@@ -620,6 +646,32 @@ export const addMealItem = async (req: AuthRequest, res: Response) => {
               WHERE mi.meal_id = ${mealId} AND (nt.name ILIKE '%fat%' OR nt.name ILIKE '%lipid%')
             )
         WHERE meal_id = ${mealId};
+      `;
+
+      // 4. Recalculate daily_logs via raw SQL to ensure totals are perfectly accurate
+      await tx.$executeRaw`
+        UPDATE public.daily_logs
+        SET total_calories = (
+              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_protein_g = (
+              SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_carbs_g = (
+              SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            total_fat_g = (
+              SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ),
+            remaining_calories = target_calories - (
+              SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+            ) + calories_burned
+        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE;
       `;
     });
 
