@@ -151,8 +151,8 @@ ${user_question ? `User Question: ${user_question}` : 'Task: Provide daily brief
 Return JSON only.`;
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
-    const model = genAI.getGenerativeModel({ model: modelName });
+    const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+    const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1' });
 
     const result = await model.generateContent([
       { text: systemPrompt },
