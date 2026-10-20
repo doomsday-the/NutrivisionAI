@@ -32,14 +32,6 @@ gantt
 ```
 
 
-## Phase 1: Planning, Environment & DB Design (Week 1)
-*   **Goal**: Set up the environment and finalize the relational database schema.
-*   **Tasks**:
-    *   Initialize Git repository (2 branches: `main`, `dev` as per PDF).
-    *   Setup PostgreSQL database.
-    *   Finalize ER Diagram and Data Dictionary.
-    *   Set up Node.js/Express environment with Prisma ORM.
-
 ## Phase 1: Planning, Environment & DB Design (Completed ✅)
 *   **Goal**: Set up the environment and finalize the relational database schema.
 *   **Delivered**:
@@ -73,11 +65,13 @@ gantt
     *   Built historical meal calendar timeline with macro breakdown pills and deletion cascade.
     *   Integrated physical activity logger with quick increment presets and live TDEE biometrics profile manager.
 
-## Phase 6: AI Nutrition Coach (Planned / Under Review ⏳)
+## Phase 6: AI Nutrition Coach (Completed ✅)
 *   **Goal**: Add "Explain My Plate" dietary feedback and conversational coaching.
-*   **Tasks**:
-    *   Integrate Gemini / LLM API into the backend to analyze user's meal logs against daily caloric and macro targets.
-    *   Feed the user's weekly metrics into the prompt to generate personalized advice.
+*   **Delivered**:
+    *   Integrated Gemini 1.5 Flash via `@google/generative-ai` with structured system prompt and graceful fallback.
+    *   Added `POST /api/coach/explain` and `GET /api/coach/daily-insight` endpoints in `coachController.ts`.
+    *   Built conversational `NutritionCoach.tsx` chat interface with user macro snapshot context and quick prompt pills.
+    *   Created `NutriCoachWidget.tsx` embedded on the Dashboard that automatically triggers whenever a meal is logged or updated, with sessionStorage caching.
 
 ## Phase 7: React Native & Wear OS (Weeks 16-20)
 *   **Goal**: Bring the app to mobile and smartwatches.

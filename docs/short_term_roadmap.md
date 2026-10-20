@@ -36,10 +36,14 @@ Instead of relying on inaccurate crowdsourced APIs (like MyFitnessPal), we will 
 *   **Containerization**: `docker-compose.yml` deploying PostgreSQL, Express Backend API, and FastAPI AI Service with health checks.
 *   **Frontend Client**: Modern React + Vite web dashboard featuring SVG calorie rings, Recharts, and dual-mode meal logging.
 
+## ✅ Phase 6: AI Nutrition Coach (Gemini LLM)
+*   **Conversational Feedback**: Integrated Gemini 1.5 Flash via `@google/generative-ai` with structured dietary prompts and local fallback.
+*   **Endpoints**: Added `POST /api/coach/explain` for chat Q&A and `GET /api/coach/daily-insight` for macro evaluations.
+*   **UI Components**: Dedicated `NutritionCoach.tsx` chat screen and `NutriCoachWidget.tsx` embedded on the Dashboard auto-updating on meal logs.
+
 ---
 
 ## ⏳ Next Milestones (Subject to User Confirmation)
-1. **AI Nutrition Coach**: Integrate Gemini / LLM conversational insights into daily macro reports.
+1. **Cloud Deployment (Option C)**: Staging rollout to free-tier cloud hosting (Vercel frontend, Render backend, Supabase PostgreSQL).
 2. **Per-Bounding-Box Depth Masking**: Upgrade MiDaS center-crop proxy to evaluate depth over individual bounding boxes as defined in ADR-009.
 3. **Mobile Client (React Native)**: Connect camera scanning on Android/iOS to the existing `POST /api/meals/analyze` endpoint.
-4. **Cloud Deployment**: Staging rollout to free-tier cloud hosting (Vercel + Render + Supabase).
