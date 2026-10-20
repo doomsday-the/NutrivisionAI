@@ -74,7 +74,8 @@ ${user_question ? `**User's question:** ${user_question}` : '**Task:** Summarise
 Respond in plain text. Do not use markdown headers. Use bullet points only for swap suggestions.`;
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+    const model = genAI.getGenerativeModel({ model: modelName });
 
     const result = await model.generateContent([
       { text: systemPrompt },
