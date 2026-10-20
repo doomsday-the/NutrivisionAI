@@ -20,16 +20,26 @@ Instead of relying on inaccurate crowdsourced APIs (like MyFitnessPal), we will 
 *   **Step 2c: Global Food Ingestion (Secondary)**: Ingest USDA FDC data to fill the gaps with Western and packaged foods (Pizza, Burgers) to act as a fallback.
 *   **Step 2d: Normalization**: Ensure every food item maps correctly to its `food_aliases`, `density_g_per_ml`, and `nutrient_types`.
 
-## Phase 3: Enterprise-Grade Foundation (Node.js/Express)
-*   **Layered Architecture**: Controllers -> Services -> Data Access Layer.
-*   **Validation & Error Handling**: Use `Zod`/`Joi` and centralized global error handlers.
-*   **Database Connection**: Connect Express to the newly populated dual-source PostgreSQL database.
+## ✅ Phase 3: Enterprise-Grade Foundation (Node.js/Express)
+*   **Layered Architecture**: Controllers -> Services -> Prisma ORM -> PostgreSQL.
+*   **Validation & Error Handling**: Zod validation on API payloads, typed error responses, centralized error middleware.
+*   **Database Connection & Stored Procedures**: Connected Express to PostgreSQL, executing atomic `sp_log_meal` transactions.
 
-## Phase 4: Scalable AI Microservice (Python/FastAPI)
-*   **FastAPI Setup**: Use `Pydantic` models for strict request/response typing.
-*   **Mock Inference**: Create a service that accepts an image but returns a hardcoded JSON response. *Crucially, this mock JSON will now intelligently return `food_id`s corresponding to the exact IFCT or USDA cooked records we seeded in Phase 2.*
+## ✅ Phase 4: Scalable AI Microservice (Python/FastAPI)
+*   **FastAPI Architecture**: Pydantic request/response models and token-secured endpoints (`/predict`, `/health`).
+*   **CV Inference**: Roboflow hosted IndianFoodNet model integration detecting authentic Indian dishes.
+*   **Portion Heuristics**: MiDaS relative depth estimation scaling base portion weights according to plate geometry.
 
-## Phase 5: Resilient Inter-Service Communication & Containerization
-*   Node.js calls the Python API using robust timeout/retry logic.
-*   When the mock AI returns a match, Node.js logs the interaction into the `ai_match_log` table to establish the AI feedback loop.
-*   Wrap PostgreSQL, Node.js, and Python into a `docker-compose.yml` for professional, one-click deployment.
+## ✅ Phase 5: Resilient Inter-Service Communication & Containerization
+*   **Inter-Service Resilience**: Exponential backoff retry logic (`axios-retry`) and shared internal security tokens.
+*   **Audit Logging**: Every AI prediction is recorded in PostgreSQL `ai_match_log` along with user portion adjustments.
+*   **Containerization**: `docker-compose.yml` deploying PostgreSQL, Express Backend API, and FastAPI AI Service with health checks.
+*   **Frontend Client**: Modern React + Vite web dashboard featuring SVG calorie rings, Recharts, and dual-mode meal logging.
+
+---
+
+## ⏳ Next Milestones (Subject to User Confirmation)
+1. **AI Nutrition Coach**: Integrate Gemini / LLM conversational insights into daily macro reports.
+2. **Per-Bounding-Box Depth Masking**: Upgrade MiDaS center-crop proxy to evaluate depth over individual bounding boxes as defined in ADR-009.
+3. **Mobile Client (React Native)**: Connect camera scanning on Android/iOS to the existing `POST /api/meals/analyze` endpoint.
+4. **Cloud Deployment**: Staging rollout to free-tier cloud hosting (Vercel + Render + Supabase).

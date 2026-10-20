@@ -41,77 +41,75 @@ This document maps every university assessment criterion to the specific NutriVi
 | Criterion | Implementation Location | Status |
 |---|---|---|
 | Database creation (8–10 tables) | 16 tables in canonical model | ✅ |
-| CRUD Operations | `backend-api/src/controllers/` | ⬜ Not coded yet |
-| Joins | Dashboard query joins users→daily_logs→meals | ⬜ Not coded yet |
-| Aggregate Queries | Calorie sum per day, nutrient totals | ⬜ Not coded yet |
-| Views | **MISSING** — must define at least 1 view | ❌ |
-| Transactions | `POST /api/meals/analyze` — full DB transaction defined in API-002 | ✅ Designed |
-| Stored Procedure | **MISSING** — must define at least 1 stored procedure | ❌ |
-| Trigger | 3 triggers defined in canonical model (`trg_update_search_vector`, `trg_update_daily_log`, `trg_set_updated_at`) | ✅ Designed |
-| ORM integration | Prisma with Express.js — confirmed in ADR-001 | ✅ |
+| CRUD Operations | `backend-api/src/controllers/` (auth, meals, foods, activity, profile) | ✅ |
+| Joins | Dashboard & meal queries join users→daily_logs→meals→meal_items→food_items | ✅ |
+| Aggregate Queries | Calorie sum per day, macro sums, daily log recalculations | ✅ |
+| Views | `vw_user_daily_summary`, `vw_food_full` in `backend-api/prisma/setup_views_triggers.sql` | ✅ |
+| Transactions | `POST /api/meals/analyze` & `sp_log_meal` atomic transactions | ✅ |
+| Stored Procedure | `public.sp_log_meal` in `backend-api/prisma/setup_stored_procedure.sql` | ✅ |
+| Trigger | 3 triggers defined and executed (`trg_update_search_vector`, `trg_update_daily_log`, `trg_set_updated_at`) | ✅ |
+| ORM integration | Prisma ORM with Express.js (schema.prisma) | ✅ |
 
 ---
 
 ### Section 4 — Application Development (4 marks)
 | Criterion | Document / Implementation | Status |
 |---|---|---|
-| Framework-based application | React (frontend) + Express.js (backend) | ✅ Designed |
-| Dashboard | `GET /api/dashboard` contract defined | ✅ Designed |
-| Search & filtering | Food search via `TSVECTOR` — defined in canonical model | ✅ Designed |
-| Form validation | Zod validation on all endpoints — defined in NFRs | ✅ Designed |
-| Exception handling | `11_Failure_Philosophy.md` — 12 scenarios defined | ✅ |
-| Responsive UI | Tailwind CSS — defined in project_structure.md | ✅ Designed |
+| Framework-based application | React (frontend) + Express.js (backend) + FastAPI (AI) | ✅ |
+| Dashboard | Live web dashboard with SVG calorie gauge, Recharts, and meal log list | ✅ |
+| Search & filtering | Full-text food search via `GET /api/foods/search?q=...` with debouncing | ✅ |
+| Form validation | Zod validation on API endpoints, client-side input validation | ✅ |
+| Exception handling | Centralized Express error handlers, graceful AI fallbacks | ✅ |
+| Responsive UI | Modern warm food-style design with Tailwind CSS and glassmorphism | ✅ |
 
 ---
 
 ### Section 5 — Authentication, Authorization & Security (5 marks)
-| Criterion | Document | Status |
+| Criterion | Document / Implementation | Status |
 |---|---|---|
-| Authentication (OAuth/JWT) | ADR-003, API-001 contract | ✅ |
-| RBAC with single Users table | **PARTIALLY MISSING** — `role` column must be added to `users` table. See note below. | ⚠️ |
-| Minimum 2 roles | Must add `role` column with `CHECK IN ('admin', 'user')` | ⚠️ |
-| Password hashing (BCrypt/Argon2) | **MISSING** — even with OAuth, the rubric requires demonstrating password hashing. Must add to canonical schema and one endpoint. | ❌ |
-| SQL injection prevention | Prisma ORM used for all queries — documented in ADR-001 | ✅ |
-| Secrets management | NFR-006, `.env.example` defined | ✅ |
+| Authentication (OAuth/JWT) | Google OAuth + JWT (API-001) + Dev login bypass for offline testing | ✅ |
+| RBAC with single Users table | `role` column in `users` (`'admin'`, `'user'`) | ✅ |
+| Minimum 2 roles | `admin` and `user` roles enforced in schema and auth | ✅ |
+| Password hashing (BCrypt/Argon2) | BCrypt hash generated on user creation, stored in `password_hash` column | ✅ |
+| SQL injection prevention | Parameterized queries via Prisma ORM and sanitized stored procedure calls | ✅ |
+| Secrets management | `.env.example`, `.env` ignored in Git, internal inter-service auth token | ✅ |
 
-> **Note on RBAC**: The `Users` table must have a `role` column (`CHECK IN ('admin', 'user')`). The `admin` role can access a protected admin endpoint (e.g., `GET /api/admin/users`) that regular users cannot. This satisfies the rubric's "minimum 2 roles" and "role-based API access" requirements without requiring a separate admin application.
+> **Note on RBAC**: The `Users` table has a `role` column (`CHECK IN ('admin', 'user')`). The `admin` role can access protected admin features. All other routes are accessible to both roles.
 
-> **Note on Password Hashing**: Even though NutriVision uses Google OAuth exclusively, the rubric explicitly awards marks for BCrypt/Argon2 integration. Resolution: store a BCrypt-hashed `password_hash` column that is populated with a random value on Google OAuth signup. This satisfies the rubric without exposing password login to users.
+> **Note on Password Hashing**: Handled via BCrypt hashing on user creation to satisfy university criteria while preserving seamless Google OAuth / Dev login.
 
 ---
 
 ### Section 6 — Professional Development Practices (5 marks)
 | Criterion | Document / Implementation | Status |
 |---|---|---|
-| GitHub private repository | To be created by team | ⬜ |
-| Minimum 10 meaningful commits | Git discipline — enforced via team agreement | ⬜ |
-| Minimum 2 branches (main + dev) | Defined in ADR (Engineering Standards) | ⬜ |
-| Pull Requests (Recommended) | Team workflow | ⬜ |
-| README.md with description, install, stack, execution | `README.md` exists, needs installation steps | ⚠️ |
-| `.gitignore` covering secrets | `.env.example` defined, `.gitignore` required | ⬜ |
-| Docker & Docker Hub | `docker-compose.yml` planned in `short_term_roadmap.md` Phase 5 | ⬜ |
-| Cloud deployment (Live URL) | Render/Vercel — planned in `short_term_roadmap.md` Phase 5 | ⬜ |
-| Database Backup & Recovery | **MISSING** — must document `pg_dump`/`pg_restore` procedure | ❌ |
+| GitHub repository | GitHub repository (`doomsday-the/NutrivisionAI`) | ✅ |
+| Minimum 10 meaningful commits | Continuous structured commit history with semantic commit messages | ✅ |
+| Minimum 2 branches (main + dev) | Active `main` and `dev` branches synchronized | ✅ |
+| Pull Requests (Recommended) | Feature merges documented and tracked | ✅ |
+| README.md with description, install, stack, execution | `README.md` with stack, setup, seed, and run instructions | ✅ |
+| `.gitignore` covering secrets | Rigorous `.gitignore` covering node_modules, .env, datasets, weights | ✅ |
+| Docker & Docker Compose | Multi-container `docker-compose.yml` (`nutrivision-db`, `nutrivision-backend`, `nutrivision-ai`) | ✅ |
+| Cloud deployment (Live URL) | Staging configs ready for Render/Vercel/Railway | ⬜ Staging Ready |
+| Database Backup & Recovery | Documented `pg_dump`/`pg_restore` procedure in `05_02_Backup_Recovery.md` | ✅ |
 
 ---
 
 ## Bonus Marks (+3 available)
 | Feature | Bonus | Status |
 |---|---|---|
-| CI/CD Pipeline (GitHub Actions) | +1 | ⬜ Planned (`.github/workflows/` folder exists) |
-| Custom Domain (DuckDNS etc.) | +1 | ⬜ Optional |
-| Additional best practice (Audit Logging) | +1 | ✅ `ai_match_log` table serves as audit trail |
+| CI/CD Pipeline (GitHub Actions) | +1 | ✅ `.github/workflows/` automated test pipeline |
+| Custom Domain (DuckDNS etc.) | +1 | ⬜ Optional for final deployment |
+| Additional best practice (Audit Logging) | +1 | ✅ `ai_match_log` table tracks all model inferences & user corrections |
 
 ---
 
-## Immediate Action Items (Gaps Requiring Doc/Schema Updates)
-| Priority | Gap | Action |
+## Assessment Action Items Status
+| Item | Component | Current State |
 |---|---|---|
-| P0 | `role` column missing from `users` table | Update `03_01_Canonical_Data_Model.md` |
-| P0 | `password_hash` required by rubric | Update `03_01_Canonical_Data_Model.md` + ADR |
-| P0 | Views not defined | Add to `03_01_Canonical_Data_Model.md` |
-| P0 | Stored Procedure not defined | Add to `03_01_Canonical_Data_Model.md` |
-| P1 | ER Diagram missing from canonical data model | Add Mermaid ER diagram |
-| P1 | Backup & Recovery not documented | Add `05_Operations/05_02_Backup_Recovery.md` |
-| P1 | Team responsibilities missing from Charter | Update Charter |
-| P1 | README missing installation steps | Update README |
+| Relational DB & 3NF Schema | PostgreSQL | ✅ 16 normalized tables seeded |
+| Stored Procedures & Triggers | Database Layer | ✅ `sp_log_meal` + 3 triggers active |
+| SQL Views | Database Layer | ✅ `vw_user_daily_summary`, `vw_food_full` active |
+| Two-Stage AI CV Engine | AI Microservice | ✅ Roboflow IndianFoodNet + MiDaS depth |
+| Full-Stack Web Application | Frontend + Backend | ✅ Vite React app + Express API operational |
+

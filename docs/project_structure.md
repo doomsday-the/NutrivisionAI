@@ -38,32 +38,26 @@ NutriVision/
 │   ├── .env.example           # Exclude actual .env in .gitignore
 │   └── package.json
 │
-├── ai-service/                # Python + FastAPI (Computer Vision)
-│   ├── dataset/               # Training images (gitignored)
-│   ├── models/                # Saved YOLO/MobileNet weights (.pt files)
+├── ai-service/                # Python + FastAPI (Computer Vision Microservice)
+│   ├── etl/                   # USDA and IFCT data extraction scripts
 │   ├── src/
-│   │   ├── predict.py         # Inference script
-│   │   ├── train.py           # Model training script
-│   │   └── app.py             # FastAPI server for predictions
+│   │   ├── app.py             # FastAPI prediction server (Roboflow IndianFoodNet)
+│   │   └── depth.py           # MiDaS relative depth estimation & portion heuristics
+│   ├── Dockerfile
 │   └── requirements.txt
 │
-├── mobile-app/                # React Native (Android)
-│   ├── src/
-│   │   ├── screens/           # Camera, Home, Profile
-│   │   ├── components/
-│   │   └── navigation/        # React Navigation setup
-│   └── package.json
+├── mobile-app/                # React Native (Android) [Planned client]
 │
-├── wear-os/                   # Google Fit & WearOS integrations
-│   └── src/                   # Watch faces and syncing logic
+├── wear-os/                   # Google Fit & WearOS integrations [Planned client]
 │
+├── docker-compose.yml         # Multi-container orchestration (DB, API, AI)
 ├── .gitignore                 # Ignore node_modules, .env, datasets
 └── README.md                  # Main entry point linking everything
 ```
 
 ## Architectural Flow
-1. **Client** (React / Android) uploads a meal image to the **Backend API**.
-2. **Backend API** proxies the image to the **AI Service**.
-3. **AI Service** runs YOLO to detect foods, returns bounding boxes and labels.
-4. **Backend API** looks up caloric density in **PostgreSQL** and saves the meal log.
-5. **Backend API** returns macro-nutrients and AI feedback to the **Client** for display.
+1. **Client** (`frontend-web` React / Vite) uploads meal photo to **Backend API** (`POST /api/meals/analyze`).
+2. **Backend API** forwards image with authentication header `X-Internal-Token` to **AI Service** (`POST /predict`).
+3. **AI Service** queries Roboflow IndianFoodNet for food detection, estimates portion weights via MiDaS depth heuristics, and maps detected dish labels to PostgreSQL `food_id`s.
+4. **Backend API** executes atomic database stored procedure `sp_log_meal` in **PostgreSQL**, inserting meal items, calculating nutritional values from `food_nutrients`, recording audit trails in `ai_match_log`, and updating `daily_logs`.
+5. **Backend API** returns the created meal, computed macros, and items back to the **Client** for interactive review and portion adjustment.

@@ -5,8 +5,8 @@ Maps each Functional Requirement to its corresponding ADR, data model entity, AP
 | FR | Requirement | ADR | Schema Entity | API Contract | Backend Module | AI Module |
 |---|---|---|---|---|---|---|
 | FR-001 | Google OAuth Login | ADR-003 | `public.users` | API-001 | `controllers/authController` | — |
-| FR-002 | Meal Image Upload | ADR-005 | `public.meals` | API-002 | `controllers/mealController` | TC-001 |
-| FR-003 | AI Food Detection | ADR-002, ADR-004, ADR-005 | `public.ai_match_log`, `public.food_items` | TC-001 | `services/aiService` | `src/app.py` |
+| FR-002 | Meal Image Upload | ADR-009 | `public.meals` | API-002 | `controllers/mealController` | TC-001 |
+| FR-003 | AI Food Detection | ADR-002, ADR-004, ADR-009 | `public.ai_match_log`, `public.food_items` | TC-001 | `services/aiService` | `src/app.py` |
 | FR-004 | Nutritional Logging | ADR-001, ADR-002 | `public.meal_items`, `public.food_nutrients`, `public.daily_logs` | API-002 | `services/nutritionService` | — |
 | FR-005 | WearOS Activity Sync | — | `public.daily_logs` | API-003 | `controllers/activityController` | — |
 
