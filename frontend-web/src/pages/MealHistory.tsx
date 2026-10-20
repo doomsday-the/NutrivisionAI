@@ -117,6 +117,11 @@ export default function MealHistory() {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       setMeals((prev) => prev.filter((m) => m.meal_id !== mealId));
+      try {
+        Object.keys(sessionStorage).forEach((key) => {
+          if (key.startsWith('nutricoach_insight_')) sessionStorage.removeItem(key);
+        });
+      } catch {}
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to delete meal');
     } finally {

@@ -12,4 +12,11 @@ router.use(authenticate);
  */
 router.post('/explain', explainPlate);
 
+/**
+ * GET /api/coach/daily-insight
+ * Query: ?date=YYYY-MM-DD
+ * Automatically pulls context from database and generates fresh dashboard coaching insight
+ */
+router.get('/daily-insight', explainPlate);
+
 export default router;
