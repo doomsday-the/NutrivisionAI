@@ -175,14 +175,6 @@ export default function MealHistory() {
               </button>
             )}
           </div>
-
-          <button
-            onClick={() => navigate('/log-meal')}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs shadow-md shadow-emerald-700/15 hover:from-emerald-500 hover:to-teal-500 transition"
-          >
-            <Plus size={14} />
-            <span>Scan Meal</span>
-          </button>
         </div>
       </div>
 

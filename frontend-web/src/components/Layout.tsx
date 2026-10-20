@@ -6,7 +6,6 @@ import {
   Camera,
   History,
   Activity as ActivityIcon,
-  Sparkles,
   ChevronRight,
   Zap,
 } from 'lucide-react';
@@ -68,28 +67,8 @@ export default function Layout() {
           </div>
         </div>
 
-        {/* Quick Action: Log Meal CTA */}
-        <div className="p-4">
-          <button
-            onClick={() => navigate('/log-meal')}
-            className="w-full relative group overflow-hidden rounded-2xl p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50/50 to-amber-50/40 border border-emerald-200 hover:border-emerald-400 transition-all duration-300 text-left flex items-center justify-between shadow-sm hover:shadow-md hover:shadow-emerald-900/5"
-          >
-            <div className="flex items-center gap-3 relative z-10">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white shadow-sm">
-                <Camera size={16} />
-              </div>
-              <div>
-                <span className="text-xs font-extrabold text-stone-900 block">Scan Plate</span>
-                <span className="text-[10px] text-emerald-700 font-bold">Instant AI Macro Rec</span>
-              </div>
-            </div>
-            <Sparkles size={16} className="text-emerald-600 group-hover:rotate-12 transition-transform duration-300" />
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-100/40 to-teal-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          </button>
-        </div>
-
         {/* Main Navigation */}
-        <div className="px-4 py-2 text-[10px] font-black uppercase tracking-wider text-stone-400">
+        <div className="px-5 pt-5 pb-2 text-[10px] font-black uppercase tracking-wider text-stone-400">
           Navigation
         </div>
         <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto">
@@ -200,14 +179,6 @@ export default function Layout() {
                 {avatarLetter}
               </div>
               <span className="text-xs font-bold hidden sm:inline">{user?.display_name || 'Profile'}</span>
-            </button>
-
-            <button
-              onClick={() => navigate('/log-meal')}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs hover:from-emerald-500 hover:to-teal-500 shadow-sm shadow-emerald-700/20 transition-all hover:scale-105 active:scale-95"
-            >
-              <Camera size={14} />
-              <span>Scan Meal</span>
             </button>
           </div>
         </header>
