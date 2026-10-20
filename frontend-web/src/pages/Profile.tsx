@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Activity, Target, Save, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import {
+  User,
+  Save,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles,
+  Scale,
+  Ruler,
+  Compass,
+  Loader2,
+} from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 
 interface ProfileData {
@@ -22,6 +33,7 @@ interface UserProfileResponse {
 }
 
 export default function Profile() {
+  const { token } = useAuth();
   const [userData, setUserData] = useState<UserProfileResponse | null>(null);
   const [age, setAge] = useState<number | ''>('');
   const [heightCm, setHeightCm] = useState<number | ''>('');
@@ -34,12 +46,15 @@ export default function Profile() {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Fetch current user and profile data
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : undefined;
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await axios.get<UserProfileResponse>(`${API_BASE_URL}/api/profile`);
+        const res = await axios.get<UserProfileResponse>(`${API_BASE_URL}/api/profile`, {
+          headers: authHeaders,
+        });
         setUserData(res.data);
         if (res.data.profile) {
           setAge(res.data.profile.age ?? '');
@@ -56,9 +71,9 @@ export default function Profile() {
     };
 
     fetchProfile();
-  }, []);
+  }, [token]);
 
-  // Compute live estimate based on Mifflin-St Jeor formula
+  // Mifflin-St Jeor TDEE formula
   const computeEstimatedTarget = (): number | null => {
     const a = typeof age === 'number' ? age : Number(age);
     const h = typeof heightCm === 'number' ? heightCm : Number(heightCm);
@@ -76,8 +91,8 @@ export default function Profile() {
     };
 
     const tdee = bmr * (multipliers[activityLevel] || 1.2);
-    if (goal === 'lose') return Math.round(tdee - 300);
-    if (goal === 'gain') return Math.round(tdee + 300);
+    if (goal === 'lose') return Math.round(tdee - 400);
+    if (goal === 'gain') return Math.round(tdee + 350);
     return Math.round(tdee);
   };
 
@@ -98,182 +113,216 @@ export default function Profile() {
         goal: goal,
       };
 
-      const res = await axios.put<UserProfileResponse>(`${API_BASE_URL}/api/profile`, payload);
+      const res = await axios.put(`${API_BASE_URL}/api/profile`, payload, {
+        headers: authHeaders,
+      });
+
       setUserData(res.data);
-      setSuccessMessage('Health profile & calorie target updated successfully!');
-      setTimeout(() => setSuccessMessage(''), 4000);
+      setSuccessMessage('Profile and daily nutrition targets saved successfully!');
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.message || 'Failed to update profile');
+      setErrorMessage(err.response?.data?.message || 'Failed to update profile settings.');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) {
-    return <div className="text-center py-16 text-gray-500 font-medium">Loading profile settings...</div>;
+  if (loading && !userData) {
+    return (
+      <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-400">
+        <Loader2 size={36} className="animate-spin text-emerald-400" />
+        <span className="text-sm font-semibold">Loading physiological profile...</span>
+      </div>
+    );
   }
 
-  const currentTarget = userData?.profile?.daily_calorie_target || 2000;
-
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Header Banner */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col sm:flex-row items-center gap-6">
-        <img
-          src={userData?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'}
-          alt="Avatar"
-          className="w-20 h-20 rounded-full border-2 border-primary-500 p-1 shadow"
-        />
-        <div className="flex-1 text-center sm:text-left">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <h1 className="text-2xl font-bold text-gray-900">{userData?.display_name || 'User Profile'}</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-100 text-primary-800 uppercase tracking-wide">
-              {userData?.role || 'user'}
-            </span>
+    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <User size={20} />
           </div>
-          <p className="text-gray-500 text-sm mt-1">{userData?.email}</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-white">Biometrics & Caloric Goals</h1>
         </div>
-
-        {/* Current Target Card */}
-        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 text-center min-w-[160px]">
-          <div className="text-xs font-bold uppercase text-primary-600 tracking-wider flex items-center justify-center gap-1">
-            <Target size={14} /> Active Target
-          </div>
-          <div className="text-3xl font-extrabold text-primary-700 mt-1">
-            {currentTarget}
-            <span className="text-sm font-normal text-primary-600 ml-1">kcal</span>
-          </div>
-        </div>
+        <p className="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+          Personalize your basal metabolic rate and daily calorie targets based on your physiological profile.
+        </p>
       </div>
 
-      {/* Alerts */}
       {successMessage && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
-          <CheckCircle2 size={18} className="text-green-500" />
-          <span className="text-sm font-medium">{successMessage}</span>
+        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm flex items-center gap-3">
+          <CheckCircle2 size={18} className="flex-shrink-0" />
+          <span>{successMessage}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
-          <AlertCircle size={18} className="text-red-500" />
-          <span className="text-sm font-medium">{errorMessage}</span>
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-center gap-3">
+          <AlertCircle size={18} className="flex-shrink-0" />
+          <span>{errorMessage}</span>
         </div>
       )}
 
-      {/* Main Profile Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-        <div className="flex items-center gap-2 pb-4 border-b border-gray-100 mb-6">
-          <Activity className="text-primary-600" size={22} />
-          <h2 className="text-xl font-bold text-gray-800">Health & Target Configuration</h2>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Profile Settings Form */}
+        <form onSubmit={handleSave} className="lg:col-span-7 glass-panel rounded-3xl p-6 sm:p-7 space-y-5">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-white">Physical Parameters</h3>
 
-        <form onSubmit={handleSave} className="space-y-6">
-          {/* Metrics Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Age (years)</label>
+              <label className="text-xs font-bold text-slate-400 block mb-1.5 flex items-center gap-1.5">
+                <Compass size={13} className="text-slate-500" />
+                <span>Age (Years)</span>
+              </label>
               <input
                 type="number"
-                min="1"
+                min="10"
                 max="120"
+                placeholder="25"
                 value={age}
                 onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="e.g. 25"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                required
+                className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
+              <label className="text-xs font-bold text-slate-400 block mb-1.5 flex items-center gap-1.5">
+                <Ruler size={13} className="text-slate-500" />
+                <span>Height (cm)</span>
+              </label>
               <input
                 type="number"
                 min="50"
-                max="300"
-                step="0.1"
+                max="260"
+                placeholder="175"
                 value={heightCm}
                 onChange={(e) => setHeightCm(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="e.g. 175"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                required
+                className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
+              <label className="text-xs font-bold text-slate-400 block mb-1.5 flex items-center gap-1.5">
+                <Scale size={13} className="text-slate-500" />
+                <span>Weight (kg)</span>
+              </label>
               <input
                 type="number"
                 min="20"
-                max="500"
-                step="0.1"
+                max="350"
+                placeholder="70"
                 value={weightKg}
                 onChange={(e) => setWeightKg(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="e.g. 70"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                required
+                className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold"
               />
             </div>
           </div>
 
-          {/* Activity Level & Goal */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Activity Level</label>
-              <select
-                value={activityLevel}
-                onChange={(e) => setActivityLevel(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              >
-                <option value="sedentary">Sedentary (little to no exercise)</option>
-                <option value="light">Lightly Active (1–3 days/week)</option>
-                <option value="moderate">Moderately Active (3–5 days/week)</option>
-                <option value="active">Active (6–7 days/week)</option>
-                <option value="very_active">Very Active (intense training)</option>
-              </select>
-            </div>
+          {/* Activity Level Selector */}
+          <div>
+            <label className="text-xs font-bold text-slate-400 block mb-1.5">Lifestyle Activity Level</label>
+            <select
+              value={activityLevel}
+              onChange={(e) => setActivityLevel(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-medium cursor-pointer"
+            >
+              <option value="sedentary" className="bg-slate-900 text-white">Sedentary (desk job, minimal exercise)</option>
+              <option value="light" className="bg-slate-900 text-white">Lightly Active (1-3 workouts / week)</option>
+              <option value="moderate" className="bg-slate-900 text-white">Moderately Active (3-5 workouts / week)</option>
+              <option value="active" className="bg-slate-900 text-white">Very Active (6-7 intense workouts / week)</option>
+              <option value="very_active" className="bg-slate-900 text-white">Extremely Active (Athletic training)</option>
+            </select>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Dietary Goal</label>
-              <select
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              >
-                <option value="lose">Weight Loss (-300 kcal/day)</option>
-                <option value="maintain">Maintenance (balanced TDEE)</option>
-                <option value="gain">Weight Gain (+300 kcal/day)</option>
-              </select>
+          {/* Primary Fitness Goal */}
+          <div>
+            <label className="text-xs font-bold text-slate-400 block mb-1.5">Primary Nutrition Goal</label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { val: 'lose', label: 'Weight Loss', desc: '-400 kcal deficit' },
+                { val: 'maintain', label: 'Maintain', desc: 'Equilibrium' },
+                { val: 'gain', label: 'Muscle Gain', desc: '+350 kcal surplus' },
+              ].map((item) => (
+                <button
+                  key={item.val}
+                  type="button"
+                  onClick={() => setGoal(item.val)}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    goal === item.val
+                      ? 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10 border-purple-500/40 text-purple-200 shadow-md'
+                      : 'bg-slate-900/40 border-white/5 text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <span className="text-xs font-bold block">{item.label}</span>
+                  <span className="text-[10px] text-slate-500 block mt-0.5">{item.desc}</span>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Live Dynamic Calculator Preview */}
-          {estimatedTarget !== null && (
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <Sparkles className="text-amber-500" size={24} />
-                <div>
-                  <div className="text-sm font-semibold text-gray-800">Mifflin-St Jeor TDEE Preview</div>
-                  <div className="text-xs text-gray-500">Calculated based on your current inputs above</div>
-                </div>
-              </div>
-              <div className="text-xl font-bold text-primary-700">
-                ~{estimatedTarget} kcal <span className="text-xs font-normal text-gray-500">/ day</span>
-              </div>
-            </div>
-          )}
-
-          <div className="pt-4 flex justify-end">
+          <div className="pt-4 border-t border-white/5 flex justify-end">
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 transition"
+              className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 hover:opacity-95 transition flex items-center gap-2"
             >
-              <Save size={18} />
-              {saving ? 'Calculating & Saving...' : 'Save Health Profile'}
+              <Save size={14} />
+              <span>{saving ? 'Updating...' : 'Save Profile'}</span>
             </button>
           </div>
         </form>
+
+        {/* Calculated TDEE & Target Card */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="glass-panel rounded-3xl p-6 sm:p-7 relative overflow-hidden flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Target Estimate</span>
+                <Sparkles size={16} className="text-emerald-400" />
+              </div>
+              <h3 className="text-base font-bold text-white">Daily Recommended Budget</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Calculated via scientific Mifflin-St Jeor TDEE equation.
+              </p>
+            </div>
+
+            <div className="my-6 p-4 rounded-2xl bg-slate-900/90 border border-white/5 text-center">
+              <span className="text-4xl font-black text-emerald-400">
+                {estimatedTarget ?? userData?.profile?.daily_calorie_target ?? 2000}
+              </span>
+              <span className="text-xs text-slate-400 font-bold ml-1 uppercase">kcal / day</span>
+              <span className="text-[11px] text-slate-500 block mt-1">
+                {goal === 'lose' ? 'Calorie Deficit Active' : goal === 'gain' ? 'Hypertrophy Surplus' : 'Maintenance'}
+              </span>
+            </div>
+
+            {/* Estimated Macro Targets */}
+            <div className="space-y-2 text-xs">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Recommended Macro Split</span>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2 rounded-xl bg-white/[0.02]">
+                  <span className="text-[10px] text-emerald-400 font-bold block">Protein</span>
+                  <span className="font-black text-slate-200 mt-0.5 block">
+                    {Math.round(((estimatedTarget ?? 2000) * 0.3) / 4)}g
+                  </span>
+                </div>
+                <div className="p-2 rounded-xl bg-white/[0.02]">
+                  <span className="text-[10px] text-cyan-400 font-bold block">Carbs</span>
+                  <span className="font-black text-slate-200 mt-0.5 block">
+                    {Math.round(((estimatedTarget ?? 2000) * 0.45) / 4)}g
+                  </span>
+                </div>
+                <div className="p-2 rounded-xl bg-white/[0.02]">
+                  <span className="text-[10px] text-amber-400 font-bold block">Fats</span>
+                  <span className="font-black text-slate-200 mt-0.5 block">
+                    {Math.round(((estimatedTarget ?? 2000) * 0.25) / 9)}g
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,20 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
-import { History, Trash2, Calendar, Utensils, AlertCircle, Plus, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {
+  History,
+  Trash2,
+  Calendar,
+  Utensils,
+  AlertCircle,
+  Plus,
+  Sun,
+  Moon,
+  Coffee,
+  Apple,
+  X,
+  Loader2,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 
@@ -36,6 +49,7 @@ interface HistoryResponse {
 
 export default function MealHistory() {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [page, setPage] = useState<number>(1);
@@ -47,7 +61,8 @@ export default function MealHistory() {
 
   const fetchMeals = async (targetPage: number, append: boolean = false, dateFilter: string = selectedDate) => {
     try {
-      if (append) setLoadingMore(true); else setLoading(true);
+      if (append) setLoadingMore(true);
+      else setLoading(true);
       setError('');
 
       let url = `${API_BASE_URL}/api/meals/history?page=${targetPage}&limit=10`;
@@ -79,10 +94,23 @@ export default function MealHistory() {
     }
   };
 
-  useEffect(() => { fetchMeals(1, false); }, [token]);
+  useEffect(() => {
+    fetchMeals(1, false);
+  }, [token]);
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = e.target.value;
+    setSelectedDate(newDate);
+    fetchMeals(1, false, newDate);
+  };
+
+  const clearFilter = () => {
+    setSelectedDate('');
+    fetchMeals(1, false, '');
+  };
 
   const handleDelete = async (mealId: number) => {
-    if (!window.confirm('Are you sure you want to delete this meal?')) return;
+    if (!window.confirm('Delete this meal and reverse logged macros?')) return;
     try {
       setDeletingId(mealId);
       await axios.delete(`${API_BASE_URL}/api/meals/${mealId}`, {
@@ -97,173 +125,192 @@ export default function MealHistory() {
   };
 
   const handleLoadMore = () => {
-    if (page < totalPages && !loadingMore) fetchMeals(page + 1, true);
+    if (page < totalPages && !loadingMore) {
+      fetchMeals(page + 1, true);
+    }
   };
 
-  const groupedMeals: Record<string, Meal[]> = {};
-  for (const meal of meals) {
-    const dateObj = new Date(meal.logged_at);
-    const dateKey = isNaN(dateObj.getTime())
-      ? 'Unknown Date'
-      : dateObj.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
-    if (!groupedMeals[dateKey]) groupedMeals[dateKey] = [];
-    groupedMeals[dateKey].push(meal);
-  }
+  const getMealIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'breakfast':
+        return <Coffee size={16} className="text-amber-400" />;
+      case 'lunch':
+        return <Sun size={16} className="text-emerald-400" />;
+      case 'dinner':
+        return <Moon size={16} className="text-blue-400" />;
+      default:
+        return <Apple size={16} className="text-purple-400" />;
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-      {/* Premium Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
-        <div className="absolute -top-12 -right-12 text-primary-50 opacity-50 pointer-events-none">
-          <History size={200} />
-        </div>
-        <div className="relative z-10 flex items-center gap-5">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/30">
-            <History size={32} />
+    <div className="space-y-8 animate-fade-in">
+      {/* Header & Filter Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <History size={20} />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white">Meal History</h1>
           </div>
-          <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-1">Meal History</h1>
-            <p className="text-gray-500 font-medium">Review your nutritional journey and past meals.</p>
-          </div>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+            Timeline of all meals analyzed via computer vision and manually logged.
+          </p>
         </div>
-        <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 flex-1 md:flex-initial focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 transition">
-            <Calendar size={18} className="text-gray-400" />
+
+        {/* Date Filter & Action */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-900/80 border border-white/10 shadow-lg text-xs">
+            <Calendar size={14} className="text-slate-400" />
             <input
               type="date"
               value={selectedDate}
-              onChange={(e) => { setSelectedDate(e.target.value); fetchMeals(1, false, e.target.value); }}
-              className="bg-transparent text-sm text-gray-700 outline-none w-full font-medium"
+              onChange={handleDateChange}
+              className="bg-transparent text-slate-200 outline-none cursor-pointer"
             />
             {selectedDate && (
-              <button onClick={() => { setSelectedDate(''); fetchMeals(1, false, ''); }} className="text-gray-400 hover:text-gray-700 ml-1">✕</button>
+              <button onClick={clearFilter} className="text-slate-500 hover:text-white p-0.5">
+                <X size={14} />
+              </button>
             )}
           </div>
-          <Link
-            to="/log-meal"
-            className="flex-shrink-0 inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold transition shadow-md hover:shadow-lg"
+
+          <button
+            onClick={() => navigate('/log-meal')}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 hover:opacity-90 transition"
           >
-            <Plus size={18} /> Log Meal
-          </Link>
+            <Plus size={14} />
+            <span>Scan Meal</span>
+          </button>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-xl flex items-center gap-3 shadow-sm">
-          <AlertCircle size={20} className="shrink-0" />
-          <span className="font-medium">{error}</span>
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-center gap-3">
+          <AlertCircle size={18} className="flex-shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
-      {loading && (
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      {/* Meals Stream */}
+      {loading ? (
+        <div className="py-20 text-center flex flex-col items-center justify-center gap-3 text-slate-400">
+          <Loader2 size={32} className="animate-spin text-emerald-400" />
+          <span className="text-xs font-semibold">Retrieving meal trajectory...</span>
         </div>
-      )}
-
-      {!loading && meals.length === 0 && (
-        <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center">
-          <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-            <Utensils size={40} className="text-gray-300" />
+      ) : meals.length === 0 ? (
+        <div className="glass-panel rounded-3xl p-12 text-center max-w-lg mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 text-slate-400">
+            <Utensils size={28} />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">No Meals Found</h3>
-          <p className="text-gray-500 max-w-md mx-auto mb-8 font-medium">You haven't logged any meals for this period. Start tracking to build your nutritional history.</p>
-          <Link to="/log-meal" className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-700 transition shadow-lg shadow-primary-500/30">
-            <Plus size={20} /> Log Your First Meal
-          </Link>
+          <h3 className="text-base font-bold text-white">No historical meals recorded</h3>
+          <p className="text-xs text-slate-400 mt-1 mb-6">
+            {selectedDate
+              ? `No meals were logged on ${selectedDate}. Try selecting another date.`
+              : 'You have not logged any meals yet. Scan your first dish to start tracking.'}
+          </p>
+          <button
+            onClick={() => navigate('/log-meal')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition"
+          >
+            <Plus size={14} />
+            <span>Log a Meal Now</span>
+          </button>
         </div>
-      )}
+      ) : (
+        <div className="space-y-4">
+          {meals.map((meal) => {
+            const dateObj = new Date(meal.logged_at);
+            const dateFormatted = dateObj.toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+            const timeFormatted = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      {!loading && meals.length > 0 && (
-        <div className="space-y-10">
-          {Object.entries(groupedMeals).map(([dateLabel, dateMeals]) => (
-            <div key={dateLabel} className="space-y-5 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3">
-                <div className="h-px bg-gray-200 flex-1"></div>
-                <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-1.5 rounded-full shadow-sm text-sm font-bold text-gray-700">
-                  <Calendar size={16} className="text-primary-500" />
-                  {dateLabel}
-                  <span className="text-gray-400 font-medium ml-1">({dateMeals.length})</span>
-                </div>
-                <div className="h-px bg-gray-200 flex-1"></div>
-              </div>
-
-              <div className="grid gap-5">
-                {dateMeals.map((meal) => {
-                  const timeStr = new Date(meal.logged_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                  return (
-                    <div key={meal.meal_id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition group overflow-hidden relative">
-                      <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-primary-400 to-indigo-500"></div>
-                      
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-50 mb-5">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center font-bold text-xl uppercase">
-                            {meal.meal_type.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-3 mb-1">
-                              <span className="capitalize font-extrabold text-gray-900 text-xl">{meal.meal_type}</span>
-                              <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full">{timeStr}</span>
-                            </div>
-                            <div className="flex gap-4 text-sm font-medium text-gray-500">
-                              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span>{Math.round(meal.total_protein_g || 0)}g P</span>
-                              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500"></span>{Math.round(meal.total_carbs_g || 0)}g C</span>
-                              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500"></span>{Math.round(meal.total_fat_g || 0)}g F</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pl-16 sm:pl-0">
-                          <div className="text-right">
-                            <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{Math.round(meal.total_calories || 0)}</span>
-                            <span className="text-xs font-bold text-gray-400 ml-1 uppercase tracking-wider">kcal</span>
-                          </div>
-                          <button
-                            onClick={() => handleDelete(meal.meal_id)}
-                            disabled={deletingId === meal.meal_id}
-                            className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition disabled:opacity-50"
-                            title="Delete meal"
-                          >
-                            <Trash2 size={20} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Items */}
-                      <div className="pl-16 pr-2">
-                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Contents</h4>
-                        {meal.items && meal.items.length > 0 ? (
-                          <div className="grid gap-2">
-                            {meal.items.map((item) => (
-                              <div key={item.item_id} className="flex items-center justify-between group/item">
-                                <div className="flex items-center gap-2">
-                                  <ChevronRight size={14} className="text-gray-300 group-hover/item:text-primary-500 transition" />
-                                  <span className="font-semibold text-gray-700">{item.food_name}</span>
-                                  <span className="text-xs text-gray-400 font-medium bg-gray-50 px-1.5 rounded">{item.quantity_grams}g</span>
-                                </div>
-                                <span className="font-bold text-gray-900 text-sm">{Math.round(item.estimated_calories)} kcal</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-400 italic font-medium">No items logged.</p>
-                        )}
-                      </div>
+            return (
+              <div
+                key={meal.meal_id}
+                className="glass-panel glass-panel-hover rounded-3xl p-5 sm:p-6 transition-all duration-200"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                      {getMealIcon(meal.meal_type)}
                     </div>
-                  );
-                })}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-sm sm:text-base text-white capitalize">
+                          {meal.meal_type}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/5">
+                          {timeFormatted}
+                        </span>
+                      </div>
+                      <span className="text-xs text-slate-500 mt-0.5 block">{dateFormatted}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-5">
+                    <div className="text-right">
+                      <span className="text-xl font-black text-white">{Math.round(meal.total_calories)}</span>
+                      <span className="text-[11px] font-bold text-slate-400 ml-1">kcal</span>
+                    </div>
+
+                    <button
+                      disabled={deletingId === meal.meal_id}
+                      onClick={() => handleDelete(meal.meal_id)}
+                      className="p-2 rounded-xl bg-white/5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 border border-transparent hover:border-rose-500/20 transition"
+                      title="Delete Meal"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Macro Strip */}
+                <div className="grid grid-cols-3 gap-2 py-3 text-center text-xs">
+                  <div className="p-2 rounded-xl bg-white/[0.02]">
+                    <span className="text-[10px] text-slate-500 font-bold block">Protein</span>
+                    <span className="font-black text-emerald-400 mt-0.5 block">{Math.round(meal.total_protein_g || 0)}g</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-white/[0.02]">
+                    <span className="text-[10px] text-slate-500 font-bold block">Carbs</span>
+                    <span className="font-black text-cyan-400 mt-0.5 block">{Math.round(meal.total_carbs_g || 0)}g</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-white/[0.02]">
+                    <span className="text-[10px] text-slate-500 font-bold block">Fats</span>
+                    <span className="font-black text-amber-400 mt-0.5 block">{Math.round(meal.total_fat_g || 0)}g</span>
+                  </div>
+                </div>
+
+                {/* Items Pill List */}
+                {meal.items && meal.items.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {meal.items.map((item) => (
+                      <span
+                        key={item.item_id}
+                        className="text-xs font-medium px-2.5 py-1 rounded-xl bg-slate-900 border border-white/5 text-slate-300 flex items-center gap-1.5"
+                      >
+                        <span>{item.food_name}</span>
+                        <span className="text-slate-500 text-[10px]">({item.quantity_grams}g)</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {page < totalPages && (
-            <div className="text-center pt-8">
+            <div className="text-center pt-4">
               <button
-                onClick={handleLoadMore}
                 disabled={loadingMore}
-                className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 font-bold px-8 py-3 rounded-xl shadow-sm transition disabled:opacity-50 hover:border-gray-300"
+                onClick={handleLoadMore}
+                className="px-6 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-200 border border-white/10 transition"
               >
-                {loadingMore ? 'Loading more...' : 'Load Older Meals'}
+                {loadingMore ? 'Loading Older Meals...' : 'Load Older Meals'}
               </button>
             </div>
           )}
