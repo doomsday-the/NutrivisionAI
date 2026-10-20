@@ -8,6 +8,8 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: nutrivision
+      TZ: Asia/Kolkata
+      PGTZ: Asia/Kolkata
     ports:
       - "5433:5432"
     volumes:
@@ -31,6 +33,7 @@ services:
       - NODE_ENV=development
       - DEV_LOGIN_ENABLED=true
       - GOOGLE_CLIENT_ID=558532335340-jsbgfpii5qojdbdk8oa23tlukjhljrca.apps.googleusercontent.com
+      - TZ=Asia/Kolkata
     depends_on:
       postgres:
         condition: service_healthy
