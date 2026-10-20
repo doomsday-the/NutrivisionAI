@@ -9,6 +9,7 @@ import LogMeal from './pages/LogMeal';
 import Profile from './pages/Profile';
 import Activity from './pages/Activity';
 import MealHistory from './pages/MealHistory';
+import NutritionCoach from './pages/NutritionCoach';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '558532335340-jsbgfpii5qojdbdk8oa23tlukjhljrca.apps.googleusercontent.com';
 
@@ -25,6 +26,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/log-meal" element={<LogMeal />} />
                 <Route path="/history" element={<MealHistory />} />
+                <Route path="/coach" element={<NutritionCoach />} />
                 <Route path="/activity" element={<Activity />} />
                 <Route path="/profile" element={<Profile />} />
               </Route>

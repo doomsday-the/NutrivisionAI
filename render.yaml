@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: nutrivision-backend
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: cd backend-api && npm ci && npm run build && npx prisma migrate deploy
+    startCommand: cd backend-api && node dist/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: AI_SERVICE_URL
+        sync: false
+      - key: X_INTERNAL_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: DEV_LOGIN_ENABLED
+        value: false
+
+  - type: web
+    name: nutrivision-ai
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: cd ai-service && pip install -r requirements.txt
+    startCommand: cd ai-service && uvicorn src.app:app --host 0.0.0.0 --port 8000
+    healthCheckPath: /health
+    envVars:
+      - key: X_INTERNAL_TOKEN
+        sync: false
+      - key: ROBOFLOW_API_KEY
+        sync: false
