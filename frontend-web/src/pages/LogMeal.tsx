@@ -41,10 +41,10 @@ interface MealTypeOption {
 }
 
 const MEAL_TYPES: MealTypeOption[] = [
-  { value: 'breakfast', label: 'Breakfast', icon: <Coffee size={16} />, activeColor: 'from-amber-500/20 to-orange-500/10 border-amber-500/40 text-amber-300' },
-  { value: 'lunch', label: 'Lunch', icon: <Sun size={16} />, activeColor: 'from-emerald-500/20 to-teal-500/10 border-emerald-500/40 text-emerald-300' },
-  { value: 'dinner', label: 'Dinner', icon: <Moon size={16} />, activeColor: 'from-blue-500/20 to-indigo-500/10 border-blue-500/40 text-blue-300' },
-  { value: 'snack', label: 'Snack', icon: <Apple size={16} />, activeColor: 'from-purple-500/20 to-pink-500/10 border-purple-500/40 text-purple-300' },
+  { value: 'breakfast', label: 'Breakfast', icon: <Coffee size={16} />, activeColor: 'bg-amber-50 border-amber-300 text-amber-900 shadow-xs' },
+  { value: 'lunch', label: 'Lunch', icon: <Sun size={16} />, activeColor: 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-xs' },
+  { value: 'dinner', label: 'Dinner', icon: <Moon size={16} />, activeColor: 'bg-sky-50 border-sky-300 text-sky-900 shadow-xs' },
+  { value: 'snack', label: 'Snack', icon: <Apple size={16} />, activeColor: 'bg-rose-50 border-rose-300 text-rose-900 shadow-xs' },
 ];
 
 export default function LogMeal() {
@@ -247,73 +247,73 @@ export default function LogMeal() {
     return (
       <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
         {/* Success Header Banner */}
-        <div className="glass-panel rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4 text-emerald-400">
+        <div className="glass-panel rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden bg-white border border-stone-200 shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-4 text-emerald-600">
             <CheckCircle size={32} />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">Meal Logged Successfully!</h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-md mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Meal Logged Successfully!</h1>
+          <p className="text-xs sm:text-sm text-stone-500 mt-1 max-w-md mx-auto">
             Computer vision identified items on your plate. You can refine weights or add side items below.
           </p>
 
           {/* Macro Summary Strip */}
-          <div className="mt-6 p-4 rounded-2xl bg-slate-900/80 border border-white/5 flex flex-wrap items-center justify-around gap-4">
+          <div className="mt-6 p-4 rounded-2xl bg-stone-50 border border-stone-200/80 flex flex-wrap items-center justify-around gap-4">
             <div className="text-center">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Total Energy</span>
-              <span className="text-2xl font-black text-emerald-400 mt-0.5 block">
-                {Math.round(analysisResult.total_calories || 0)} <span className="text-xs text-slate-400">kcal</span>
+              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">Total Energy</span>
+              <span className="text-2xl font-black text-emerald-700 mt-0.5 block">
+                {Math.round(analysisResult.total_calories || 0)} <span className="text-xs text-stone-500">kcal</span>
               </span>
             </div>
-            <div className="h-8 w-px bg-white/10 hidden sm:block" />
+            <div className="h-8 w-px bg-stone-200 hidden sm:block" />
             <div className="text-center">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Protein</span>
-              <span className="text-xl font-black text-white mt-0.5 block">{Math.round(analysisResult.total_protein_g || 0)}g</span>
+              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">Protein</span>
+              <span className="text-xl font-black text-rose-700 mt-0.5 block">{Math.round(analysisResult.total_protein_g || 0)}g</span>
             </div>
-            <div className="h-8 w-px bg-white/10 hidden sm:block" />
+            <div className="h-8 w-px bg-stone-200 hidden sm:block" />
             <div className="text-center">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Carbs</span>
-              <span className="text-xl font-black text-white mt-0.5 block">{Math.round(analysisResult.total_carbs_g || 0)}g</span>
+              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">Carbs</span>
+              <span className="text-xl font-black text-amber-800 mt-0.5 block">{Math.round(analysisResult.total_carbs_g || 0)}g</span>
             </div>
-            <div className="h-8 w-px bg-white/10 hidden sm:block" />
+            <div className="h-8 w-px bg-stone-200 hidden sm:block" />
             <div className="text-center">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Fats</span>
-              <span className="text-xl font-black text-white mt-0.5 block">{Math.round(analysisResult.total_fat_g || 0)}g</span>
+              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">Fats</span>
+              <span className="text-xl font-black text-emerald-800 mt-0.5 block">{Math.round(analysisResult.total_fat_g || 0)}g</span>
             </div>
           </div>
         </div>
 
         {/* Logged Items List with Edit Actions */}
-        <div className="glass-panel rounded-3xl p-6">
+        <div className="glass-panel rounded-3xl p-6 bg-white border border-stone-200 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Detected & Logged Foods</h3>
-            <span className="text-xs text-slate-400">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
+            <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">Detected & Logged Foods</h3>
+            <span className="text-xs text-stone-500">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
           </div>
 
           <div className="space-y-3">
             {items.map((item: any, idx: number) => (
               <div
                 key={idx}
-                className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/15 transition flex items-center justify-between gap-4"
+                className="p-4 rounded-2xl bg-stone-50/70 border border-stone-200 hover:border-emerald-300 hover:bg-white hover:shadow-xs transition flex items-center justify-between gap-4"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-white truncate">{item.food_name || item.food?.name}</span>
+                    <span className="font-bold text-sm text-stone-900 truncate">{item.food_name || item.food?.name}</span>
                     {item.user_corrected && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
                         Adjusted
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
+                  <div className="text-xs text-stone-500 mt-0.5 flex items-center gap-2">
                     <span>{item.quantity_grams}g</span>
                     <span>•</span>
-                    <span className="text-emerald-400 font-semibold">{Math.round(item.estimated_calories)} kcal</span>
+                    <span className="text-emerald-700 font-semibold">{Math.round(item.estimated_calories)} kcal</span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => openCorrectionModal(item)}
-                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 text-xs font-semibold"
+                  className="p-2 rounded-xl bg-white hover:bg-stone-100 text-stone-700 border border-stone-200 transition flex items-center gap-1.5 text-xs font-semibold shadow-2xs"
                   title="Edit portion or match"
                 >
                   <Edit2 size={14} />
@@ -325,13 +325,13 @@ export default function LogMeal() {
         </div>
 
         {/* Add Side Item to Meal Section */}
-        <div className="glass-panel rounded-3xl p-6">
+        <div className="glass-panel rounded-3xl p-6 bg-white border border-stone-200 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <Plus size={16} className="text-emerald-400" />
-            <h3 className="text-sm font-bold text-white">Add Extra Food to this Meal</h3>
+            <Plus size={16} className="text-emerald-600" />
+            <h3 className="text-sm font-bold text-stone-900">Add Extra Food to this Meal</h3>
           </div>
           <div className="relative mb-3">
-            <Search className="absolute left-3.5 top-3 text-slate-500" size={16} />
+            <Search className="absolute left-3.5 top-3 text-stone-400" size={16} />
             <input
               type="text"
               placeholder="Search food by name (e.g., Rice, Dal, Salad, Paneer)..."
@@ -342,22 +342,22 @@ export default function LogMeal() {
           </div>
 
           {searchingManual && (
-            <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-              <Loader2 size={16} className="animate-spin text-emerald-400" />
+            <div className="p-4 text-center text-xs text-stone-500 flex items-center justify-center gap-2">
+              <Loader2 size={16} className="animate-spin text-emerald-600" />
               Searching nutrition database...
             </div>
           )}
 
           {manualSearchResults.length > 0 && (
-            <div className="max-h-56 overflow-y-auto space-y-1.5 p-2 rounded-xl bg-slate-900/90 border border-white/5">
+            <div className="max-h-56 overflow-y-auto space-y-1.5 p-2 rounded-xl bg-stone-50 border border-stone-200">
               {manualSearchResults.map((food) => (
                 <div
                   key={food.food_id}
-                  className="p-2.5 rounded-lg hover:bg-white/5 flex items-center justify-between text-xs transition"
+                  className="p-2.5 rounded-lg hover:bg-white flex items-center justify-between text-xs transition border border-transparent hover:border-stone-200"
                 >
                   <div>
-                    <span className="font-bold text-slate-200 block">{food.name}</span>
-                    <span className="text-slate-500 text-[10px]">
+                    <span className="font-bold text-stone-900 block">{food.name}</span>
+                    <span className="text-stone-500 text-[10px]">
                       {food.category_name || 'Standard Food'} • {Math.round(food.energy_kcal || 0)} kcal/100g
                     </span>
                   </div>
@@ -369,13 +369,13 @@ export default function LogMeal() {
                       max={2000}
                       defaultValue={100}
                       onChange={(e) => setManualQuantity(Number(e.target.value))}
-                      className="w-16 px-2 py-1 rounded bg-black/40 border border-white/10 text-right text-xs"
+                      className="w-16 px-2 py-1 rounded bg-white border border-stone-200 text-right text-xs text-stone-900"
                     />
-                    <span className="text-[10px] text-slate-400">g</span>
+                    <span className="text-[10px] text-stone-500">g</span>
                     <button
                       disabled={submittingManual}
                       onClick={() => handleConfirmAddItem(food)}
-                      className="px-2.5 py-1 rounded bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition"
+                      className="px-2.5 py-1 rounded bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-500 transition shadow-2xs"
                     >
                       Add
                     </button>
@@ -385,20 +385,20 @@ export default function LogMeal() {
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-6 border-t border-white/5 mt-6">
+          <div className="flex justify-end gap-3 pt-6 border-t border-stone-200 mt-6">
             <button
               onClick={() => {
                 setAnalysisResult(null);
                 setFile(null);
                 setPreview(null);
               }}
-              className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-300 transition"
+              className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 transition"
             >
               Log Another Meal
             </button>
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 hover:opacity-90 transition"
+              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs shadow-md shadow-emerald-700/15 hover:from-emerald-500 hover:to-teal-500 transition"
             >
               <span>Go to Dashboard</span>
               <ArrowRight size={14} />
@@ -408,20 +408,20 @@ export default function LogMeal() {
 
         {/* Edit / Correction Modal */}
         {editingItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-            <div className="glass-panel rounded-3xl p-6 sm:p-7 max-w-md w-full space-y-4 border border-white/15 shadow-2xl">
-              <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                <h3 className="font-bold text-base text-white">Adjust Food Item</h3>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/40 backdrop-blur-sm animate-fade-in">
+            <div className="glass-panel rounded-3xl p-6 sm:p-7 max-w-md w-full space-y-4 bg-white border border-stone-200 shadow-2xl">
+              <div className="flex items-center justify-between pb-3 border-b border-stone-200">
+                <h3 className="font-bold text-base text-stone-900">Adjust Food Item</h3>
                 <button
                   onClick={() => setEditingItem(null)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+                  className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100"
                 >
                   <X size={18} />
                 </button>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-400 block mb-1">Serving Portion (Grams)</label>
+                <label className="text-xs font-bold text-stone-600 block mb-1">Serving Portion (Grams)</label>
                 <input
                   type="number"
                   value={newQuantity}
@@ -431,9 +431,9 @@ export default function LogMeal() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-400 block mb-1">Replace Food Match (Optional)</label>
+                <label className="text-xs font-bold text-stone-600 block mb-1">Replace Food Match (Optional)</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-2.5 text-slate-500" size={15} />
+                  <Search className="absolute left-3 top-2.5 text-stone-400" size={15} />
                   <input
                     type="text"
                     placeholder="Search replacement food..."
@@ -444,14 +444,14 @@ export default function LogMeal() {
                 </div>
 
                 {searchingCorrection && (
-                  <div className="p-3 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-                    <Loader2 size={14} className="animate-spin text-emerald-400" />
+                  <div className="p-3 text-center text-xs text-stone-500 flex items-center justify-center gap-2">
+                    <Loader2 size={14} className="animate-spin text-emerald-600" />
                     Searching alternatives...
                   </div>
                 )}
 
                 {correctionResults.length > 0 && (
-                  <div className="max-h-36 overflow-y-auto mt-2 space-y-1 p-1 rounded-xl bg-slate-900 border border-white/10">
+                  <div className="max-h-36 overflow-y-auto mt-2 space-y-1 p-1 rounded-xl bg-stone-50 border border-stone-200">
                     {correctionResults.map((food) => (
                       <button
                         key={food.food_id}
@@ -459,23 +459,23 @@ export default function LogMeal() {
                         onClick={() => setSelectedCorrectionFood(food)}
                         className={`w-full text-left p-2 rounded-lg text-xs transition flex justify-between ${
                           selectedCorrectionFood?.food_id === food.food_id
-                            ? 'bg-emerald-500/20 text-emerald-300 font-bold'
-                            : 'hover:bg-white/5 text-slate-300'
+                            ? 'bg-emerald-100 text-emerald-900 font-bold'
+                            : 'hover:bg-white text-stone-700'
                         }`}
                       >
                         <span>{food.name}</span>
-                        <span className="text-slate-500">{Math.round(food.energy_kcal || 0)} kcal</span>
+                        <span className="text-stone-500">{Math.round(food.energy_kcal || 0)} kcal</span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-white/10">
+              <div className="flex justify-end gap-2 pt-4 border-t border-stone-200">
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-stone-500 hover:text-stone-800"
                 >
                   Cancel
                 </button>
@@ -483,7 +483,7 @@ export default function LogMeal() {
                   type="button"
                   disabled={correcting}
                   onClick={handleSaveCorrection}
-                  className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-500 transition shadow-2xs"
                 >
                   {correcting ? 'Saving...' : 'Save Adjustments'}
                 </button>
@@ -502,12 +502,12 @@ export default function LogMeal() {
       <div className="text-center sm:text-left flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center justify-center sm:justify-start gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-800">
               <Camera size={20} />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white">Log Your Meal</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Log Your Meal</h1>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+          <p className="text-xs sm:text-sm text-stone-500 mt-1 font-medium">
             Upload or capture your food plate for zero-effort AI macro breakdown.
           </p>
         </div>
@@ -515,7 +515,7 @@ export default function LogMeal() {
         {/* Mode Toggle Button */}
         <button
           onClick={() => setManualMode(!manualMode)}
-          className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-300 transition"
+          className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-xs font-bold text-stone-700 transition shadow-2xs"
         >
           {manualMode ? <Camera size={14} /> : <Search size={14} />}
           <span>{manualMode ? 'Switch to Camera' : 'Manual Text Search'}</span>
@@ -523,7 +523,7 @@ export default function LogMeal() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-center gap-3">
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center gap-3">
           <AlertCircle size={18} className="flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -531,7 +531,7 @@ export default function LogMeal() {
 
       {/* Meal Type Selection */}
       <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Meal Time</label>
+        <label className="text-xs font-bold uppercase tracking-wider text-stone-500">Meal Time</label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {MEAL_TYPES.map((option) => {
             const isSelected = mealType === option.value;
@@ -542,13 +542,13 @@ export default function LogMeal() {
                 onClick={() => setMealType(option.value)}
                 className={`p-3.5 rounded-2xl border transition-all duration-200 flex items-center gap-3 ${
                   isSelected
-                    ? `bg-gradient-to-r ${option.activeColor} shadow-lg`
-                    : 'bg-slate-900/40 border-white/5 text-slate-400 hover:text-white hover:bg-white/5'
+                    ? `${option.activeColor} ring-2 ring-emerald-500/20`
+                    : 'bg-white border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-50'
                 }`}
               >
                 <div
                   className={`p-2 rounded-xl ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-white/5 text-slate-400'
+                    isSelected ? 'bg-white/80 shadow-2xs' : 'bg-stone-100 text-stone-500'
                   }`}
                 >
                   {option.icon}
@@ -569,8 +569,8 @@ export default function LogMeal() {
             onClick={() => fileInputRef.current?.click()}
             className={`relative rounded-3xl border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-300 overflow-hidden ${
               preview
-                ? 'border-emerald-500/40 bg-slate-950/60'
-                : 'border-white/15 bg-slate-900/30 hover:border-emerald-500/40 hover:bg-slate-900/60'
+                ? 'border-emerald-500 bg-emerald-50/20'
+                : 'border-stone-300 bg-white/70 hover:border-emerald-400 hover:bg-white'
             }`}
           >
             <input
@@ -583,35 +583,35 @@ export default function LogMeal() {
 
             {preview ? (
               <div className="space-y-4">
-                <div className="relative max-h-72 w-full rounded-2xl overflow-hidden mx-auto shadow-2xl">
+                <div className="relative max-h-72 w-full rounded-2xl overflow-hidden mx-auto shadow-md">
                   <img
                     src={preview}
                     alt="Plate Preview"
                     className="w-full h-72 object-cover object-center"
                   />
                   {loading && (
-                    <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
-                      <Scan size={36} className="text-emerald-400 animate-pulse" />
+                    <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-xs flex flex-col items-center justify-center gap-3">
+                      <Scan size={36} className="text-emerald-300 animate-pulse" />
                       <div className="text-center">
                         <span className="text-sm font-black text-white block">Analyzing Ingredients...</span>
-                        <span className="text-xs text-emerald-400 font-medium">Running Computer Vision & Depth Math</span>
+                        <span className="text-xs text-emerald-200 font-medium">Running Computer Vision & Depth Math</span>
                       </div>
                     </div>
                   )}
                 </div>
-                <p className="text-xs font-semibold text-slate-400">Click to choose a different photo</p>
+                <p className="text-xs font-semibold text-stone-500">Click to choose a different photo</p>
               </div>
             ) : (
               <div className="py-8 space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto text-emerald-400 group-hover:scale-110 transition">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto text-emerald-600 group-hover:scale-110 transition">
                   <Upload size={28} />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">Upload or Drop Meal Picture</h3>
-                  <p className="text-xs text-slate-400 mt-1">Supports JPEG, PNG up to 10MB</p>
+                  <h3 className="text-base font-bold text-stone-900">Upload or Drop Meal Picture</h3>
+                  <p className="text-xs text-stone-500 mt-1">Supports JPEG, PNG up to 10MB</p>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[11px] font-semibold text-slate-400 border border-white/5">
-                  <Sparkles size={12} className="text-emerald-400" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-[11px] font-semibold text-amber-800 border border-amber-200/70">
+                  <Sparkles size={12} className="text-amber-600" />
                   <span>Auto-detects portion, calories & macros</span>
                 </div>
               </div>
@@ -621,10 +621,10 @@ export default function LogMeal() {
           <button
             type="submit"
             disabled={!file || loading}
-            className={`w-full py-3.5 px-6 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition shadow-xl ${
+            className={`w-full py-3.5 px-6 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition shadow-md ${
               file && !loading
-                ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-slate-950 shadow-emerald-500/25 hover:opacity-95 hover:scale-[1.01] active:scale-[0.99]'
-                : 'bg-white/10 text-slate-500 cursor-not-allowed border border-white/5'
+                ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-amber-600 text-white shadow-emerald-700/20 hover:opacity-95 hover:scale-[1.01] active:scale-[0.99]'
+                : 'bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-200'
             }`}
           >
             {loading ? (
@@ -642,14 +642,14 @@ export default function LogMeal() {
         </form>
       ) : (
         /* Mode B: Manual Search & Add */
-        <div className="glass-panel rounded-3xl p-6 sm:p-7 space-y-4">
+        <div className="glass-panel rounded-3xl p-6 sm:p-7 space-y-4 bg-white border border-stone-200 shadow-sm">
           <div>
-            <h3 className="text-sm font-bold text-white mb-1">Search Food Database</h3>
-            <p className="text-xs text-slate-400">Search verified USDA & IFCT nutrition databases</p>
+            <h3 className="text-sm font-bold text-stone-900 mb-1">Search Food Database</h3>
+            <p className="text-xs text-stone-500">Search verified USDA & IFCT nutrition databases</p>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3.5 top-3 text-slate-500" size={16} />
+            <Search className="absolute left-3.5 top-3 text-stone-400" size={16} />
             <input
               type="text"
               placeholder="Search food (e.g. Boiled Rice, Dal, Dosa, Chicken Breast, Pizza)..."
@@ -660,8 +660,8 @@ export default function LogMeal() {
           </div>
 
           {searchingManual && (
-            <div className="py-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-              <Loader2 size={16} className="animate-spin text-emerald-400" />
+            <div className="py-6 text-center text-xs text-stone-500 flex items-center justify-center gap-2">
+              <Loader2 size={16} className="animate-spin text-emerald-600" />
               Searching foods...
             </div>
           )}
@@ -671,11 +671,11 @@ export default function LogMeal() {
               {manualSearchResults.map((food) => (
                 <div
                   key={food.food_id}
-                  className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/15 transition flex items-center justify-between gap-3 text-xs"
+                  className="p-3 rounded-xl bg-stone-50/80 border border-stone-200 hover:border-emerald-300 hover:bg-white transition flex items-center justify-between gap-3 text-xs shadow-2xs"
                 >
                   <div>
-                    <span className="font-bold text-white block text-sm">{food.name}</span>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="font-bold text-stone-900 block text-sm">{food.name}</span>
+                    <span className="text-[11px] text-stone-500">
                       {Math.round(food.energy_kcal || 0)} kcal • P: {food.protein_g || 0}g • C: {food.carbs_g || 0}g • F: {food.fat_g || 0}g (per 100g)
                     </span>
                   </div>
@@ -686,13 +686,13 @@ export default function LogMeal() {
                       min={10}
                       defaultValue={100}
                       onChange={(e) => setManualQuantity(Number(e.target.value))}
-                      className="w-16 px-2 py-1 rounded bg-black/40 border border-white/10 text-right text-xs"
+                      className="w-16 px-2 py-1 rounded bg-white border border-stone-200 text-right text-xs text-stone-900"
                     />
-                    <span className="text-slate-500 text-[10px]">g</span>
+                    <span className="text-stone-400 text-[10px]">g</span>
                     <button
                       disabled={submittingManual}
                       onClick={() => handleConfirmAddItem(food)}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition"
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition shadow-2xs"
                     >
                       Log
                     </button>

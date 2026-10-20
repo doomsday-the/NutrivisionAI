@@ -100,42 +100,42 @@ export default function Activity() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+          <div className="w-10 h-10 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-800">
             <Flame size={20} />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">Daily Energy & Steps</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Daily Energy & Steps</h1>
         </div>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+        <p className="text-xs sm:text-sm text-stone-500 mt-1 font-medium">
           Sync physical activity metrics to automatically offset and expand your daily caloric target.
         </p>
       </div>
 
       {/* Success Notification Card */}
       {successResult && (
-        <div className="glass-panel rounded-3xl p-6 border-emerald-500/30 space-y-4">
-          <div className="flex items-center gap-2.5 text-emerald-300 font-bold text-sm">
-            <CheckCircle2 size={18} className="text-emerald-400" />
+        <div className="glass-panel rounded-3xl p-6 border-emerald-300 bg-white space-y-4 shadow-sm">
+          <div className="flex items-center gap-2.5 text-emerald-800 font-bold text-sm">
+            <CheckCircle2 size={18} className="text-emerald-600" />
             <span>Activity synced successfully for {successResult.log_date}!</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-white/5">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Remaining Budget</span>
-              <span className="text-2xl font-black text-emerald-400 mt-1 block">
-                {Math.round(successResult.remaining_calories)} <span className="text-xs text-slate-500 font-bold">kcal</span>
+            <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
+              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Remaining Budget</span>
+              <span className="text-2xl font-black text-emerald-700 mt-1 block">
+                {Math.round(successResult.remaining_calories)} <span className="text-xs text-stone-500 font-bold">kcal</span>
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-white/5">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Energy Burned</span>
-              <span className="text-2xl font-black text-amber-400 mt-1 block">
-                +{Math.round(successResult.calories_burned)} <span className="text-xs text-slate-500 font-bold">kcal</span>
+            <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
+              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Energy Burned</span>
+              <span className="text-2xl font-black text-amber-700 mt-1 block">
+                +{Math.round(successResult.calories_burned)} <span className="text-xs text-stone-500 font-bold">kcal</span>
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-white/5">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Steps Logged</span>
-              <span className="text-2xl font-black text-cyan-400 mt-1 block">
+            <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
+              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Steps Logged</span>
+              <span className="text-2xl font-black text-stone-900 mt-1 block">
                 {successResult.steps.toLocaleString()}
               </span>
             </div>
@@ -144,7 +144,7 @@ export default function Activity() {
           <div className="flex justify-end pt-2">
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition"
             >
               <span>Return to Dashboard</span>
               <ArrowRight size={14} />
@@ -155,18 +155,18 @@ export default function Activity() {
 
       {/* Error Alert */}
       {errorMessage && (
-        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-center gap-3">
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center gap-3">
           <AlertCircle size={18} className="flex-shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Main Form */}
-      <form onSubmit={handleSubmit} className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6 bg-white border border-stone-200 shadow-sm">
         {/* Date Selector */}
         <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-2">
-            <Calendar size={14} className="text-emerald-400" />
+          <label className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-2 mb-2">
+            <Calendar size={14} className="text-emerald-600" />
             <span>Target Date</span>
           </label>
           <input
@@ -181,8 +181,8 @@ export default function Activity() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Steps Input */}
           <div className="space-y-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <Footprints size={15} className="text-cyan-400" />
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-2">
+              <Footprints size={15} className="text-teal-600" />
               <span>Steps Walked</span>
             </label>
             <div className="relative">
@@ -194,9 +194,9 @@ export default function Activity() {
                 value={steps}
                 onChange={(e) => setSteps(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl glass-input text-lg font-black text-white"
+                className="w-full px-4 py-3 rounded-xl glass-input text-lg font-black text-stone-900"
               />
-              <span className="absolute right-4 top-3.5 text-xs font-bold text-slate-500 uppercase">steps</span>
+              <span className="absolute right-4 top-3.5 text-xs font-bold text-stone-400 uppercase">steps</span>
             </div>
 
             {/* Step Presets */}
@@ -206,7 +206,7 @@ export default function Activity() {
                   key={amt}
                   type="button"
                   onClick={() => addSteps(amt)}
-                  className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[11px] font-bold text-slate-300 border border-white/5 transition flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-[11px] font-bold text-stone-700 border border-stone-200 transition flex items-center gap-1 shadow-2xs"
                 >
                   <Plus size={12} />
                   <span>{amt.toLocaleString()}</span>
@@ -217,8 +217,8 @@ export default function Activity() {
 
           {/* Calories Burned Input */}
           <div className="space-y-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <Flame size={15} className="text-amber-400" />
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-2">
+              <Flame size={15} className="text-amber-600" />
               <span>Active Calories Burned</span>
             </label>
             <div className="relative">
@@ -230,9 +230,9 @@ export default function Activity() {
                 value={caloriesBurned}
                 onChange={(e) => setCaloriesBurned(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl glass-input text-lg font-black text-white"
+                className="w-full px-4 py-3 rounded-xl glass-input text-lg font-black text-stone-900"
               />
-              <span className="absolute right-4 top-3.5 text-xs font-bold text-slate-500 uppercase">kcal</span>
+              <span className="absolute right-4 top-3.5 text-xs font-bold text-stone-400 uppercase">kcal</span>
             </div>
 
             {/* Calorie Presets */}
@@ -242,7 +242,7 @@ export default function Activity() {
                   key={amt}
                   type="button"
                   onClick={() => addCalories(amt)}
-                  className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[11px] font-bold text-slate-300 border border-white/5 transition flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-[11px] font-bold text-stone-700 border border-stone-200 transition flex items-center gap-1 shadow-2xs"
                 >
                   <Plus size={12} />
                   <span>{amt} kcal</span>
@@ -253,16 +253,16 @@ export default function Activity() {
         </div>
 
         {/* Submit CTA */}
-        <div className="pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Zap size={14} className="text-emerald-400" />
+        <div className="pt-4 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs text-stone-500">
+            <Zap size={14} className="text-emerald-600" />
             <span>Automatically updates remaining calorie budget in real-time</span>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 hover:opacity-95 transition"
+            className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs shadow-md shadow-emerald-700/15 hover:from-emerald-500 hover:to-teal-500 transition"
           >
             {loading ? 'Syncing...' : 'Sync Activity Log'}
           </button>

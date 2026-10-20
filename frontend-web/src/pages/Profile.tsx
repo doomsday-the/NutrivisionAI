@@ -128,8 +128,8 @@ export default function Profile() {
 
   if (loading && !userData) {
     return (
-      <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-400">
-        <Loader2 size={36} className="animate-spin text-emerald-400" />
+      <div className="py-24 flex flex-col items-center justify-center gap-3 text-stone-500">
+        <Loader2 size={36} className="animate-spin text-emerald-600" />
         <span className="text-sm font-semibold">Loading physiological profile...</span>
       </div>
     );
@@ -140,25 +140,25 @@ export default function Profile() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+          <div className="w-10 h-10 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-800">
             <User size={20} />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">Biometrics & Caloric Goals</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Biometrics & Caloric Goals</h1>
         </div>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+        <p className="text-xs sm:text-sm text-stone-500 mt-1 font-medium">
           Personalize your basal metabolic rate and daily calorie targets based on your physiological profile.
         </p>
       </div>
 
       {successMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm flex items-center gap-3">
-          <CheckCircle2 size={18} className="flex-shrink-0" />
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-center gap-3">
+          <CheckCircle2 size={18} className="flex-shrink-0 text-emerald-600" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-center gap-3">
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center gap-3">
           <AlertCircle size={18} className="flex-shrink-0" />
           <span>{errorMessage}</span>
         </div>
@@ -166,13 +166,13 @@ export default function Profile() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Profile Settings Form */}
-        <form onSubmit={handleSave} className="lg:col-span-7 glass-panel rounded-3xl p-6 sm:p-7 space-y-5">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">Physical Parameters</h3>
+        <form onSubmit={handleSave} className="lg:col-span-7 glass-panel rounded-3xl p-6 sm:p-7 space-y-5 bg-white border border-stone-200 shadow-sm">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900">Physical Parameters</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-400 block mb-1.5 flex items-center gap-1.5">
-                <Compass size={13} className="text-slate-500" />
+              <label className="text-xs font-bold text-stone-600 block mb-1.5 flex items-center gap-1.5">
+                <Compass size={13} className="text-stone-400" />
                 <span>Age (Years)</span>
               </label>
               <input
@@ -187,8 +187,8 @@ export default function Profile() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-400 block mb-1.5 flex items-center gap-1.5">
-                <Ruler size={13} className="text-slate-500" />
+              <label className="text-xs font-bold text-stone-600 block mb-1.5 flex items-center gap-1.5">
+                <Ruler size={13} className="text-stone-400" />
                 <span>Height (cm)</span>
               </label>
               <input
@@ -203,8 +203,8 @@ export default function Profile() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-400 block mb-1.5 flex items-center gap-1.5">
-                <Scale size={13} className="text-slate-500" />
+              <label className="text-xs font-bold text-stone-600 block mb-1.5 flex items-center gap-1.5">
+                <Scale size={13} className="text-stone-400" />
                 <span>Weight (kg)</span>
               </label>
               <input
@@ -221,23 +221,23 @@ export default function Profile() {
 
           {/* Activity Level Selector */}
           <div>
-            <label className="text-xs font-bold text-slate-400 block mb-1.5">Lifestyle Activity Level</label>
+            <label className="text-xs font-bold text-stone-600 block mb-1.5">Lifestyle Activity Level</label>
             <select
               value={activityLevel}
               onChange={(e) => setActivityLevel(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-medium cursor-pointer"
             >
-              <option value="sedentary" className="bg-slate-900 text-white">Sedentary (desk job, minimal exercise)</option>
-              <option value="light" className="bg-slate-900 text-white">Lightly Active (1-3 workouts / week)</option>
-              <option value="moderate" className="bg-slate-900 text-white">Moderately Active (3-5 workouts / week)</option>
-              <option value="active" className="bg-slate-900 text-white">Very Active (6-7 intense workouts / week)</option>
-              <option value="very_active" className="bg-slate-900 text-white">Extremely Active (Athletic training)</option>
+              <option value="sedentary">Sedentary (desk job, minimal exercise)</option>
+              <option value="light">Lightly Active (1-3 workouts / week)</option>
+              <option value="moderate">Moderately Active (3-5 workouts / week)</option>
+              <option value="active">Very Active (6-7 intense workouts / week)</option>
+              <option value="very_active">Extremely Active (Athletic training)</option>
             </select>
           </div>
 
           {/* Primary Fitness Goal */}
           <div>
-            <label className="text-xs font-bold text-slate-400 block mb-1.5">Primary Nutrition Goal</label>
+            <label className="text-xs font-bold text-stone-600 block mb-1.5">Primary Nutrition Goal</label>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { val: 'lose', label: 'Weight Loss', desc: '-400 kcal deficit' },
@@ -250,22 +250,22 @@ export default function Profile() {
                   onClick={() => setGoal(item.val)}
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     goal === item.val
-                      ? 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10 border-purple-500/40 text-purple-200 shadow-md'
-                      : 'bg-slate-900/40 border-white/5 text-slate-400 hover:text-white hover:bg-white/5'
+                      ? 'bg-amber-50 border-amber-300 text-amber-900 ring-2 ring-amber-500/20 shadow-xs'
+                      : 'bg-white border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-50'
                   }`}
                 >
                   <span className="text-xs font-bold block">{item.label}</span>
-                  <span className="text-[10px] text-slate-500 block mt-0.5">{item.desc}</span>
+                  <span className="text-[10px] text-stone-400 block mt-0.5">{item.desc}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="pt-4 border-t border-white/5 flex justify-end">
+          <div className="pt-4 border-t border-stone-200 flex justify-end">
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 hover:opacity-95 transition flex items-center gap-2"
+              className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs shadow-md shadow-emerald-700/15 hover:from-emerald-500 hover:to-teal-500 transition flex items-center gap-2"
             >
               <Save size={14} />
               <span>{saving ? 'Updating...' : 'Save Profile'}</span>
@@ -275,47 +275,47 @@ export default function Profile() {
 
         {/* Calculated TDEE & Target Card */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="glass-panel rounded-3xl p-6 sm:p-7 relative overflow-hidden flex flex-col justify-between">
+          <div className="glass-panel rounded-3xl p-6 sm:p-7 relative overflow-hidden flex flex-col justify-between bg-white border border-stone-200 shadow-sm">
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Target Estimate</span>
-                <Sparkles size={16} className="text-emerald-400" />
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Target Estimate</span>
+                <Sparkles size={16} className="text-amber-600" />
               </div>
-              <h3 className="text-base font-bold text-white">Daily Recommended Budget</h3>
-              <p className="text-xs text-slate-400 mt-1">
+              <h3 className="text-base font-bold text-stone-900">Daily Recommended Budget</h3>
+              <p className="text-xs text-stone-500 mt-1">
                 Calculated via scientific Mifflin-St Jeor TDEE equation.
               </p>
             </div>
 
-            <div className="my-6 p-4 rounded-2xl bg-slate-900/90 border border-white/5 text-center">
-              <span className="text-4xl font-black text-emerald-400">
+            <div className="my-6 p-4 rounded-2xl bg-stone-50 border border-stone-200 text-center">
+              <span className="text-4xl font-black text-emerald-700">
                 {estimatedTarget ?? userData?.profile?.daily_calorie_target ?? 2000}
               </span>
-              <span className="text-xs text-slate-400 font-bold ml-1 uppercase">kcal / day</span>
-              <span className="text-[11px] text-slate-500 block mt-1">
+              <span className="text-xs text-stone-500 font-bold ml-1 uppercase">kcal / day</span>
+              <span className="text-[11px] text-stone-400 block mt-1 font-medium">
                 {goal === 'lose' ? 'Calorie Deficit Active' : goal === 'gain' ? 'Hypertrophy Surplus' : 'Maintenance'}
               </span>
             </div>
 
             {/* Estimated Macro Targets */}
             <div className="space-y-2 text-xs">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Recommended Macro Split</span>
+              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Recommended Macro Split</span>
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="p-2 rounded-xl bg-white/[0.02]">
-                  <span className="text-[10px] text-emerald-400 font-bold block">Protein</span>
-                  <span className="font-black text-slate-200 mt-0.5 block">
+                <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200">
+                  <span className="text-[10px] text-rose-700 font-bold block">Protein</span>
+                  <span className="font-black text-stone-800 mt-0.5 block">
                     {Math.round(((estimatedTarget ?? 2000) * 0.3) / 4)}g
                   </span>
                 </div>
-                <div className="p-2 rounded-xl bg-white/[0.02]">
-                  <span className="text-[10px] text-cyan-400 font-bold block">Carbs</span>
-                  <span className="font-black text-slate-200 mt-0.5 block">
+                <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200">
+                  <span className="text-[10px] text-amber-800 font-bold block">Carbs</span>
+                  <span className="font-black text-stone-800 mt-0.5 block">
                     {Math.round(((estimatedTarget ?? 2000) * 0.45) / 4)}g
                   </span>
                 </div>
-                <div className="p-2 rounded-xl bg-white/[0.02]">
-                  <span className="text-[10px] text-amber-400 font-bold block">Fats</span>
-                  <span className="font-black text-slate-200 mt-0.5 block">
+                <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200">
+                  <span className="text-[10px] text-emerald-800 font-bold block">Fats</span>
+                  <span className="font-black text-stone-800 mt-0.5 block">
                     {Math.round(((estimatedTarget ?? 2000) * 0.25) / 9)}g
                   </span>
                 </div>
