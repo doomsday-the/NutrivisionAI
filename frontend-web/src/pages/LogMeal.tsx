@@ -335,6 +335,12 @@ export default function LogMeal() {
           </div>
 
           <div className="space-y-3">
+            {items.length === 0 && (
+              <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200 text-center space-y-1">
+                <p className="text-xs font-bold text-amber-900">No food items were detected in this image.</p>
+                <p className="text-[11px] text-amber-700">Ensure the plate is clear and in focus, or search below to add your dishes.</p>
+              </div>
+            )}
             {items.map((item: any, idx: number) => (
               <div
                 key={idx}
