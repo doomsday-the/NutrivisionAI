@@ -71,8 +71,7 @@ export const getDashboard = async (req: AuthRequest, res: Response) => {
         SELECT meal_id, meal_type, total_calories, logged_at
         FROM public.meals
         WHERE user_id = ${user_id}
-          AND logged_at >= ${log_date}::date
-          AND logged_at < (${log_date}::date + interval '1 day')
+          AND (logged_at AT TIME ZONE 'Asia/Kolkata')::date = ${log_date}::date
         ORDER BY logged_at ASC
       `
     ]);

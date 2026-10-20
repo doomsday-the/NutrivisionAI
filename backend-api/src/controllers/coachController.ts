@@ -151,15 +151,30 @@ ${user_question ? `User Question: ${user_question}` : 'Task: Provide daily brief
 Return JSON only.`;
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
-    const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1' });
+    const candidateModels = [
+      process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite',
+      'gemini-3.5-flash-lite',
+      'gemma-4-26b-a4b-it'
+    ];
 
-    const result = await model.generateContent([
-      { text: systemPrompt },
-      { text: userPrompt },
-    ]);
+    let rawText = '';
+    for (const mName of candidateModels) {
+      try {
+        const model = genAI.getGenerativeModel({ model: mName }, { apiVersion: 'v1' });
+        const result = await model.generateContent([
+          { text: systemPrompt },
+          { text: userPrompt },
+        ]);
+        rawText = result.response.text();
+        if (rawText) break;
+      } catch (mErr: any) {
+        console.warn("[Coach model error]:", mErr.message);
+      }
+    }
 
-    const rawText = result.response.text();
+    if (!rawText) {
+      throw new Error('AI Coach is temporarily overloaded. Please try again shortly.');
+    }
 
     // Parse structured JSON response with resilient fallback
     let parsed: any = null;
