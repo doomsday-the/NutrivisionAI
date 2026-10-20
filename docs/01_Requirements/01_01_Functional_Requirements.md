@@ -15,13 +15,13 @@
 - **Outputs**: Nutritional breakdown (Calories, Macros)
 - **Behavior**: Image is sent via Node.js API to the Python AI service.
 
-## FR-003: AI Food Detection (Mock & Future)
-- **Description**: The AI engine processes the meal image and identifies food items.
-- **Actors**: Python AI Service
-- **Inputs**: Image file
-- **Outputs**: JSON array of detected foods and confidence scores.
-- **Behavior**: Initially returns a hardcoded mock JSON mapping to valid IFCT/USDA `food_id`s. Eventually, runs inference via YOLO/MobileNet.
-- **Constraints**: Must run within free-tier hardware limitations (CPU inference).
+## FR-003: AI Food Detection (Two-Stage Pipeline, ADR-009)
+- **Description**: The AI engine processes a meal photo, identifies individual food items, and estimates portion weights.
+- **Actors**: Python AI Service (`ai-service`)
+- **Inputs**: Image file (JPEG/PNG, multipart/form-data)
+- **Outputs**: JSON array of detected foods with confidence scores, suggested weight in grams, and matched PostgreSQL `food_id`s.
+- **Behavior**: Uses Roboflow's hosted IndianFoodNet model to identify food classes (e.g., Dosa, Idli, Rice, Dal, Paneer, Biryani) and scales portion weight using MiDaS relative depth estimation and calibrated culinary base weights.
+- **Constraints**: Must operate within free-tier infrastructure without requiring continuous dedicated GPU instances.
 
 ## FR-004: Nutritional Logging
 - **Description**: Detected meals are stored in the user's daily log.

@@ -78,7 +78,7 @@ export default function Login() {
         {/* Feature Badges */}
         <div className="flex flex-wrap justify-center gap-2 mb-8">
           {[
-            { icon: <Camera size={12} />, label: 'Single-Shot CV' },
+            { icon: <Camera size={12} />, label: 'Plate Detection' },
             { icon: <Layers size={12} />, label: 'Depth Estimation' },
             { icon: <Flame size={12} />, label: 'Dynamic TDEE' },
           ].map((badge) => (
