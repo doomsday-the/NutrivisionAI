@@ -24,6 +24,7 @@ backups/
 ai-service/dataset/
 ai-service/models/*.pt
 ai-service/models/*.onnx
+cv_test_suite/
 
 # Build output
 frontend-web/.next/
