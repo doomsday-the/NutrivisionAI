@@ -18,6 +18,7 @@ import {
   Loader2,
   Scan,
   ArrowRight,
+  Bot,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
@@ -113,6 +114,12 @@ export default function LogMeal() {
         headers: { 'Content-Type': 'multipart/form-data', ...authHeaders },
       });
       setAnalysisResult(response.data);
+      // Invalidate coach cache so dashboard auto-triggers fresh insight
+      try {
+        Object.keys(sessionStorage).forEach((key) => {
+          if (key.startsWith('nutricoach_insight_')) sessionStorage.removeItem(key);
+        });
+      } catch {}
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to analyze meal. Please check image format or try again.');
     } finally {
@@ -195,6 +202,11 @@ export default function LogMeal() {
       );
 
       setAnalysisResult(addRes.data);
+      try {
+        Object.keys(sessionStorage).forEach((key) => {
+          if (key.startsWith('nutricoach_insight_')) sessionStorage.removeItem(key);
+        });
+      } catch {}
       setManualQuantity(100);
       setManualSearchQuery('');
       setManualSearchResults([]);
@@ -278,6 +290,39 @@ export default function LogMeal() {
             <div className="text-center">
               <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">Fats</span>
               <span className="text-xl font-black text-emerald-800 mt-0.5 block">{Math.round(analysisResult.total_fat_g || 0)}g</span>
+            </div>
+          </div>
+
+          {/* NutriCoach AI Real-Time Alert */}
+          <div className="mt-5 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50 border border-emerald-200/90 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                <Bot size={17} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-stone-900">
+                  NutriCoach AI Triggered for this Meal
+                </p>
+                <p className="text-[11px] text-stone-500">
+                  Your daily dashboard suggestions, Indian food swaps, and macro metrics are now updated.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5"
+              >
+                <span>View Dashboard</span>
+                <ArrowRight size={13} />
+              </button>
+              <button
+                onClick={() => navigate('/coach')}
+                className="px-3 py-1.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
+              >
+                <Bot size={13} className="text-emerald-600" />
+                <span>Discuss</span>
+              </button>
             </div>
           </div>
         </div>

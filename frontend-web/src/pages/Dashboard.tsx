@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import NutriCoachWidget, { type CoachInsight } from '../components/NutriCoachWidget';
 import {
   Flame,
   Utensils,
@@ -79,6 +80,8 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [coachInsight, setCoachInsight] = useState<CoachInsight | null>(null);
+  const [coachLoading, setCoachLoading] = useState<boolean>(false);
 
   const formattedDate = currentDate.toLocaleDateString('en-CA');
   const todayFormatted = new Date().toLocaleDateString('en-CA');
@@ -133,6 +136,52 @@ export default function Dashboard() {
 
     fetchDashboard();
   }, [formattedDate, token]);
+
+  const fetchCoachInsight = useCallback(
+    async (force: boolean = false) => {
+      if (!token) return;
+      try {
+        setCoachLoading(true);
+        const mealCount = data?.meals?.length ?? 0;
+        const totalCals = Math.round(data?.total_calories ?? 0);
+        const cacheKey = `nutricoach_insight_${formattedDate}_${totalCals}_${mealCount}`;
+
+        if (!force) {
+          const cached = sessionStorage.getItem(cacheKey);
+          if (cached) {
+            try {
+              setCoachInsight(JSON.parse(cached));
+              setCoachLoading(false);
+              return;
+            } catch {
+              // ignore parse errors
+            }
+          }
+        }
+
+        const headers = { Authorization: `Bearer ${token}` };
+        const res = await axios.get<CoachInsight>(
+          `${API_BASE_URL}/api/coach/daily-insight?date=${formattedDate}`,
+          { headers }
+        );
+
+        setCoachInsight(res.data);
+        sessionStorage.setItem(cacheKey, JSON.stringify(res.data));
+      } catch (err) {
+        console.error('Failed to load coach insight', err);
+      } finally {
+        setCoachLoading(false);
+      }
+    },
+    [formattedDate, token, data?.total_calories, data?.meals?.length]
+  );
+
+  // Automatically trigger NutriCoach whenever meals or calories update
+  useEffect(() => {
+    if (data && !loading) {
+      fetchCoachInsight();
+    }
+  }, [fetchCoachInsight, data, loading]);
 
   const targetCalories = Number(data?.target_calories ?? 2000);
   const totalCalories = Number(data?.total_calories ?? 0);
@@ -389,6 +438,14 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* ── NutriCoach AI Real-Time Insights & Suggestions ───── */}
+      <NutriCoachWidget
+        insight={coachInsight}
+        loading={coachLoading}
+        onRefresh={() => fetchCoachInsight(true)}
+        mealsCount={mealsList.length}
+      />
 
       {/* ── Visual Analytics Section (Charts) ────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
