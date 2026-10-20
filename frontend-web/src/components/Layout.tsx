@@ -6,6 +6,7 @@ import {
   Camera,
   History,
   Activity as ActivityIcon,
+  Bot,
   ChevronRight,
   Zap,
 } from 'lucide-react';
@@ -24,6 +25,7 @@ const navItems: NavItem[] = [
   { to: '/log-meal', icon: <Camera size={19} />, label: 'Log Meal', badge: 'AI Vision', highlight: true },
   { to: '/history', icon: <History size={19} />, label: 'Meal History' },
   { to: '/activity', icon: <ActivityIcon size={19} />, label: 'Activity' },
+  { to: '/coach', icon: <Bot size={19} />, label: 'NutriCoach', badge: 'AI', highlight: true },
 ];
 
 export default function Layout() {
