@@ -83,10 +83,29 @@ DECLARE
   v_total_pro NUMERIC;
   v_total_carb NUMERIC;
   v_total_fat NUMERIC;
+  v_target NUMERIC;
 BEGIN
   -- Get user and date from meal
-  SELECT user_id, (logged_at AT TIME ZONE 'UTC')::DATE INTO v_user_id, v_log_date
-  FROM public.meals WHERE meal_id = NEW.meal_id;
+  IF TG_OP = 'DELETE' THEN
+    SELECT user_id, (logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE INTO v_user_id, v_log_date
+    FROM public.meals WHERE meal_id = OLD.meal_id;
+  ELSE
+    SELECT user_id, (logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE INTO v_user_id, v_log_date
+    FROM public.meals WHERE meal_id = NEW.meal_id;
+  END IF;
+
+  IF v_user_id IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  -- Ensure daily_logs row exists for this date
+  SELECT COALESCE(daily_calorie_target, 2000) INTO v_target
+  FROM public.user_profiles WHERE user_id = v_user_id;
+  IF v_target IS NULL THEN v_target := 2000; END IF;
+
+  INSERT INTO public.daily_logs (user_id, log_date, target_calories, total_calories, total_protein_g, total_carbs_g, total_fat_g, calories_burned, remaining_calories, steps)
+  VALUES (v_user_id, v_log_date, v_target, 0, 0, 0, 0, 0, v_target, 0)
+  ON CONFLICT (user_id, log_date) DO NOTHING;
 
   -- Summarize all meal items for this user/date
   SELECT 
@@ -96,7 +115,7 @@ BEGIN
     COALESCE(SUM(m.total_fat_g), 0)
   INTO v_total_cal, v_total_pro, v_total_carb, v_total_fat
   FROM public.meals m
-  WHERE m.user_id = v_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_log_date;
+  WHERE m.user_id = v_user_id AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = v_log_date;
 
   -- Update daily log
   UPDATE public.daily_logs
@@ -124,7 +143,7 @@ DECLARE
   v_total_carb NUMERIC;
   v_total_fat NUMERIC;
 BEGIN
-  v_log_date := (NEW.logged_at AT TIME ZONE 'UTC')::DATE;
+  v_log_date := (NEW.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE;
 
   SELECT
     COALESCE(SUM(m.total_calories), 0),
@@ -133,7 +152,7 @@ BEGIN
     COALESCE(SUM(m.total_fat_g), 0)
   INTO v_total_cal, v_total_pro, v_total_carb, v_total_fat
   FROM public.meals m
-  WHERE m.user_id = NEW.user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_log_date;
+  WHERE m.user_id = NEW.user_id AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = v_log_date;
 
   UPDATE public.daily_logs
   SET total_calories = v_total_cal,

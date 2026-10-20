@@ -237,7 +237,7 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
           user_id, log_date, target_calories, total_calories, total_protein_g, total_carbs_g, total_fat_g, calories_burned, remaining_calories, steps
         ) VALUES (
           ${user_id}::INT,
-          (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE,
+          (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE,
           ${targetCalories}::NUMERIC,
           0, 0, 0, 0, 0,
           ${targetCalories}::NUMERIC,
@@ -294,25 +294,25 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
         UPDATE public.daily_logs
         SET total_calories = (
               SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             total_protein_g = (
               SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             total_carbs_g = (
               SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             total_fat_g = (
               SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             remaining_calories = target_calories - (
               SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ) + calories_burned
-        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE;
+        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE;
       `;
 
       // 4. Also log the correction in ai_match_log
@@ -401,25 +401,25 @@ export const deleteMeal = async (req: AuthRequest, res: Response) => {
         UPDATE public.daily_logs
         SET total_calories = (
               SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             total_protein_g = (
               SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             total_carbs_g = (
               SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             total_fat_g = (
               SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             remaining_calories = target_calories - (
               SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ) + calories_burned
-        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE;
+        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE;
       `;
     });
 
@@ -596,7 +596,7 @@ export const addMealItem = async (req: AuthRequest, res: Response) => {
           user_id, log_date, target_calories, total_calories, total_protein_g, total_carbs_g, total_fat_g, calories_burned, remaining_calories, steps
         ) VALUES (
           ${user_id}::INT,
-          (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE,
+          (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE,
           ${targetCalories}::NUMERIC,
           0, 0, 0, 0, 0,
           ${targetCalories}::NUMERIC,
@@ -653,25 +653,25 @@ export const addMealItem = async (req: AuthRequest, res: Response) => {
         UPDATE public.daily_logs
         SET total_calories = (
               SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             total_protein_g = (
               SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             total_carbs_g = (
               SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             total_fat_g = (
               SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ),
             remaining_calories = target_calories - (
               SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m
-              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE 'UTC')::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE
+              WHERE m.user_id = ${meal.user_id} AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE
             ) + calories_burned
-        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE 'UTC')::DATE;
+        WHERE user_id = ${meal.user_id} AND log_date = (${meal.logged_at}::timestamptz AT TIME ZONE CURRENT_SETTING('timezone'))::DATE;
       `;
     });
 

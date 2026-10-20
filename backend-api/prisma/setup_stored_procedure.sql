@@ -86,23 +86,23 @@ BEGIN
   UPDATE public.daily_logs
   SET total_calories = (
         SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m 
-        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_today
+        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = v_today
       ),
       total_protein_g = (
         SELECT COALESCE(SUM(m.total_protein_g), 0) FROM public.meals m 
-        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_today
+        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = v_today
       ),
       total_carbs_g = (
         SELECT COALESCE(SUM(m.total_carbs_g), 0) FROM public.meals m 
-        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_today
+        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = v_today
       ),
       total_fat_g = (
         SELECT COALESCE(SUM(m.total_fat_g), 0) FROM public.meals m 
-        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_today
+        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = v_today
       ),
       remaining_calories = target_calories - (
         SELECT COALESCE(SUM(m.total_calories), 0) FROM public.meals m 
-        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE 'UTC')::DATE = v_today
+        WHERE m.user_id = p_user_id AND (m.logged_at AT TIME ZONE CURRENT_SETTING('timezone'))::DATE = v_today
       ) + calories_burned
   WHERE user_id = p_user_id AND log_date = v_today;
 END;
