@@ -1,6 +1,6 @@
 # 03_01 Canonical Data Model
 
-**Status**: This is the single authoritative database schema. `docs/database_schema.md` is superseded by this document and should not be referenced for implementation.
+**Status**: Single authoritative canonical database schema.
 
 All table names use `snake_case`. All IDs are `SERIAL` (auto-incrementing integer) unless otherwise noted. All timestamps are `TIMESTAMPTZ` (timezone-aware). `NN` = NOT NULL constraint.
 
