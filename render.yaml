@@ -4,7 +4,7 @@ services:
     env: node
     region: singapore
     plan: free
-    buildCommand: cd backend-api && npm ci && npx prisma generate && npm run build
+    buildCommand: cd backend-api && npm ci --include=dev && npx prisma generate && npm run build
     startCommand: cd backend-api && node dist/server.js
     healthCheckPath: /health
     envVars:
