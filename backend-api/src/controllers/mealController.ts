@@ -1,3 +1,4 @@
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
@@ -19,6 +20,137 @@ axiosRetry(axios, {
 });
 
 const prisma = new PrismaClient();
+interface NutritionEstimate {
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+}
+
+async function matchFoodInDb(
+  label: string, 
+  prisma: PrismaClient,
+  nutritionEstimate?: NutritionEstimate
+): Promise<{ food_id: number; name: string }> {
+  const clean = label.replace(/[^a-zA-Z0-9 ]/g, ' ').trim();
+  const cleanLower = clean.toLowerCase();
+
+  // 1. Exact match (case-insensitive)
+  const exact: any[] = await prisma.$queryRaw`
+    SELECT food_id, name FROM public.food_items
+    WHERE is_active = true AND LOWER(name) = ${cleanLower}
+    LIMIT 1
+  `;
+  if (exact.length > 0) return exact[0];
+
+  // 2. Prefix or bracket match (e.g. "Burger" matches "Burger (beef)")
+  const prefixMatch: any[] = await prisma.$queryRaw`
+    SELECT food_id, name FROM public.food_items
+    WHERE is_active = true AND (
+      LOWER(name) LIKE ${cleanLower + ' (%'}
+      OR LOWER(name) LIKE ${cleanLower + ' %'}
+    )
+    ORDER BY LENGTH(name) ASC
+    LIMIT 1
+  `;
+  if (prefixMatch.length > 0) return prefixMatch[0];
+
+  // 3. Exact phrase containment (e.g. "French Fries" matches "French Fries")
+  const phraseMatch: any[] = await prisma.$queryRaw`
+    SELECT food_id, name FROM public.food_items
+    WHERE is_active = true AND LOWER(name) LIKE ${'%' + cleanLower + '%'}
+    ORDER BY 
+      CASE WHEN LOWER(name) = ${cleanLower} THEN 0
+           WHEN LOWER(name) LIKE ${cleanLower + '%'} THEN 1
+           ELSE 2 END,
+      LENGTH(name) ASC
+    LIMIT 1
+  `;
+  if (phraseMatch.length > 0) return phraseMatch[0];
+
+  // 4. Multi-word search (all significant words must match)
+  const stopWords = new Set(['and', 'with', 'the', 'for', 'in', 'cooked', 'fried', 'boiled', 'steamed', 'salad', 'fresh']);
+  const words = cleanLower.split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
+
+  if (words.length > 0) {
+    const q = words.join(' & ');
+    try {
+      const ft: any[] = await prisma.$queryRaw`
+        SELECT food_id, name, ts_rank(search_vector, to_tsquery('english', ${q})) as rank
+        FROM public.food_items
+        WHERE is_active = true AND search_vector @@ to_tsquery('english', ${q})
+        ORDER BY rank DESC, LENGTH(name) ASC
+        LIMIT 1
+      `;
+      if (ft.length > 0) return ft[0];
+    } catch {}
+
+    // Check if any major noun matches the start of a food name
+    for (const w of words) {
+      const nounMatch: any[] = await prisma.$queryRaw`
+        SELECT food_id, name FROM public.food_items
+        WHERE is_active = true AND (
+          LOWER(name) = ${w}
+          OR LOWER(name) LIKE ${w + ' (%'}
+          OR LOWER(name) LIKE ${w + ' %'}
+        )
+        ORDER BY LENGTH(name) ASC
+        LIMIT 1
+      `;
+      if (nounMatch.length > 0) return nounMatch[0];
+    }
+  }
+
+  // 5. Dynamic Food Creation with Gemini Estimated Macros (DO NOT FALL BACK TO RICE)
+  try {
+    const cleanName = clean.length > 0 ? clean : label.trim();
+    const newFood = await prisma.food_items.create({
+      data: {
+        name: cleanName,
+        food_type: 'prepared',
+        category_id: 4, // Fast Foods & Prepared
+        source_id: 2, // USDA/Global
+        reference_unit: '100g',
+        is_verified: true,
+        is_active: true,
+      }
+    });
+
+    const cals = Math.max(0, Number(nutritionEstimate?.calories) || 150);
+    const pro = Math.max(0, Number(nutritionEstimate?.protein) || 5);
+    const carbs = Math.max(0, Number(nutritionEstimate?.carbs) || 20);
+    const fat = Math.max(0, Number(nutritionEstimate?.fat) || 5);
+
+    const nutrients = [
+      { id: 1, val: cals },
+      { id: 2, val: pro },
+      { id: 3, val: carbs },
+      { id: 4, val: fat }
+    ];
+
+    for (const n of nutrients) {
+      await prisma.$executeRaw`
+        INSERT INTO public.food_nutrients (food_id, nutrient_id, value_per_100g)
+        VALUES (${newFood.food_id}, ${n.id}, ${n.val})
+        ON CONFLICT (food_id, nutrient_id) DO NOTHING;
+      `;
+    }
+
+    return { food_id: newFood.food_id, name: cleanName };
+  } catch (createErr) {
+    console.error('[Dynamic Food Creation Error]', createErr);
+    const existing = await prisma.food_items.findFirst({
+      where: { name: { equals: label.trim(), mode: 'insensitive' } }
+    });
+    if (existing) return { food_id: existing.food_id, name: existing.name };
+  }
+
+  // Absolute fallback if everything fails
+  const genericFallback: any[] = await prisma.$queryRaw`
+    SELECT food_id, name FROM public.food_items WHERE is_active = true LIMIT 1
+  `;
+  return genericFallback[0] || { food_id: 12, name: 'Mixed Dish' };
+}
 
 export const analyzeMeal = async (req: AuthRequest, res: Response) => {
   const file = req.file;
@@ -32,21 +164,118 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
   const session_id = crypto.randomUUID();
 
   try {
-    // 1. Call AI Service (TC-001) — forward image as multipart
-    const formData = new FormData();
-    formData.append('image', file.buffer, { filename: file.originalname, contentType: file.mimetype });
-    formData.append('session_id', session_id);
+    let detections: any[] = [];
 
-    const aiResponse = await axios.post(`${process.env.AI_SERVICE_URL}/predict`, formData, {
-      headers: {
-        ...formData.getHeaders(),
-        'X-Internal-Token': process.env.X_INTERNAL_TOKEN
-      },
-      timeout: 30000
-    });
+    // Primary Detection: Resilient Gemini Multimodal Vision with Auto-Fallback
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey) {
+      const candidateModels = [
+        'gemini-3.1-flash-lite',
+        'gemini-3.5-flash-lite',
+        'gemini-3.5-flash',
+        'gemini-3.6-flash'
+      ];
 
-    const { detections } = aiResponse.data;
+      for (const mName of candidateModels) {
+        if (detections.length > 0) break;
+        try {
+          const genAI = new GoogleGenerativeAI(geminiKey);
+          const model = genAI.getGenerativeModel({ model: mName }, { apiVersion: 'v1' });
 
+          const prompt = `You are a world-class culinary computer vision and nutritional intelligence AI capable of recognizing any food, beverage, dish, or cuisine worldwide (Indian, Continental, Fast Food, Asian, Mediterranean, Healthy, Bakery, Beverages, etc.).
+Analyze this meal image and return a JSON array of all distinct food and beverage items present on the plate or table.
+
+For each item, specify:
+- "detected_label": Clean, canonical food name (e.g. "French Fries", "Cheeseburger", "Masala Dosa", "Dal Makhani", "Coca Cola", "Caesar Salad", "Chicken Biryani", "Vanilla Ice Cream", "Omelette")
+- "suggested_weight_grams": Realistic portion weight in grams (e.g. 150 for bowls/fries, 200 for burgers/sandwiches, 50 for rotis, 250 for drinks, 100 for sides)
+- "confidence": number between 0.75 and 0.99
+- "estimated_calories_per_100g": realistic kcal per 100g
+- "estimated_protein_per_100g": realistic grams of protein per 100g
+- "estimated_carbs_per_100g": realistic grams of carbohydrates per 100g
+- "estimated_fat_per_100g": realistic grams of fat per 100g
+
+CRITICAL: Return ONLY a valid JSON array. No markdown formatting, no code blocks, no other text.
+Example format:
+[
+  {"detected_label": "French Fries", "suggested_weight_grams": 150, "confidence": 0.95, "estimated_calories_per_100g": 312, "estimated_protein_per_100g": 3.4, "estimated_carbs_per_100g": 41.4, "estimated_fat_per_100g": 14.7},
+  {"detected_label": "Cheeseburger", "suggested_weight_grams": 220, "confidence": 0.95, "estimated_calories_per_100g": 263, "estimated_protein_per_100g": 15.0, "estimated_carbs_per_100g": 24.0, "estimated_fat_per_100g": 12.0}
+]`;
+
+          const imagePart = {
+            inlineData: {
+              data: file.buffer.toString('base64'),
+              mimeType: file.mimetype || 'image/jpeg'
+            }
+          };
+
+          const visionResult = await model.generateContent([prompt, imagePart]);
+          const textResp = visionResult.response.text();
+
+          let parsedItems: any[] = [];
+          const jsonMatch = textResp.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            try {
+              parsedItems = JSON.parse(jsonMatch[0]);
+            } catch {}
+          }
+          if (!Array.isArray(parsedItems) || parsedItems.length === 0) {
+            try {
+              const clean = textResp.replace(/```json/gi, '').replace(/```/g, '').trim();
+              parsedItems = JSON.parse(clean);
+            } catch {}
+          }
+
+          if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+            for (const item of parsedItems) {
+              const label = (item.detected_label || '').trim();
+              const lower = label.toLowerCase();
+              if (!label || lower.includes('no food') || lower.includes('empty plate') || lower.includes('non-food')) {
+                continue;
+              }
+
+              const nutritionEstimate = {
+                calories: Number(item.estimated_calories_per_100g) || undefined,
+                protein: Number(item.estimated_protein_per_100g) || undefined,
+                carbs: Number(item.estimated_carbs_per_100g) || undefined,
+                fat: Number(item.estimated_fat_per_100g) || undefined,
+              };
+
+              const dbMatch = await matchFoodInDb(label, prisma, nutritionEstimate);
+              detections.push({
+                detected_label: dbMatch.name,
+                matched_food_id: dbMatch.food_id,
+                confidence: Number(item.confidence) || 0.92,
+                suggested_weight_grams: Number(item.suggested_weight_grams) || 150,
+                match_method: 'gemini_multimodal'
+              });
+            }
+          }
+        } catch (geminiErr: any) {
+          console.warn(`[Gemini Vision model ${mName} error]:`, geminiErr.message);
+        }
+      }
+    }
+
+    // Fallback Detection: Roboflow AI Service
+    if (detections.length === 0) {
+      try {
+        const formData = new FormData();
+        formData.append('image', file.buffer, { filename: file.originalname, contentType: file.mimetype });
+        formData.append('session_id', session_id);
+
+        const aiResponse = await axios.post(`${process.env.AI_SERVICE_URL}/predict`, formData, {
+          headers: {
+            ...formData.getHeaders(),
+            'X-Internal-Token': process.env.X_INTERNAL_TOKEN
+          },
+          timeout: 30000
+        });
+
+        detections = aiResponse.data?.detections || [];
+      } catch (rfErr: any) {
+        console.warn('[Roboflow Fallback error]:', rfErr.message);
+      }
+    }
     const sanitizedFilename = file.originalname ? file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_') : 'meal.jpg';
     const imageUrl = `/uploads/meals/${session_id}_${sanitizedFilename}`;
 
@@ -450,8 +679,8 @@ export const getMealHistory = async (req: AuthRequest, res: Response) => {
       lte: new Date(endParam)
     };
   } else if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const startOfDay = new Date(`${dateStr}T00:00:00.000Z`);
-    const endOfDay = new Date(`${dateStr}T23:59:59.999Z`);
+    const startOfDay = new Date(`${dateStr}T00:00:00+05:30`);
+    const endOfDay = new Date(`${dateStr}T23:59:59.999+05:30`);
     whereClause.logged_at = {
       gte: startOfDay,
       lte: endOfDay

@@ -84,11 +84,17 @@ export const devLogin = async (req: Request, res: Response) => {
   }
 
   try {
-    let user = await prisma.users.findUnique({ where: { google_id: 'dev_user_123' } });
-
-    if (!user) {
-      user = await prisma.users.findUnique({ where: { email: 'dev@test.com' } });
-    }
+    let user = await prisma.users.findFirst({
+      where: {
+        OR: [
+          { email: 'aryaman.sinha.lko@gmail.com' },
+          { email: 'suman.sinha.bbk@gmail.com' },
+          { google_id: 'dev_user_123' },
+          { email: 'dev@test.com' }
+        ]
+      },
+      orderBy: { user_id: 'desc' }
+    });
 
     if (!user) {
       const salt = await bcrypt.genSalt(10);

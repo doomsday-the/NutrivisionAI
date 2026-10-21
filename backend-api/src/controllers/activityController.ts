@@ -71,18 +71,37 @@ export const getDashboard = async (req: AuthRequest, res: Response) => {
         SELECT meal_id, meal_type, total_calories, logged_at
         FROM public.meals
         WHERE user_id = ${user_id}
-          AND logged_at >= ${log_date}::date
-          AND logged_at < (${log_date}::date + interval '1 day')
+          AND (logged_at AT TIME ZONE 'Asia/Kolkata')::date = ${log_date}::date
         ORDER BY logged_at ASC
       `
     ]);
 
     const dailyLog = dailyLogRows[0] || null;
+    const mealIds = mealsRows.map((m: any) => m.meal_id);
+    let itemsByMeal: Record<number, any[]> = {};
+    if (mealIds.length > 0) {
+      const items = await prisma.meal_items.findMany({
+        where: { meal_id: { in: mealIds } },
+        include: { food: true },
+      });
+      for (const item of items) {
+        if (!itemsByMeal[item.meal_id]) itemsByMeal[item.meal_id] = [];
+        itemsByMeal[item.meal_id].push({
+          item_id: item.item_id,
+          food_id: item.food_id,
+          food_name: item.food?.name || 'Unknown food',
+          quantity_grams: Number(item.quantity_grams),
+          estimated_calories: Number(item.estimated_calories),
+        });
+      }
+    }
+
     const meals = mealsRows.map((m: any) => ({
       meal_id: m.meal_id,
       meal_type: m.meal_type,
       total_calories: Number(m.total_calories || 0),
-      logged_at: m.logged_at
+      logged_at: m.logged_at,
+      items: itemsByMeal[m.meal_id] || []
     }));
 
     if (!dailyLog) {
