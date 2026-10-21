@@ -76,7 +76,7 @@ export const googleAuth = async (req: Request, res: Response) => {
 };
 
 export const devLogin = async (req: Request, res: Response) => {
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV !== 'development' && process.env.DEV_LOGIN_ENABLED !== 'true') {
     return res.status(403).json({
       error: 'FORBIDDEN',
       message: 'Developer bypass authentication is strictly disabled outside development environment.'
