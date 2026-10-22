@@ -46,6 +46,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+.agents/
 
 # Obsidian workspace metadata
 docs/.obsidian/

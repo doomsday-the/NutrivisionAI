@@ -3,13 +3,12 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 import {
-  Bot,
   Send,
   Sparkles,
   Loader2,
-  User,
-  RefreshCw,
   Lightbulb,
+  ArrowRight,
+  Utensils,
 } from 'lucide-react';
 
 interface Message {
@@ -50,7 +49,6 @@ export default function NutritionCoach() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [snapshot, setSnapshot] = useState<DailySnapshot | null>(null);
-  const [snapshotLoading, setSnapshotLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -59,7 +57,6 @@ export default function NutritionCoach() {
   useEffect(() => {
     const fetchSnapshot = async () => {
       try {
-        setSnapshotLoading(true);
         const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
         const today = new Date().toLocaleDateString('en-CA');
         const res = await axios.get(`${API_BASE_URL}/api/activity/dashboard?date=${today}`, { headers });
@@ -74,8 +71,6 @@ export default function NutritionCoach() {
         });
       } catch {
         // Non-fatal — coach can still work without snapshot
-      } finally {
-        setSnapshotLoading(false);
       }
     };
     fetchSnapshot();
@@ -140,167 +135,242 @@ export default function NutritionCoach() {
   };
 
   const formatText = (text: string) => {
-    // Convert bullet points and newlines to styled JSX
     return text.split('\n').map((line, i) => {
       const trimmed = line.trim();
       if (trimmed.startsWith('• ') || trimmed.startsWith('- ')) {
         return (
-          <li key={i} className="ml-4 text-sm text-stone-700 mb-1 list-disc list-inside">
+          <li key={i} className="ml-4 text-xs sm:text-sm text-slate-200 mb-1 list-disc list-inside">
             {trimmed.slice(2)}
           </li>
         );
       }
-      if (!trimmed) return <div key={i} className="h-2" />;
+      if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+        return (
+          <p key={i} className="text-xs sm:text-sm font-bold text-white mt-2 mb-1">
+            {trimmed.slice(2, -2)}
+          </p>
+        );
+      }
+      if (trimmed === '') {
+        return <div key={i} className="h-1.5" />;
+      }
       return (
-        <p key={i} className="text-sm text-stone-800 mb-2 leading-relaxed">
-          {trimmed}
+        <p key={i} className="text-xs sm:text-sm text-slate-300 mb-1 leading-relaxed">
+          {line}
         </p>
       );
     });
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] max-h-[820px] min-h-[500px]">
-      {/* ── Header ───────────────────────────────── */}
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-amber-500 flex items-center justify-center shadow-md shadow-emerald-700/20">
-              <Bot size={20} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-black text-stone-900 tracking-tight">NutriCoach</h1>
-              <p className="text-xs text-stone-500 font-medium">Powered by Gemini · Personalised dietary AI</p>
-            </div>
+    <div className="space-y-8 animate-fade-in pb-12">
+      {/* ── 1. Hero Section & Oversized Heading ───────────────── */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-[#8ba0a6]">
+          <span className="text-emerald-400">✳</span>
+          <span>Gemini Dietary Intelligence</span>
+        </div>
+
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight text-white leading-[1.15]">
+          Conversational AI guidance{' '}
+          <span className="text-[#8ba0a6] font-normal">
+            powered by your daily plate
+          </span>
+        </h1>
+
+        <p className="text-xs sm:text-sm text-[#8ba0a6] max-w-2xl font-normal pt-1">
+          NutriCoach examines your real-time macro balance, identifies micronutrient gaps, and suggests healthy food swaps.
+        </p>
+      </div>
+
+      {/* ── 2. Full-Width Horizontal Segmented Control Strip ──── */}
+      <div className="w-full bg-[#0b171b] border border-[#18282c] rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#18282c] overflow-hidden shadow-xl">
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Today's Logged Energy
+          </span>
+          <div className="text-2xl font-black text-white tabular-num">
+            {Math.round(snapshot?.total_calories || 0)}{' '}
+            <span className="text-xs font-normal text-[#8ba0a6]">kcal</span>
           </div>
         </div>
 
-        {/* Today's snapshot pill */}
-        {!snapshotLoading && snapshot && (
-          <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl bg-white border border-stone-200 shadow-xs text-xs font-semibold text-stone-600">
-            <span className="text-emerald-700 font-bold">
-              {Math.round(snapshot.total_calories)} kcal
-            </span>
-            <span className="text-stone-300">|</span>
-            <span>P {Math.round(snapshot.total_protein_g)}g</span>
-            <span className="text-stone-300">·</span>
-            <span>C {Math.round(snapshot.total_carbs_g)}g</span>
-            <span className="text-stone-300">·</span>
-            <span>F {Math.round(snapshot.total_fat_g)}g</span>
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Daily Target
+          </span>
+          <div className="text-xl font-extrabold text-white tabular-num">
+            {snapshot?.target_calories || 2000}{' '}
+            <span className="text-xs font-normal text-[#8ba0a6]">kcal goal</span>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* ── Chat Window ───────────────────────────── */}
-      <div className="flex-1 overflow-y-auto rounded-3xl border border-stone-200/80 bg-white/60 backdrop-blur-sm shadow-sm p-4 sm:p-6 space-y-4 mb-4">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Macro Intake
+          </span>
+          <div className="text-xs font-bold text-white">
+            P: <span className="text-[#f43f5e]">{Math.round(snapshot?.total_protein_g || 0)}g</span> • C: <span className="text-[#f59e0b]">{Math.round(snapshot?.total_carbs_g || 0)}g</span> • F: <span className="text-[#38bdf8]">{Math.round(snapshot?.total_fat_g || 0)}g</span>
+          </div>
+          <span className="text-[11px] text-[#566c73]">Current Distribution</span>
+        </div>
+
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Cognitive Model
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs font-bold text-white">Gemini 2.5 Nutrition</span>
+          </div>
+          <span className="text-[11px] text-[#566c73]">Contextual Plate Analysis</span>
+        </div>
+
+        <div className="p-3 sm:p-3 flex items-center justify-center bg-[#0e1d22] sm:bg-transparent">
+          <button
+            onClick={() => sendMessage("Explain my plate for today")}
+            disabled={loading}
+            className="w-full h-full min-h-[48px] py-3 px-5 rounded-xl bg-white text-black hover:bg-slate-200 transition-all font-extrabold text-sm tracking-tight flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.98] disabled:opacity-50"
           >
-            {msg.role === 'coach' && (
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white flex-shrink-0 mt-0.5 shadow-xs">
-                <Sparkles size={14} />
-              </div>
-            )}
-
-            <div
-              className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 shadow-xs ${
-                msg.role === 'user'
-                  ? 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white rounded-br-sm'
-                  : 'bg-white border border-stone-200/80 rounded-bl-sm'
-              }`}
-            >
-              {msg.role === 'user' ? (
-                <p className="text-sm text-white leading-relaxed">{msg.text}</p>
-              ) : (
-                <div className="text-sm">{formatText(msg.text)}</div>
-              )}
-              <p
-                className={`text-[10px] mt-1.5 font-medium ${
-                  msg.role === 'user' ? 'text-white/60 text-right' : 'text-stone-400'
-                }`}
-              >
-                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-
-            {msg.role === 'user' && (
-              <div className="w-8 h-8 rounded-xl bg-stone-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <User size={14} className="text-stone-600" />
-              </div>
-            )}
-          </div>
-        ))}
-
-        {loading && (
-          <div className="flex gap-3 justify-start">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white flex-shrink-0 shadow-xs">
-              <Sparkles size={14} />
-            </div>
-            <div className="bg-white border border-stone-200/80 rounded-2xl rounded-bl-sm px-4 py-3 shadow-xs flex items-center gap-2">
-              <Loader2 size={14} className="animate-spin text-emerald-600" />
-              <span className="text-xs text-stone-500 font-medium">NutriCoach is thinking…</span>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="flex justify-center">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium max-w-lg">
-              <RefreshCw size={12} />
-              {error}
-            </div>
-          </div>
-        )}
-
-        <div ref={bottomRef} />
+            <Sparkles size={16} />
+            <span>Explain Plate</span>
+          </button>
+        </div>
       </div>
 
-      {/* ── Suggested Questions ───────────────────── */}
-      {messages.length <= 1 && (
-        <div className="flex-shrink-0 mb-3">
-          <div className="flex items-center gap-1.5 mb-2 text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-            <Lightbulb size={11} />
-            Suggestions
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {SUGGESTED_QUESTIONS.map((q) => (
-              <button
-                key={q}
-                onClick={() => sendMessage(q)}
-                disabled={loading}
-                className="px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-xs font-medium text-stone-600 hover:border-emerald-300 hover:text-emerald-700 hover:bg-emerald-50 transition-all shadow-xs disabled:opacity-50"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
+      {error && (
+        <div className="p-4 rounded-xl bg-[#281014] border border-[#521c25] text-[#fb7185] text-xs flex items-center gap-2.5">
+          <span>{error}</span>
         </div>
       )}
 
-      {/* ── Input Bar ─────────────────────────────── */}
-      <div className="flex-shrink-0 flex gap-3 items-end">
-        <div className="flex-1 flex items-end gap-2 px-4 py-3 rounded-2xl bg-white border border-stone-200/90 shadow-sm focus-within:border-emerald-400 focus-within:shadow-md transition-all">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask NutriCoach anything about your nutrition today…"
-            rows={1}
-            className="flex-1 bg-transparent text-sm text-stone-800 placeholder-stone-400 resize-none outline-none leading-relaxed max-h-28 overflow-y-auto"
-            style={{ minHeight: '24px' }}
-          />
-          <span className="text-[10px] text-stone-400 pb-0.5 hidden sm:block">Enter ↵ to send</span>
-        </div>
-        <button
-          onClick={() => sendMessage(input)}
-          disabled={loading || !input.trim()}
-          className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-700/20 hover:from-emerald-500 hover:to-teal-500 transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 flex-shrink-0"
-        >
-          {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-        </button>
+      {/* ── 3. Sidebar-Plus-Main-Content Composition ─────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ── Left Sidebar: Suggested Questions & Daily Telemetry ── */}
+        <aside className="lg:col-span-4 space-y-6">
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#8ba0a6] flex items-center gap-1.5">
+              <Lightbulb size={13} className="text-[#f59e0b]" />
+              <span>Suggested Queries</span>
+            </h3>
+            <div className="space-y-2">
+              {SUGGESTED_QUESTIONS.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => sendMessage(q)}
+                  disabled={loading}
+                  className="w-full text-left p-3 rounded-xl bg-[#0b171b] hover:bg-[#122227] text-white border border-[#18282c] hover:border-[#274047] text-xs font-semibold transition flex items-center justify-between cursor-pointer group disabled:opacity-50"
+                >
+                  <span className="pr-2">{q}</span>
+                  <ArrowRight size={13} className="text-[#8ba0a6] group-hover:text-white transition-transform group-hover:translate-x-0.5" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Today's Context Card */}
+          <div className="health-card p-5 bg-[#0b171b] border-[#18282c] space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#8ba0a6] flex items-center gap-1.5">
+              <Utensils size={13} className="text-emerald-400" />
+              <span>Session Context</span>
+            </h3>
+            <p className="text-xs text-[#8ba0a6]">
+              NutriCoach references your {snapshot?.meals?.length || 0} meals logged for {snapshot?.date || 'today'} to construct its recommendations.
+            </p>
+            <div className="pt-2 border-t border-[#18282c] flex justify-between text-xs">
+              <span className="text-[#8ba0a6]">Active Plate Meals:</span>
+              <span className="text-white font-bold">{snapshot?.meals?.length || 0}</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* ── Right Main Content Area: Chat Window ─────────────── */}
+        <section className="lg:col-span-8 health-card bg-[#0b171b] border-[#18282c] flex flex-col h-[650px] overflow-hidden">
+          {/* Chat Messages Stream */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex gap-3 items-start ${
+                  msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+                }`}
+              >
+                {/* Avatar Icon */}
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
+                    msg.role === 'coach'
+                      ? 'bg-[#081f18] text-emerald-400 border border-[#134937]'
+                      : 'bg-white text-black font-black'
+                  }`}
+                >
+                  {msg.role === 'coach' ? '✳' : 'You'}
+                </div>
+
+                {/* Message Bubble */}
+                <div
+                  className={`max-w-[85%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-white text-black font-semibold'
+                      : 'bg-[#081215] text-white border border-[#18282c]'
+                  }`}
+                >
+                  {msg.role === 'coach' ? (
+                    <div>{formatText(msg.text)}</div>
+                  ) : (
+                    <p>{msg.text}</p>
+                  )}
+                  <span
+                    className={`text-[9px] block mt-1.5 font-normal ${
+                      msg.role === 'user' ? 'text-black/60' : 'text-[#566c73]'
+                    }`}
+                  >
+                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="flex gap-3 items-start">
+                <div className="w-8 h-8 rounded-lg bg-[#081f18] border border-[#134937] flex items-center justify-center shrink-0 text-xs text-emerald-400">
+                  ✳
+                </div>
+                <div className="p-4 rounded-2xl bg-[#081215] border border-[#18282c] text-xs text-[#8ba0a6] flex items-center gap-2">
+                  <Loader2 size={14} className="animate-spin text-emerald-400" />
+                  <span>NutriCoach is evaluating nutritional balance...</span>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Chat Input Bar */}
+          <div className="p-4 border-t border-[#18282c] bg-[#081215]">
+            <div className="flex items-end gap-2.5">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask NutriCoach about your macros, nutrient deficiencies, or healthy food swaps..."
+                rows={2}
+                disabled={loading}
+                className="flex-1 bg-[#0b171b] border border-[#18282c] focus:border-white/30 rounded-xl p-3 text-xs text-white placeholder-[#566c73] outline-none resize-none transition"
+              />
+              <button
+                onClick={() => sendMessage(input)}
+                disabled={loading || !input.trim()}
+                className="h-11 px-5 rounded-xl bg-white text-black hover:bg-slate-200 transition font-extrabold text-xs flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-40"
+              >
+                <span>Send</span>
+                <Send size={13} />
+              </button>
+            </div>
+            <p className="text-[10px] text-[#566c73] mt-2">
+              Press Enter to send, Shift+Enter for a new line. Answers reflect your current logged intake.
+            </p>
+          </div>
+        </section>
       </div>
     </div>
   );
