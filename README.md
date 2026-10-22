@@ -6,10 +6,11 @@ Welcome to the central repository for **NutriVision AI**, an AI-powered Calorie 
 
 ## Project Structure & Technology Stack
 
-- **Database**: PostgreSQL 16 (via Docker) with 16 normalized tables, 3 triggers, 2 SQL views, and stored procedure `sp_log_meal`.
-- **Backend API**: Node.js, Express, TypeScript, Prisma ORM, Zod, JWT (`backend-api/`, port 3000).
-- **AI Microservice**: Python 3.11, FastAPI, Roboflow IndianFoodNet API + MiDaS DPT_Hybrid relative depth (`ai-service/`, port 8000).
-- **Frontend Web**: React 18, TypeScript, Vite, Tailwind CSS v4, Recharts, Lucide Icons (`frontend-web/`, port 5173).
+- **Database**: PostgreSQL 15/16 (via Docker) with 16 normalized tables in 3NF, 3 triggers, 2 SQL views, and atomic stored procedure `sp_log_meal`.
+- **Backend API**: Node.js 22, Express, TypeScript, Prisma ORM, Zod validation, JWT authentication (`backend-api/`, port 3000).
+- **Multimodal AI Vision & Coach**: Google Gemini Multimodal Vision & Reasoning (`gemini-3.5-flash-lite`, `gemini-3.5-flash`, `gemini-3.8-flash`) with dynamic model resilience cascade.
+- **Computer Vision Microservice**: Python 3.11, FastAPI, Roboflow IndianFoodNet API + MiDaS DPT_Hybrid relative depth estimation (`ai-service/`, port 8000).
+- **Frontend Web**: React 19, TypeScript, Vite 8, Tailwind CSS v4, Recharts, Lucide Icons (`frontend-web/`, port 5173).
 - **Mobile & WearOS**: React Native and Wear OS companion modules (`mobile-app/`, `wear-os/` - planned clients).
 
 ---
@@ -58,7 +59,7 @@ cd ../frontend-web
 npm install
 npm run dev
 ```
-Open **`http://localhost:5173`** in your browser. Click **"Instant Demo Login (Bypass)"** for immediate authenticated access.
+Open **`http://localhost:5173`** in your browser. Click **"Instant Demo Login (Bypass)"** for immediate authenticated access without requiring Google OAuth popups.
 
 ### 5. Verify Services
 - **Backend Health**: `curl http://localhost:3000/health` → `{"status":"ok"}`
@@ -67,14 +68,19 @@ Open **`http://localhost:5173`** in your browser. Click **"Instant Demo Login (B
 
 ---
 
-## Core Features
+## Core Features & Architecture
 
-- **Plate Food Detection**: Upload a meal photo to detect Indian foods (Dosa, Idli, Dal, Rice, Paneer, Biryani, Roti, etc.) via Roboflow IndianFoodNet.
-- **Portion & Depth Estimation**: Scale portion weights using MiDaS relative depth estimation and calibrated culinary base weights.
-- **Atomic Stored Procedure Logging**: Uses PostgreSQL `sp_log_meal` to atomically create the meal, compute calories from `food_nutrients`, log to `ai_match_log`, and aggregate `daily_logs`.
-- **Dynamic Calorie Gauge & Analytics**: Interactive SVG circular calorie ring, macro distribution donut chart, and 7-day intake trends via Recharts.
-- **Physiological TDEE Calculator**: Calculate Basal Metabolic Rate and daily caloric targets based on the scientific Mifflin-St Jeor formula.
-- **Manual Logging Fallback**: Search the verified dual-source food database (ICMR IFCT 2017 + USDA) and adjust detected portions.
+- **Multimodal Plate Food Detection**: Upload a meal photo to detect Indian and global dishes. Leverages a high-resilience Google Gemini vision cascade (`gemini-3.5-flash-lite`, `gemini-3.5-flash`, `gemini-3.8-flash`) with automatic fallback to Roboflow IndianFoodNet and MiDaS relative depth estimation.
+- **AI Nutrition Coach & Plate Insights**: Real-time contextual coaching powered by Gemini (`/api/coach/explain` and `/api/coach/daily-insight`). Analyzes your full daily meal log against caloric goals, detects macro imbalances, and suggests healthy culinary swaps.
+- **Redesigned Clinical-Grade Frontend**: Complete UI redesign featuring:
+  - **Strong Visual Hierarchy**: Editorial page headings and dark luxury aesthetics with emerald ambient glows.
+  - **Persistent Daily Metabolic Ledger**: Compact control bar with quick date navigation, remaining calories, steps, coach status, and instant meal logging.
+  - **Sidebar + Main Composition**: Left-hand filter pills, SVG circular energy intake gauge, and macronutrient target bars paired with interactive 7-day intake trajectory charts and macro distribution donut visualizations.
+  - **Information-Dense Meal Rows**: Detailed cards with component pills, portion weights, macro summaries, and inline actions.
+  - **Reusable Design System**: Modular UI primitives in `frontend-web/src/components/ui/` (`Card`, `Button`, `Badge`, `ProgressRing`, `Skeleton`).
+- **Atomic Stored Procedure Logging**: PostgreSQL `sp_log_meal` atomically writes the meal, computes precise nutritional totals from `food_nutrients`, records AI audit trails in `ai_match_log`, and updates `daily_logs` in a single transaction.
+- **Physiological TDEE Calculator & Physical Activity Sync**: Calculate BMR and caloric equilibrium targets via the scientific Mifflin-St Jeor formula, synchronized with exercise calories burned.
+- **Dual-Source Database**: Search and auto-match against a curated repository combining ICMR IFCT 2017 (Indian Food Composition Tables) and USDA FoodData Central.
 
 ---
 

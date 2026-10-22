@@ -467,3 +467,97 @@ Returns the full profile object (same shape as `GET /api/profile`).
   ]
 }
 ```
+
+---
+
+## API-013: POST /api/coach/explain & GET /api/coach/daily-insight
+
+**Purpose**: AI-powered conversational nutritional feedback, dietary analysis, and actionable coaching tips using Google Gemini reasoning.
+
+**Auth**: Required (`Authorization: Bearer <token>`).
+
+### 1. Daily Insight (Automated Context Extraction)
+- **Method**: `GET /api/coach/daily-insight?date=YYYY-MM-DD`
+- **Behavior**: Automatically pulls user biometrics (calorie target, goal, activity level), current daily logs, and all meal records for the specified date from PostgreSQL, feeding context into the Gemini reasoning pipeline.
+
+### 2. Conversational Q&A / Explicit Evaluation
+- **Method**: `POST /api/coach/explain`
+- **Request Body**:
+```json
+{
+  "date": "2026-10-22",
+  "total_calories": 2150,
+  "target_calories": 2000,
+  "total_protein_g": 85.5,
+  "total_carbs_g": 240.0,
+  "total_fat_g": 62.0,
+  "meals": [
+    { "name": "Lunch Nutrition Plate", "calories": 623 }
+  ],
+  "user_question": "How can I balance my protein for dinner?"
+}
+```
+
+### Response — 200 OK
+```json
+{
+  "advice": "You are currently within 150 kcal of your daily target with solid energy intake. Your carbohydrate ratio is balanced, but adding lean protein to dinner will optimize muscle recovery.",
+  "badge": "On Track",
+  "summary": "Caloric budget healthy with slight protein deficit.",
+  "suggestions": [
+    "Opt for 150g grilled paneer, tofu, or chicken breast for dinner",
+    "Pair with a high-fiber green salad to stabilize digestion"
+  ],
+  "macro_critique": "Protein is at 70% of goal; carbs and fats are in ideal equilibrium.",
+  "next_meal_tip": "Focus on high-protein, low-carbohydrate options for dinner.",
+  "context": {
+    "target_calories": 2000,
+    "consumed_calories": 2150,
+    "remaining_calories": -150
+  }
+}
+```
+
+### Response — 503 Service Unavailable
+Returned when `GEMINI_API_KEY` is missing:
+```json
+{
+  "error": "COACH_UNAVAILABLE",
+  "message": "AI Coach is not configured. Set GEMINI_API_KEY to enable this feature."
+}
+```
+
+---
+
+## API-014: POST /api/auth/dev-login
+
+**Purpose**: One-click development and testing authentication bypass to obtain a valid JWT token without requiring external Google OAuth consent popups.
+
+**Availability**: Active only when `DEV_LOGIN_ENABLED=true` or `NODE_ENV=development`.
+
+### Request
+- **Method**: `POST /api/auth/dev-login`
+- **Headers**: `Content-Type: application/json`
+- **Body**: `{}` (Empty or optional password)
+
+### Response — 200 OK
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "user_id": 1,
+    "email": "dev@test.com",
+    "display_name": "Dev User"
+  }
+}
+```
+
+### Response — 403 Forbidden
+Returned if invoked in production mode with dev login disabled:
+```json
+{
+  "error": "FORBIDDEN",
+  "message": "Dev login is only available in development mode"
+}
+```
+
