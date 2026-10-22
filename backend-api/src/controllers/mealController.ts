@@ -104,61 +104,68 @@ async function matchFoodInDb(
   // 5. Dynamic Food Creation with Gemini Estimated Macros (DO NOT FALL BACK TO RICE)
   const cleanName = clean.length > 0 ? clean : label.trim();
   try {
-    // 5a. Sync primary key sequence to prevent duplicate key collisions
+    // 5a. Check if exact food item already exists
+    const existing = await prisma.food_items.findFirst({
+      where: { name: { equals: cleanName, mode: 'insensitive' } },
+      select: { food_id: true, name: true }
+    });
+    if (existing) return { food_id: existing.food_id, name: existing.name };
+
+    // 5b. Find or create a guaranteed valid source_id
+    const sources: any[] = await prisma.$queryRaw`
+      SELECT source_id FROM public.food_sources ORDER BY source_id ASC LIMIT 1
+    `;
+    let sourceId = sources.length > 0 ? Number(sources[0].source_id) : 1;
+    if (sources.length === 0) {
+      await prisma.$executeRaw`
+        INSERT INTO public.food_sources (source_id, source_name, source_version)
+        VALUES (1, 'NutriVision AI Dynamic', '2026')
+        ON CONFLICT (source_id) DO NOTHING;
+      `;
+    }
+
+    // 5c. Sync sequence before inserting
     await prisma.$executeRawUnsafe(
       `SELECT setval('food_items_food_id_seq', COALESCE((SELECT MAX(food_id) FROM public.food_items), 1))`
     ).catch(() => {});
 
-    // 5b. Find a guaranteed valid source_id dynamically
-    const validSource = await prisma.food_sources.findFirst({
-      select: { source_id: true },
-      orderBy: { source_id: 'asc' }
-    });
-    const sourceId = validSource ? validSource.source_id : 1;
+    // 5d. Native PostgreSQL insert RETURNING food_id (bulletproof against ORM sequence issues)
+    const inserted: any[] = await prisma.$queryRaw`
+      INSERT INTO public.food_items (name, food_type, category_id, source_id, reference_unit, is_verified, is_active, created_at, updated_at)
+      VALUES (${cleanName}, 'prepared', null, ${sourceId}, '100g', true, true, NOW(), NOW())
+      RETURNING food_id, name;
+    `;
 
-    // 5c. Find valid category_id dynamically (nullable in schema)
-    const validCategory = await prisma.food_categories.findFirst({
-      select: { category_id: true }
-    });
-    const categoryId = validCategory ? validCategory.category_id : null;
+    if (inserted && inserted.length > 0 && inserted[0].food_id) {
+      const newFoodId = Number(inserted[0].food_id);
 
-    const newFood = await prisma.food_items.create({
-      data: {
-        name: cleanName,
-        food_type: 'prepared',
-        category_id: categoryId,
-        source_id: sourceId,
-        reference_unit: '100g',
-        is_verified: true,
-        is_active: true,
+      const cals = Math.max(0, Number(nutritionEstimate?.calories) || 150);
+      const pro = Math.max(0, Number(nutritionEstimate?.protein) || 5);
+      const carbs = Math.max(0, Number(nutritionEstimate?.carbs) || 20);
+      const fat = Math.max(0, Number(nutritionEstimate?.fat) || 5);
+
+      const nutrients = [
+        { id: 1, val: cals },
+        { id: 2, val: pro },
+        { id: 3, val: carbs },
+        { id: 4, val: fat }
+      ];
+
+      for (const n of nutrients) {
+        await prisma.$executeRaw`
+          INSERT INTO public.food_nutrients (food_id, nutrient_id, value_per_100g)
+          VALUES (${newFoodId}, ${n.id}, ${n.val})
+          ON CONFLICT (food_id, nutrient_id) DO UPDATE SET value_per_100g = EXCLUDED.value_per_100g;
+        `;
       }
-    });
 
-    const cals = Math.max(0, Number(nutritionEstimate?.calories) || 150);
-    const pro = Math.max(0, Number(nutritionEstimate?.protein) || 5);
-    const carbs = Math.max(0, Number(nutritionEstimate?.carbs) || 20);
-    const fat = Math.max(0, Number(nutritionEstimate?.fat) || 5);
-
-    const nutrients = [
-      { id: 1, val: cals },
-      { id: 2, val: pro },
-      { id: 3, val: carbs },
-      { id: 4, val: fat }
-    ];
-
-    for (const n of nutrients) {
-      await prisma.$executeRaw`
-        INSERT INTO public.food_nutrients (food_id, nutrient_id, value_per_100g)
-        VALUES (${newFood.food_id}, ${n.id}, ${n.val})
-        ON CONFLICT (food_id, nutrient_id) DO UPDATE SET value_per_100g = EXCLUDED.value_per_100g;
-      `;
+      return { food_id: newFoodId, name: cleanName };
     }
-
-    return { food_id: newFood.food_id, name: cleanName };
   } catch (createErr: any) {
     console.error('[Dynamic Food Creation Error]', createErr?.message || createErr);
     const existing = await prisma.food_items.findFirst({
-      where: { name: { equals: cleanName, mode: 'insensitive' } }
+      where: { name: { equals: cleanName, mode: 'insensitive' } },
+      select: { food_id: true, name: true }
     });
     if (existing) return { food_id: existing.food_id, name: existing.name };
   }
@@ -415,22 +422,6 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
 
   const { new_food_id, quantity_grams } = req.body;
 
-  // Validate new_food_id: must be a positive integer
-  let foodId: number;
-  if (typeof new_food_id === 'number') {
-    if (!Number.isInteger(new_food_id) || new_food_id <= 0) {
-      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid new_food_id' });
-    }
-    foodId = new_food_id;
-  } else if (typeof new_food_id === 'string' && /^\d+$/.test(new_food_id.trim())) {
-    foodId = parseInt(new_food_id.trim(), 10);
-    if (foodId <= 0) {
-      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid new_food_id' });
-    }
-  } else {
-    return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid new_food_id' });
-  }
-
   // Validate quantity_grams: must be a positive finite number (> 0)
   let quantity: number;
   if (typeof quantity_grams === 'number') {
@@ -464,6 +455,20 @@ export const correctMealItem = async (req: AuthRequest, res: Response) => {
 
     if (!mealItem || mealItem.meal_id !== mealId) {
       return res.status(404).json({ error: 'NOT_FOUND', message: 'Meal item not found' });
+    }
+
+    // new_food_id: if supplied, change food; otherwise keep existing food_id
+    let foodId = mealItem.food_id;
+    if (new_food_id !== undefined && new_food_id !== null && new_food_id !== '') {
+      if (typeof new_food_id === 'number' && Number.isInteger(new_food_id) && new_food_id > 0) {
+        foodId = new_food_id;
+      } else if (typeof new_food_id === 'string' && /^\d+$/.test(new_food_id.trim())) {
+        const parsed = parseInt(new_food_id.trim(), 10);
+        if (parsed > 0) foodId = parsed;
+        else return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid new_food_id' });
+      } else {
+        return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Invalid new_food_id' });
+      }
     }
 
     // Get the new food to calculate calories

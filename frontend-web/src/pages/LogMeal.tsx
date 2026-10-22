@@ -239,11 +239,12 @@ export default function LogMeal() {
     setCorrecting(true);
 
     try {
+      const foodId = selectedCorrectionFood ? selectedCorrectionFood.food_id : (editingItem.food_id || editingItem.food?.food_id);
       const payload: any = {
         quantity_grams: Number(newQuantity) || editingItem.quantity_grams,
       };
-      if (selectedCorrectionFood) {
-        payload.new_food_id = selectedCorrectionFood.food_id;
+      if (foodId) {
+        payload.new_food_id = foodId;
       }
 
       const res = await axios.put(
@@ -253,9 +254,14 @@ export default function LogMeal() {
       );
 
       setAnalysisResult(res.data);
+      try {
+        Object.keys(sessionStorage).forEach((key) => {
+          if (key.startsWith('nutricoach_insight_')) sessionStorage.removeItem(key);
+        });
+      } catch {}
       setEditingItem(null);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to correct item.');
+      alert(err.response?.data?.message || 'Failed to adjust food portion.');
     } finally {
       setCorrecting(false);
     }
