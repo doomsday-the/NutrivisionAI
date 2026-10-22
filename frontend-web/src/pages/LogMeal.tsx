@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Camera,
   Upload,
-  CheckCircle,
   Search,
   Edit2,
   X,
@@ -18,10 +17,12 @@ import {
   Loader2,
   Scan,
   ArrowRight,
-  Bot,
+  Layers,
+  Info,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
+import { Button, Badge } from '../components/ui';
 
 interface FoodItem {
   food_id: number;
@@ -38,19 +39,19 @@ interface MealTypeOption {
   value: string;
   label: string;
   icon: React.ReactNode;
-  activeColor: string;
 }
 
 const MEAL_TYPES: MealTypeOption[] = [
-  { value: 'breakfast', label: 'Breakfast', icon: <Coffee size={16} />, activeColor: 'bg-amber-50 border-amber-300 text-amber-900 shadow-xs' },
-  { value: 'lunch', label: 'Lunch', icon: <Sun size={16} />, activeColor: 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-xs' },
-  { value: 'dinner', label: 'Dinner', icon: <Moon size={16} />, activeColor: 'bg-sky-50 border-sky-300 text-sky-900 shadow-xs' },
-  { value: 'snack', label: 'Snack', icon: <Apple size={16} />, activeColor: 'bg-rose-50 border-rose-300 text-rose-900 shadow-xs' },
+  { value: 'breakfast', label: 'Breakfast', icon: <Coffee size={14} /> },
+  { value: 'lunch', label: 'Lunch', icon: <Sun size={14} /> },
+  { value: 'dinner', label: 'Dinner', icon: <Moon size={14} /> },
+  { value: 'snack', label: 'Snack', icon: <Apple size={14} /> },
 ];
 
 export default function LogMeal() {
   const { token } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -78,6 +79,15 @@ export default function LogMeal() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+  // Initialize query param search if passed from top nav
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      setManualMode(true);
+      setManualSearchQuery(q);
+    }
+  }, [searchParams]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -114,7 +124,6 @@ export default function LogMeal() {
         headers: { 'Content-Type': 'multipart/form-data', ...authHeaders },
       });
       setAnalysisResult(response.data);
-      // Invalidate coach cache so dashboard auto-triggers fresh insight
       try {
         Object.keys(sessionStorage).forEach((key) => {
           if (key.startsWith('nutricoach_insight_')) sessionStorage.removeItem(key);
@@ -234,7 +243,7 @@ export default function LogMeal() {
         quantity_grams: Number(newQuantity) || editingItem.quantity_grams,
       };
       if (selectedCorrectionFood) {
-        payload.food_id = selectedCorrectionFood.food_id;
+        payload.new_food_id = selectedCorrectionFood.food_id;
       }
 
       const res = await axios.put(
@@ -257,287 +266,356 @@ export default function LogMeal() {
     const items = analysisResult.items || analysisResult.meal_items || [];
 
     return (
-      <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
-        {/* Success Header Banner */}
-        <div className="glass-panel rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden bg-white border border-stone-200 shadow-sm">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-4 text-emerald-600">
-            <CheckCircle size={32} />
+      <div className="space-y-8 animate-fade-in pb-12">
+        {/* Header */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-[#8ba0a6]">
+            <span className="text-emerald-400">✳</span>
+            <span>Computer Vision Recognition Complete</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Meal Logged Successfully!</h1>
-          <p className="text-xs sm:text-sm text-stone-500 mt-1 max-w-md mx-auto">
-            Computer vision identified items on your plate. You can refine weights or add side items below.
+
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight text-white leading-[1.15]">
+            Plate breakdown & macro analysis{' '}
+            <span className="text-[#8ba0a6] font-normal">
+              ready for confirmation
+            </span>
+          </h1>
+
+          <p className="text-xs sm:text-sm text-[#8ba0a6] max-w-2xl font-normal pt-1">
+            Review food segmentation, fine-tune portion weights, or add sides from the verified catalog.
           </p>
-
-          {/* Macro Summary Strip */}
-          <div className="mt-6 p-4 rounded-2xl bg-stone-50 border border-stone-200/80 flex flex-wrap items-center justify-around gap-4">
-            <div className="text-center">
-              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">Total Energy</span>
-              <span className="text-2xl font-black text-emerald-700 mt-0.5 block">
-                {Math.round(analysisResult.total_calories || 0)} <span className="text-xs text-stone-500">kcal</span>
-              </span>
-            </div>
-            <div className="h-8 w-px bg-stone-200 hidden sm:block" />
-            <div className="text-center">
-              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">Protein</span>
-              <span className="text-xl font-black text-rose-700 mt-0.5 block">{Math.round(analysisResult.total_protein_g || 0)}g</span>
-            </div>
-            <div className="h-8 w-px bg-stone-200 hidden sm:block" />
-            <div className="text-center">
-              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">Carbs</span>
-              <span className="text-xl font-black text-amber-800 mt-0.5 block">{Math.round(analysisResult.total_carbs_g || 0)}g</span>
-            </div>
-            <div className="h-8 w-px bg-stone-200 hidden sm:block" />
-            <div className="text-center">
-              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">Fats</span>
-              <span className="text-xl font-black text-emerald-800 mt-0.5 block">{Math.round(analysisResult.total_fat_g || 0)}g</span>
-            </div>
-          </div>
-
-          {/* NutriCoach AI Real-Time Alert */}
-          <div className="mt-5 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50 border border-emerald-200/90 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
-                <Bot size={17} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-stone-900">
-                  NutriCoach AI Triggered for this Meal
-                </p>
-                <p className="text-[11px] text-stone-500">
-                  Your daily dashboard suggestions, Indian food swaps, and macro metrics are now updated.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5"
-              >
-                <span>View Dashboard</span>
-                <ArrowRight size={13} />
-              </button>
-              <button
-                onClick={() => navigate('/coach')}
-                className="px-3 py-1.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
-              >
-                <Bot size={13} className="text-emerald-600" />
-                <span>Discuss</span>
-              </button>
-            </div>
-          </div>
         </div>
 
-        {/* Logged Items List with Edit Actions */}
-        <div className="glass-panel rounded-3xl p-6 bg-white border border-stone-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">Detected & Logged Foods</h3>
-            <span className="text-xs text-stone-500">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
-          </div>
-
-          <div className="space-y-3">
-            {items.length === 0 && (
-              <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200 text-center space-y-1">
-                <p className="text-xs font-bold text-amber-900">No food items were detected in this image.</p>
-                <p className="text-[11px] text-amber-700">Ensure the plate is clear and in focus, or search below to add your dishes.</p>
-              </div>
-            )}
-            {items.map((item: any, idx: number) => (
-              <div
-                key={idx}
-                className="p-4 rounded-2xl bg-stone-50/70 border border-stone-200 hover:border-emerald-300 hover:bg-white hover:shadow-xs transition flex items-center justify-between gap-4"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-stone-900 truncate">{item.food_name || item.food?.name}</span>
-                    {item.user_corrected && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                        Adjusted
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-stone-500 mt-0.5 flex items-center gap-2">
-                    <span>{item.quantity_grams}g</span>
-                    <span>•</span>
-                    <span className="text-emerald-700 font-semibold">{Math.round(item.estimated_calories)} kcal</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => openCorrectionModal(item)}
-                  className="p-2 rounded-xl bg-white hover:bg-stone-100 text-stone-700 border border-stone-200 transition flex items-center gap-1.5 text-xs font-semibold shadow-2xs"
-                  title="Edit portion or match"
-                >
-                  <Edit2 size={14} />
-                  <span className="hidden sm:inline">Edit</span>
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Add Side Item to Meal Section */}
-        <div className="glass-panel rounded-3xl p-6 bg-white border border-stone-200 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <Plus size={16} className="text-emerald-600" />
-            <h3 className="text-sm font-bold text-stone-900">Add Extra Food to this Meal</h3>
-          </div>
-          <div className="relative mb-3">
-            <Search className="absolute left-3.5 top-3 text-stone-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search food by name (e.g., Rice, Dal, Salad, Paneer)..."
-              value={manualSearchQuery}
-              onChange={(e) => setManualSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-input text-sm"
-            />
-          </div>
-
-          {searchingManual && (
-            <div className="p-4 text-center text-xs text-stone-500 flex items-center justify-center gap-2">
-              <Loader2 size={16} className="animate-spin text-emerald-600" />
-              Searching nutrition database...
+        {/* Horizontal Control Strip in Results View */}
+        <div className="w-full bg-[#0b171b] border border-[#18282c] rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#18282c] overflow-hidden shadow-xl">
+          <div className="p-4 sm:p-5 flex flex-col justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+              Total Caloric Intake
+            </span>
+            <div className="text-2xl font-black text-white tabular-num">
+              {Math.round(analysisResult.total_calories || 0)}{' '}
+              <span className="text-xs font-normal text-[#8ba0a6]">kcal</span>
             </div>
-          )}
+          </div>
 
-          {manualSearchResults.length > 0 && (
-            <div className="max-h-56 overflow-y-auto space-y-1.5 p-2 rounded-xl bg-stone-50 border border-stone-200">
-              {manualSearchResults.map((food) => (
-                <div
-                  key={food.food_id}
-                  className="p-2.5 rounded-lg hover:bg-white flex items-center justify-between text-xs transition border border-transparent hover:border-stone-200"
-                >
-                  <div>
-                    <span className="font-bold text-stone-900 block">{food.name}</span>
-                    <span className="text-stone-500 text-[10px]">
-                      {food.category_name || 'Standard Food'} • {Math.round(food.energy_kcal || 0)} kcal/100g
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={10}
-                      max={2000}
-                      defaultValue={100}
-                      onChange={(e) => setManualQuantity(Number(e.target.value))}
-                      className="w-16 px-2 py-1 rounded bg-white border border-stone-200 text-right text-xs text-stone-900"
-                    />
-                    <span className="text-[10px] text-stone-500">g</span>
-                    <button
-                      disabled={submittingManual}
-                      onClick={() => handleConfirmAddItem(food)}
-                      className="px-2.5 py-1 rounded bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-500 transition shadow-2xs"
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
-              ))}
+          <div className="p-4 sm:p-5 flex flex-col justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+              Protein
+            </span>
+            <div className="text-xl font-extrabold text-[#f43f5e] tabular-num">
+              {Math.round(analysisResult.total_protein_g || 0)}g
             </div>
-          )}
+          </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t border-stone-200 mt-6">
-            <button
-              onClick={() => {
-                setAnalysisResult(null);
-                setFile(null);
-                setPreview(null);
-              }}
-              className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 transition"
-            >
-              Log Another Meal
-            </button>
+          <div className="p-4 sm:p-5 flex flex-col justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+              Carbohydrates
+            </span>
+            <div className="text-xl font-extrabold text-[#f59e0b] tabular-num">
+              {Math.round(analysisResult.total_carbs_g || 0)}g
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-5 flex flex-col justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+              Fats
+            </span>
+            <div className="text-xl font-extrabold text-[#38bdf8] tabular-num">
+              {Math.round(analysisResult.total_fat_g || 0)}g
+            </div>
+          </div>
+
+          <div className="p-3 sm:p-3 flex items-center justify-center bg-[#0e1d22] sm:bg-transparent">
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs shadow-md shadow-emerald-700/15 hover:from-emerald-500 hover:to-teal-500 transition"
+              className="w-full h-full min-h-[48px] py-3 px-5 rounded-xl bg-white text-black hover:bg-slate-200 transition-all font-extrabold text-sm tracking-tight flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.98]"
             >
-              <span>Go to Dashboard</span>
-              <ArrowRight size={14} />
+              <span>Done & Return</span>
+              <ArrowRight size={16} />
             </button>
           </div>
         </div>
 
-        {/* Edit / Correction Modal */}
+        {/* Sidebar + Main Composition */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Sidebar: Photo Preview & Summary */}
+          <aside className="lg:col-span-4 space-y-6">
+            {preview && (
+              <div className="health-card p-4 bg-[#0b171b] border-[#18282c] space-y-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#8ba0a6] block">
+                  Plate Visual Source
+                </span>
+                <div className="relative rounded-xl overflow-hidden border border-[#18282c]">
+                  <img
+                    src={preview}
+                    alt="Analyzed Plate"
+                    className="w-full h-56 object-cover object-center"
+                  />
+                  {items.map((item: any, idx: number) => {
+                    if (item.bbox && typeof item.bbox.x === 'number') {
+                      return (
+                        <div
+                          key={idx}
+                          className="absolute border-2 border-emerald-400 bg-emerald-500/10 rounded pointer-events-none"
+                          style={{
+                            left: `${item.bbox.x}%`,
+                            top: `${item.bbox.y}%`,
+                            width: `${item.bbox.width}%`,
+                            height: `${item.bbox.height}%`,
+                          }}
+                        >
+                          <span className="absolute -top-5 left-0 px-1.5 py-0.5 rounded bg-emerald-500 text-black text-[9px] font-black whitespace-nowrap">
+                            {item.food_name}
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="health-card p-5 bg-[#0b171b] border-[#18282c] space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#8ba0a6] block">
+                Next Step
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setAnalysisResult(null);
+                  setFile(null);
+                  setPreview(null);
+                }}
+              >
+                Scan Another Plate
+              </Button>
+            </div>
+          </aside>
+
+          {/* Right Main Content: Ingredients & Add Side Items */}
+          <section className="lg:col-span-8 space-y-6">
+            {/* Detected Items List */}
+            <div className="health-card p-6 bg-[#0b171b] border-[#18282c] space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#18282c]">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Layers size={15} className="text-emerald-400" />
+                  <span>Detected Ingredients ({items.length})</span>
+                </h3>
+                <Badge variant="emerald" size="sm">
+                  Verified
+                </Badge>
+              </div>
+
+              {items.length === 0 ? (
+                <div className="p-4 rounded-xl bg-[#281a06] border border-[#543609] text-center space-y-1">
+                  <p className="text-xs font-bold text-[#fbbf24]">No food items detected in this photo.</p>
+                  <p className="text-[11px] text-[#f59e0b]">Use the search tool below to manually add your meal items.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {items.map((item: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-xl bg-[#081215] border border-[#18282c] hover:border-[#274047] transition flex items-center justify-between gap-4"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-white truncate">
+                            {item.food_name || item.food?.name}
+                          </span>
+                          {item.user_corrected && (
+                            <Badge variant="amber" size="sm">
+                              Adjusted
+                            </Badge>
+                          )}
+                          {typeof item.confidence === 'number' && item.confidence < 1 && (
+                            <Badge variant="emerald" size="sm">
+                              {Math.round(item.confidence * 100)}% conf
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-xs text-[#8ba0a6] mt-1 flex items-center gap-2 tabular-num">
+                          <span>{item.quantity_grams}g portion</span>
+                          <span>•</span>
+                          <span className="text-white font-bold">{Math.round(item.estimated_calories)} kcal</span>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openCorrectionModal(item)}
+                        icon={<Edit2 size={12} />}
+                      >
+                        Adjust Portion
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add Side Dish Search */}
+            <div className="health-card p-6 bg-[#0b171b] border-[#18282c] space-y-4">
+              <div className="flex items-center gap-2">
+                <Plus size={16} className="text-emerald-400" />
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Add Side Dish or Beverage
+                </h3>
+              </div>
+              <p className="text-xs text-[#8ba0a6]">
+                Query Indian ICMR-IFCT & USDA verified food catalogs.
+              </p>
+
+              <div className="relative">
+                <Search className="absolute left-3.5 top-3 text-[#566c73]" size={14} />
+                <input
+                  type="text"
+                  placeholder="Search side item (e.g. Rice, Dal, Curd, Chutney, Salad)..."
+                  value={manualSearchQuery}
+                  onChange={(e) => setManualSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#18282c] bg-[#081215] text-xs text-white placeholder-[#566c73] outline-none focus:border-white/30"
+                />
+              </div>
+
+              {searchingManual && (
+                <div className="p-3 text-center text-xs text-[#8ba0a6] flex items-center justify-center gap-2">
+                  <Loader2 size={13} className="animate-spin text-emerald-400" />
+                  Searching food database...
+                </div>
+              )}
+
+              {manualSearchResults.length > 0 && (
+                <div className="max-h-56 overflow-y-auto space-y-1.5 p-1 rounded-xl bg-[#081215] border border-[#18282c]">
+                  {manualSearchResults.map((food) => (
+                    <div
+                      key={food.food_id}
+                      className="p-2.5 rounded-lg hover:bg-[#0e1d22] flex items-center justify-between text-xs transition border border-transparent hover:border-[#1d3238]"
+                    >
+                      <div className="min-w-0 flex-1 pr-2">
+                        <span className="font-bold text-white block truncate">{food.name}</span>
+                        <span className="text-[#8ba0a6] text-[10px] tabular-num">
+                          {Math.round(food.energy_kcal || 0)} kcal / 100g
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <input
+                          type="number"
+                          min={10}
+                          max={2000}
+                          defaultValue={100}
+                          onChange={(e) => setManualQuantity(Number(e.target.value))}
+                          className="w-16 px-2 py-1 rounded bg-[#0b171b] border border-[#18282c] text-right text-xs text-white tabular-num outline-none"
+                        />
+                        <span className="text-[#8ba0a6] text-[10px]">g</span>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          disabled={submittingManual}
+                          onClick={() => handleConfirmAddItem(food)}
+                        >
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+
+        {/* Correction Modal */}
         {editingItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/40 backdrop-blur-sm animate-fade-in">
-            <div className="glass-panel rounded-3xl p-6 sm:p-7 max-w-md w-full space-y-4 bg-white border border-stone-200 shadow-2xl">
-              <div className="flex items-center justify-between pb-3 border-b border-stone-200">
-                <h3 className="font-bold text-base text-stone-900">Adjust Food Item</h3>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in">
+            <div className="health-card p-6 sm:p-7 max-w-md w-full space-y-4 bg-[#0b171b] border-[#1d3238] shadow-2xl">
+              <div className="flex items-center justify-between pb-3 border-b border-[#18282c]">
+                <h3 className="font-bold text-sm text-white">Adjust Food Portion</h3>
                 <button
                   onClick={() => setEditingItem(null)}
-                  className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100"
+                  className="p-1 rounded-lg text-[#8ba0a6] hover:text-white hover:bg-[#122227] cursor-pointer"
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-stone-600 block mb-1">Serving Portion (Grams)</label>
+                <label className="text-xs font-bold text-[#8ba0a6] block mb-1">
+                  Serving Weight (Grams)
+                </label>
                 <input
                   type="number"
                   value={newQuantity}
                   onChange={(e) => setNewQuantity(e.target.value === '' ? '' : Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl glass-input text-sm font-semibold"
+                  className="w-full px-3 py-2 rounded-xl border border-[#18282c] bg-[#081215] text-xs font-bold text-white tabular-num outline-none focus:border-white/30"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-stone-600 block mb-1">Replace Food Match (Optional)</label>
+                <label className="text-xs font-bold text-[#8ba0a6] block mb-1">
+                  Replace Item Match (Optional)
+                </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-2.5 text-stone-400" size={15} />
+                  <Search className="absolute left-3 top-2.5 text-[#566c73]" size={14} />
                   <input
                     type="text"
-                    placeholder="Search replacement food..."
+                    placeholder="Search replacement..."
                     value={correctionQuery}
                     onChange={(e) => setCorrectionQuery(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 rounded-xl glass-input text-xs"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#18282c] bg-[#081215] text-xs text-white placeholder-[#566c73] outline-none focus:border-white/30"
                   />
                 </div>
 
                 {searchingCorrection && (
-                  <div className="p-3 text-center text-xs text-stone-500 flex items-center justify-center gap-2">
-                    <Loader2 size={14} className="animate-spin text-emerald-600" />
+                  <div className="p-3 text-center text-xs text-[#8ba0a6] flex items-center justify-center gap-2">
+                    <Loader2 size={13} className="animate-spin text-emerald-400" />
                     Searching alternatives...
                   </div>
                 )}
 
                 {correctionResults.length > 0 && (
-                  <div className="max-h-36 overflow-y-auto mt-2 space-y-1 p-1 rounded-xl bg-stone-50 border border-stone-200">
+                  <div className="max-h-36 overflow-y-auto mt-2 space-y-1 p-1 rounded-xl bg-[#081215] border border-[#18282c]">
                     {correctionResults.map((food) => (
                       <button
                         key={food.food_id}
                         type="button"
                         onClick={() => setSelectedCorrectionFood(food)}
-                        className={`w-full text-left p-2 rounded-lg text-xs transition flex justify-between ${
+                        className={`w-full text-left p-2 rounded-lg text-xs transition flex justify-between cursor-pointer ${
                           selectedCorrectionFood?.food_id === food.food_id
-                            ? 'bg-emerald-100 text-emerald-900 font-bold'
-                            : 'hover:bg-white text-stone-700'
+                            ? 'bg-white text-black font-bold'
+                            : 'hover:bg-[#122227] text-white'
                         }`}
                       >
                         <span>{food.name}</span>
-                        <span className="text-stone-500">{Math.round(food.energy_kcal || 0)} kcal</span>
+                        <span className="tabular-num">{Math.round(food.energy_kcal || 0)} kcal</span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-stone-200">
-                <button
+              <div className="flex justify-end gap-2 pt-4 border-t border-[#18282c]">
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setEditingItem(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-stone-500 hover:text-stone-800"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
-                  disabled={correcting}
+                  variant="primary"
+                  size="sm"
+                  loading={correcting}
                   onClick={handleSaveCorrection}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-500 transition shadow-2xs"
                 >
-                  {correcting ? 'Saving...' : 'Save Adjustments'}
-                </button>
+                  Save Adjustments
+                </Button>
               </div>
             </div>
           </div>
@@ -546,214 +624,345 @@ export default function LogMeal() {
     );
   }
 
-  // Primary Meal Logging View (Photo Upload & Scan)
+  // Primary Ingestion View: Camera AI Scanner vs Database Search
   return (
-    <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
-      {/* Title Header */}
-      <div className="text-center sm:text-left flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center justify-center sm:justify-start gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-800">
-              <Camera size={20} />
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Log Your Meal</h1>
-          </div>
-          <p className="text-xs sm:text-sm text-stone-500 mt-1 font-medium">
-            Upload or capture your food plate for zero-effort AI macro breakdown.
-          </p>
+    <div className="space-y-8 animate-fade-in pb-12">
+      {/* ── 1. Hero Section & Oversized Heading ───────────────── */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-[#8ba0a6]">
+          <span className="text-emerald-400">✳</span>
+          <span>Computer Vision Ingestion Studio</span>
         </div>
 
-        {/* Mode Toggle Button */}
-        <button
-          onClick={() => setManualMode(!manualMode)}
-          className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-xs font-bold text-stone-700 transition shadow-2xs"
-        >
-          {manualMode ? <Camera size={14} /> : <Search size={14} />}
-          <span>{manualMode ? 'Switch to Camera' : 'Manual Text Search'}</span>
-        </button>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight text-white leading-[1.15]">
+          Scan your plate or search foods{' '}
+          <span className="text-[#8ba0a6] font-normal">
+            to instantly log macros
+          </span>
+        </h1>
+
+        <p className="text-xs sm:text-sm text-[#8ba0a6] max-w-2xl font-normal pt-1">
+          Dual-pipeline intake: deep learning visual plate segmentation combined with USDA & ICMR-IFCT food indexing.
+        </p>
+      </div>
+
+      {/* ── 2. Full-Width Horizontal Segmented Control Strip ──── */}
+      <div className="w-full bg-[#0b171b] border border-[#18282c] rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#18282c] overflow-hidden shadow-xl">
+        {/* Column 1: Mode Switcher */}
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Input Modality
+          </span>
+          <div className="flex items-center gap-1.5 mt-1">
+            <button
+              onClick={() => setManualMode(false)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                !manualMode ? 'bg-white text-black' : 'text-[#8ba0a6] hover:text-white hover:bg-[#122227]'
+              }`}
+            >
+              <Camera size={13} />
+              <span>Camera</span>
+            </button>
+            <button
+              onClick={() => setManualMode(true)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                manualMode ? 'bg-white text-black' : 'text-[#8ba0a6] hover:text-white hover:bg-[#122227]'
+              }`}
+            >
+              <Search size={13} />
+              <span>Search</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Column 2: Meal Time Picker */}
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Meal Classification
+          </span>
+          <div className="flex items-center gap-1 overflow-x-auto py-0.5">
+            {MEAL_TYPES.map((m) => (
+              <button
+                key={m.value}
+                onClick={() => setMealType(m.value)}
+                className={`px-2 py-1 rounded text-[11px] font-bold transition cursor-pointer capitalize ${
+                  mealType === m.value
+                    ? 'bg-emerald-400 text-black'
+                    : 'text-[#8ba0a6] hover:text-white hover:bg-[#122227]'
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Column 3: Model State */}
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Vision Engine
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs font-bold text-white">YOLO + Gemini Vision</span>
+          </div>
+          <span className="text-[11px] text-[#566c73]">Depth & Volume Math</span>
+        </div>
+
+        {/* Column 4: Portion Standard */}
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Portion Metric
+          </span>
+          <div className="text-xs font-bold text-white">
+            Weight in Grams (g)
+          </div>
+          <span className="text-[11px] text-[#566c73]">Dual Database Standards</span>
+        </div>
+
+        {/* Column 5: High-Contrast White Action Block */}
+        <div className="p-3 sm:p-3 flex items-center justify-center bg-[#0e1d22] sm:bg-transparent">
+          <button
+            onClick={() => {
+              if (!manualMode && file) {
+                handleUploadAndAnalyze({ preventDefault: () => {} } as any);
+              } else if (!manualMode && !file) {
+                fileInputRef.current?.click();
+              } else {
+                setManualMode(!manualMode);
+              }
+            }}
+            disabled={loading}
+            className="w-full h-full min-h-[48px] py-3 px-5 rounded-xl bg-white text-black hover:bg-slate-200 transition-all font-extrabold text-sm tracking-tight flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.98] disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 size={16} className="animate-spin text-black" />
+            ) : (
+              <Sparkles size={16} />
+            )}
+            <span>{loading ? 'Analyzing...' : !manualMode ? (file ? 'Analyze Plate' : 'Pick Image') : 'Search DB'}</span>
+          </button>
+        </div>
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center gap-3">
-          <AlertCircle size={18} className="flex-shrink-0" />
+        <div className="p-4 rounded-xl bg-[#281014] border border-[#521c25] text-[#fb7185] text-xs flex items-center gap-2.5">
+          <AlertCircle size={16} className="shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Meal Type Selection */}
-      <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-wider text-stone-500">Meal Time</label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {MEAL_TYPES.map((option) => {
-            const isSelected = mealType === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setMealType(option.value)}
-                className={`p-3.5 rounded-2xl border transition-all duration-200 flex items-center gap-3 ${
-                  isSelected
-                    ? `${option.activeColor} ring-2 ring-emerald-500/20`
-                    : 'bg-white border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+      {/* ── 3. Sidebar-Plus-Main-Content Composition ─────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ── Left Sidebar: Quick Presets & Ingestion Guidelines ── */}
+        <aside className="lg:col-span-4 space-y-6">
+          {/* Meal Time Selector Card */}
+          <div className="health-card p-5 bg-[#0b171b] border-[#18282c] space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#8ba0a6]">
+              Select Meal Time
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              {MEAL_TYPES.map((option) => {
+                const isSelected = mealType === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setMealType(option.value)}
+                    className={`p-3 rounded-xl border transition flex items-center gap-2 cursor-pointer ${
+                      isSelected
+                        ? 'bg-white text-black font-extrabold border-white shadow-xs'
+                        : 'bg-[#081215] text-[#8ba0a6] hover:text-white border-[#18282c]'
+                    }`}
+                  >
+                    <span>{option.icon}</span>
+                    <span className="text-xs capitalize">{option.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Vision Best Practices */}
+          <div className="health-card p-5 bg-[#0b171b] border-[#18282c] space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#8ba0a6] flex items-center gap-1.5">
+              <Info size={13} className="text-emerald-400" />
+              <span>Vision Recognition Tips</span>
+            </h3>
+            <ul className="space-y-2 text-xs text-[#8ba0a6]">
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-400 font-bold">•</span>
+                <span>Top-down 45° angle provides optimal depth calculation</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-400 font-bold">•</span>
+                <span>Ensure bright lighting without harsh single-direction shadows</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-400 font-bold">•</span>
+                <span>Include entire rim of plate for volume estimation</span>
+              </li>
+            </ul>
+          </div>
+        </aside>
+
+        {/* ── Right Main Content Area: Viewfinder / Manual Search ─ */}
+        <section className="lg:col-span-8 space-y-6">
+          {!manualMode ? (
+            /* Mode A: Photo AI Scanner */
+            <form onSubmit={handleUploadAndAnalyze} className="space-y-5">
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`relative rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-150 overflow-hidden ${
+                  preview
+                    ? 'border-emerald-400/80 bg-[#081f18]/30'
+                    : 'border-[#18282c] bg-[#0b171b] hover:border-[#2b444b] hover:bg-[#0e1d22]'
                 }`}
               >
-                <div
-                  className={`p-2 rounded-xl ${
-                    isSelected ? 'bg-white/80 shadow-2xs' : 'bg-stone-100 text-stone-500'
-                  }`}
-                >
-                  {option.icon}
-                </div>
-                <span className="text-xs font-bold capitalize">{option.label}</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                {preview ? (
+                  <div className="space-y-4">
+                    <div className="relative max-h-80 w-full rounded-xl overflow-hidden mx-auto border border-[#1d3238] shadow-2xl">
+                      <img
+                        src={preview}
+                        alt="Plate Preview"
+                        className="w-full h-80 object-cover object-center"
+                      />
+                      {loading && (
+                        <div className="absolute inset-0 bg-black/75 backdrop-blur-xs flex flex-col items-center justify-center gap-3">
+                          <Scan size={44} className="text-emerald-400 animate-pulse" />
+                          <div className="text-center">
+                            <span className="text-base font-black text-white block">
+                              Scanning Ingredients...
+                            </span>
+                            <span className="text-xs text-emerald-300 font-medium">
+                              Computer Vision & Depth Estimation
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs font-semibold text-[#8ba0a6]">
+                      Click or drag another food photo to replace
+                    </p>
+                  </div>
+                ) : (
+                  <div className="py-12 space-y-4">
+                    <div className="w-16 h-16 rounded-2xl bg-[#081f18] border border-[#134937] flex items-center justify-center mx-auto text-emerald-400 shadow-xl">
+                      <Upload size={26} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">
+                        Upload or Drag Plate Photograph
+                      </h3>
+                      <p className="text-xs text-[#8ba0a6] mt-1">
+                        High resolution JPEG or PNG formats supported
+                      </p>
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#081215] border border-[#18282c] text-xs font-medium text-emerald-400">
+                      <Sparkles size={12} />
+                      <span>Auto-detects ingredients, portions, calories & macros</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={!file || loading}
+                className="w-full py-4 px-6 rounded-xl bg-white text-black hover:bg-slate-200 transition font-black text-sm tracking-tight flex items-center justify-center gap-2 cursor-pointer shadow-xl disabled:opacity-40"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin text-black" />
+                    <span>Analyzing Plate Ingredients...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={16} />
+                    <span>Analyze Meal Plate with AI</span>
+                  </>
+                )}
               </button>
-            );
-          })}
-        </div>
-      </div>
+            </form>
+          ) : (
+            /* Mode B: Manual Database Search */
+            <div className="health-card p-6 sm:p-7 bg-[#0b171b] border-[#18282c] space-y-5">
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-1">
+                  Dual-Source Food Database
+                </h3>
+                <p className="text-xs text-[#8ba0a6]">
+                  Search verified Indian ICMR IFCT & USDA nutritional items.
+                </p>
+              </div>
 
-      {/* Mode A: Photo AI Scanner */}
-      {!manualMode ? (
-        <form onSubmit={handleUploadAndAnalyze} className="space-y-6">
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`relative rounded-3xl border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-300 overflow-hidden ${
-              preview
-                ? 'border-emerald-500 bg-emerald-50/20'
-                : 'border-stone-300 bg-white/70 hover:border-emerald-400 hover:bg-white'
-            }`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={handleFileChange}
-              className="hidden"
-            />
+              <div className="relative">
+                <Search className="absolute left-3.5 top-3 text-[#566c73]" size={15} />
+                <input
+                  type="text"
+                  placeholder="Search ingredient (e.g. Boiled Rice, Dal Tadka, Dosa, Paneer, Chicken Breast)..."
+                  value={manualSearchQuery}
+                  onChange={(e) => setManualSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#18282c] bg-[#081215] text-xs text-white placeholder-[#566c73] outline-none focus:border-white/40"
+                />
+              </div>
 
-            {preview ? (
-              <div className="space-y-4">
-                <div className="relative max-h-72 w-full rounded-2xl overflow-hidden mx-auto shadow-md">
-                  <img
-                    src={preview}
-                    alt="Plate Preview"
-                    className="w-full h-72 object-cover object-center"
-                  />
-                  {loading && (
-                    <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-xs flex flex-col items-center justify-center gap-3">
-                      <Scan size={36} className="text-emerald-300 animate-pulse" />
-                      <div className="text-center">
-                        <span className="text-sm font-black text-white block">Analyzing Ingredients...</span>
-                        <span className="text-xs text-emerald-200 font-medium">Running Computer Vision & Depth Math</span>
+              {searchingManual && (
+                <div className="py-8 text-center text-xs text-[#8ba0a6] flex items-center justify-center gap-2">
+                  <Loader2 size={16} className="animate-spin text-emerald-400" />
+                  Searching verified nutritional entries...
+                </div>
+              )}
+
+              {manualSearchResults.length > 0 && (
+                <div className="max-h-80 overflow-y-auto space-y-2 p-1">
+                  {manualSearchResults.map((food) => (
+                    <div
+                      key={food.food_id}
+                      className="p-3.5 rounded-xl bg-[#081215] border border-[#18282c] hover:border-[#274047] flex items-center justify-between gap-3 text-xs transition"
+                    >
+                      <div>
+                        <span className="font-bold text-white block text-sm">{food.name}</span>
+                        <span className="text-[11px] text-[#8ba0a6] tabular-num">
+                          {Math.round(food.energy_kcal || 0)} kcal • P: {food.protein_g || 0}g • C: {food.carbs_g || 0}g • F: {food.fat_g || 0}g (per 100g)
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <input
+                          type="number"
+                          min={10}
+                          defaultValue={100}
+                          onChange={(e) => setManualQuantity(Number(e.target.value))}
+                          className="w-16 px-2 py-1.5 rounded-lg bg-[#0b171b] border border-[#18282c] text-right text-xs text-white tabular-num outline-none"
+                        />
+                        <span className="text-[#8ba0a6] text-[10px]">g</span>
+                        <button
+                          disabled={submittingManual}
+                          onClick={() => handleConfirmAddItem(food)}
+                          className="py-1.5 px-3 rounded-lg bg-white text-black hover:bg-slate-200 text-xs font-bold cursor-pointer transition disabled:opacity-50"
+                        >
+                          Log
+                        </button>
                       </div>
                     </div>
-                  )}
+                  ))}
                 </div>
-                <p className="text-xs font-semibold text-stone-500">Click to choose a different photo</p>
-              </div>
-            ) : (
-              <div className="py-8 space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto text-emerald-600 group-hover:scale-110 transition">
-                  <Upload size={28} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-stone-900">Upload or Drop Meal Picture</h3>
-                  <p className="text-xs text-stone-500 mt-1">Supports JPEG, PNG up to 10MB</p>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-[11px] font-semibold text-amber-800 border border-amber-200/70">
-                  <Sparkles size={12} className="text-amber-600" />
-                  <span>Auto-detects portion, calories & macros</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={!file || loading}
-            className={`w-full py-3.5 px-6 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition shadow-md ${
-              file && !loading
-                ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-amber-600 text-white shadow-emerald-700/20 hover:opacity-95 hover:scale-[1.01] active:scale-[0.99]'
-                : 'bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-200'
-            }`}
-          >
-            {loading ? (
-              <>
-                <Loader2 size={18} className="animate-spin" />
-                <span>Scanning Meal with Computer Vision...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles size={18} />
-                <span>Run AI Plate Analysis</span>
-              </>
-            )}
-          </button>
-        </form>
-      ) : (
-        /* Mode B: Manual Search & Add */
-        <div className="glass-panel rounded-3xl p-6 sm:p-7 space-y-4 bg-white border border-stone-200 shadow-sm">
-          <div>
-            <h3 className="text-sm font-bold text-stone-900 mb-1">Search Food Database</h3>
-            <p className="text-xs text-stone-500">Search verified USDA & IFCT nutrition databases</p>
-          </div>
-
-          <div className="relative">
-            <Search className="absolute left-3.5 top-3 text-stone-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search food (e.g. Boiled Rice, Dal, Dosa, Chicken Breast, Pizza)..."
-              value={manualSearchQuery}
-              onChange={(e) => setManualSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-input text-sm"
-            />
-          </div>
-
-          {searchingManual && (
-            <div className="py-6 text-center text-xs text-stone-500 flex items-center justify-center gap-2">
-              <Loader2 size={16} className="animate-spin text-emerald-600" />
-              Searching foods...
+              )}
             </div>
           )}
-
-          {manualSearchResults.length > 0 && (
-            <div className="max-h-64 overflow-y-auto space-y-2 p-1">
-              {manualSearchResults.map((food) => (
-                <div
-                  key={food.food_id}
-                  className="p-3 rounded-xl bg-stone-50/80 border border-stone-200 hover:border-emerald-300 hover:bg-white transition flex items-center justify-between gap-3 text-xs shadow-2xs"
-                >
-                  <div>
-                    <span className="font-bold text-stone-900 block text-sm">{food.name}</span>
-                    <span className="text-[11px] text-stone-500">
-                      {Math.round(food.energy_kcal || 0)} kcal • P: {food.protein_g || 0}g • C: {food.carbs_g || 0}g • F: {food.fat_g || 0}g (per 100g)
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={10}
-                      defaultValue={100}
-                      onChange={(e) => setManualQuantity(Number(e.target.value))}
-                      className="w-16 px-2 py-1 rounded bg-white border border-stone-200 text-right text-xs text-stone-900"
-                    />
-                    <span className="text-stone-400 text-[10px]">g</span>
-                    <button
-                      disabled={submittingManual}
-                      onClick={() => handleConfirmAddItem(food)}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition shadow-2xs"
-                    >
-                      Log
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+        </section>
+      </div>
     </div>
   );
 }

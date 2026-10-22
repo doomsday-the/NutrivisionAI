@@ -34,7 +34,7 @@ services:
       - DEV_LOGIN_ENABLED=true
       - GOOGLE_CLIENT_ID=558532335340-jsbgfpii5qojdbdk8oa23tlukjhljrca.apps.googleusercontent.com
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GEMINI_MODEL=gemini-3.1-flash-lite
+      - GEMINI_MODEL=gemini-3.5-flash-lite
       - TZ=Asia/Kolkata
     depends_on:
       postgres:
