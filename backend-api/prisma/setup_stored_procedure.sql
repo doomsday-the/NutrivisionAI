@@ -26,7 +26,7 @@ DECLARE
   v_food_carb NUMERIC;
   v_food_fat NUMERIC;
   v_target NUMERIC;
-  v_today DATE := CURRENT_DATE;
+  v_today DATE := (NOW() AT TIME ZONE CURRENT_SETTING('timezone'))::DATE;
 BEGIN
   -- 0. Ensure a daily_logs row exists for today
   SELECT COALESCE(daily_calorie_target, 2000) INTO v_target
@@ -48,8 +48,8 @@ BEGIN
     v_food_id := (v_item->>'matched_food_id')::INT;
     v_qty := COALESCE((v_item->>'suggested_weight_grams')::NUMERIC, 100);
     v_label := v_item->>'detected_label';
-    v_score := (v_item->>'confidence')::NUMERIC;
-    v_method := v_item->>'match_method';
+    v_score := COALESCE((v_item->>'confidence')::NUMERIC, 0.95);
+    v_method := COALESCE(v_item->>'match_method', 'gemini_multimodal');
 
     -- Insert into ai_match_log
     INSERT INTO public.ai_match_log (detected_label, matched_food_id, match_score, match_method, weight_grams, session_id)
@@ -61,11 +61,19 @@ BEGIN
       INTO v_food_kcal, v_food_pro, v_food_carb, v_food_fat
       FROM public.vw_food_full WHERE food_id = v_food_id;
 
-      -- Resilient fallback: If view macros are NULL, use inline estimates from detection payload
-      v_food_kcal := COALESCE(v_food_kcal, (v_item->>'estimated_calories_per_100g')::NUMERIC, 150);
-      v_food_pro  := COALESCE(v_food_pro,  (v_item->>'estimated_protein_per_100g')::NUMERIC, 5);
-      v_food_carb := COALESCE(v_food_carb, (v_item->>'estimated_carbs_per_100g')::NUMERIC, 20);
-      v_food_fat  := COALESCE(v_food_fat,  (v_item->>'estimated_fat_per_100g')::NUMERIC, 5);
+      -- Resilient fallback: If view macros are NULL or 0, use inline estimates from detection payload
+      IF v_food_kcal IS NULL OR v_food_kcal <= 0 THEN
+        v_food_kcal := COALESCE((v_item->>'estimated_calories_per_100g')::NUMERIC, 150);
+      END IF;
+      IF v_food_pro IS NULL THEN
+        v_food_pro  := COALESCE((v_item->>'estimated_protein_per_100g')::NUMERIC, 5);
+      END IF;
+      IF v_food_carb IS NULL THEN
+        v_food_carb := COALESCE((v_item->>'estimated_carbs_per_100g')::NUMERIC, 20);
+      END IF;
+      IF v_food_fat IS NULL THEN
+        v_food_fat  := COALESCE((v_item->>'estimated_fat_per_100g')::NUMERIC, 5);
+      END IF;
 
       -- Calculate scaled nutrition
       v_kcal := (v_food_kcal / 100) * v_qty;
