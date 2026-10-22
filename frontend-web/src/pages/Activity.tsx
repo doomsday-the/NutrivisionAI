@@ -9,7 +9,8 @@ import {
   AlertCircle,
   ArrowRight,
   Plus,
-  Zap,
+  TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
@@ -96,178 +97,261 @@ export default function Activity() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-800">
-            <Flame size={20} />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Daily Energy & Steps</h1>
+    <div className="space-y-8 animate-fade-in pb-12">
+      {/* ── 1. Hero Section & Oversized Heading ───────────────── */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-[#8ba0a6]">
+          <span className="text-emerald-400">✳</span>
+          <span>Kinetic Expenditure & TDEE Calibration</span>
         </div>
-        <p className="text-xs sm:text-sm text-stone-500 mt-1 font-medium">
-          Sync physical activity metrics to automatically offset and expand your daily caloric target.
+
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight text-white leading-[1.15]">
+          Sync physical activity{' '}
+          <span className="text-[#8ba0a6] font-normal">
+            to expand your daily calorie target
+          </span>
+        </h1>
+
+        <p className="text-xs sm:text-sm text-[#8ba0a6] max-w-2xl font-normal pt-1">
+          Active energy expenditure offsets food consumption and dynamically adjusts your remaining daily budget in real time.
         </p>
+      </div>
+
+      {/* ── 2. Full-Width Horizontal Segmented Control Strip ──── */}
+      <div className="w-full bg-[#0b171b] border border-[#18282c] rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#18282c] overflow-hidden shadow-xl">
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Active Log Date
+          </span>
+          <div className="text-xs font-bold text-white flex items-center gap-1.5">
+            <Calendar size={13} className="text-emerald-400" />
+            <span>{logDate}</span>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Steps Value
+          </span>
+          <div className="text-xl font-extrabold text-white tabular-num">
+            {Number(steps || 0).toLocaleString()}{' '}
+            <span className="text-xs font-normal text-[#8ba0a6]">steps</span>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Caloric Burn
+          </span>
+          <div className="text-xl font-extrabold text-[#f59e0b] tabular-num">
+            +{caloriesBurned}{' '}
+            <span className="text-xs font-normal text-[#8ba0a6]">kcal</span>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8ba0a6] block mb-1">
+            Dynamic Expansion
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs font-bold text-white">TDEE Dynamic</span>
+          </div>
+          <span className="text-[11px] text-[#566c73]">Expenditure Engine</span>
+        </div>
+
+        <div className="p-3 sm:p-3 flex items-center justify-center bg-[#0e1d22] sm:bg-transparent">
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full h-full min-h-[48px] py-3 px-5 rounded-xl bg-white text-black hover:bg-slate-200 transition-all font-extrabold text-sm tracking-tight flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.98] disabled:opacity-50"
+          >
+            <Sparkles size={16} />
+            <span>{loading ? 'Syncing...' : 'Sync Activity'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Success Notification Card */}
       {successResult && (
-        <div className="glass-panel rounded-3xl p-6 border-emerald-300 bg-white space-y-4 shadow-sm">
-          <div className="flex items-center gap-2.5 text-emerald-800 font-bold text-sm">
-            <CheckCircle2 size={18} className="text-emerald-600" />
-            <span>Activity synced successfully for {successResult.log_date}!</span>
+        <div className="health-card p-6 bg-[#09221a] border-[#134937] space-y-4 animate-fade-in">
+          <div className="flex items-center gap-2 text-[#34d399] font-bold text-sm">
+            <CheckCircle2 size={18} />
+            <span>Activity telemetry synced successfully for {successResult.log_date}!</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
-              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Remaining Budget</span>
-              <span className="text-2xl font-black text-emerald-700 mt-1 block">
-                {Math.round(successResult.remaining_calories)} <span className="text-xs text-stone-500 font-bold">kcal</span>
+            <div className="p-3.5 rounded-xl bg-[#081215] border border-[#18282c]">
+              <span className="text-[10px] font-bold text-[#8ba0a6] uppercase tracking-wider block">Remaining Daily Budget</span>
+              <span className="text-2xl font-black text-[#34d399] tabular-num mt-1 block">
+                {Math.round(successResult.remaining_calories)}{' '}
+                <span className="text-xs text-[#8ba0a6] font-normal">kcal</span>
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
-              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Energy Burned</span>
-              <span className="text-2xl font-black text-amber-700 mt-1 block">
-                +{Math.round(successResult.calories_burned)} <span className="text-xs text-stone-500 font-bold">kcal</span>
+            <div className="p-3.5 rounded-xl bg-[#081215] border border-[#18282c]">
+              <span className="text-[10px] font-bold text-[#8ba0a6] uppercase tracking-wider block">Energy Burned</span>
+              <span className="text-2xl font-black text-[#f59e0b] tabular-num mt-1 block">
+                +{Math.round(successResult.calories_burned)}{' '}
+                <span className="text-xs text-[#8ba0a6] font-normal">kcal</span>
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
-              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Steps Logged</span>
-              <span className="text-2xl font-black text-stone-900 mt-1 block">
+            <div className="p-3.5 rounded-xl bg-[#081215] border border-[#18282c]">
+              <span className="text-[10px] font-bold text-[#8ba0a6] uppercase tracking-wider block">Total Steps</span>
+              <span className="text-2xl font-black text-white tabular-num mt-1 block">
                 {successResult.steps.toLocaleString()}
               </span>
             </div>
           </div>
 
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end pt-1">
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#34d399] hover:text-white transition"
             >
               <span>Return to Dashboard</span>
-              <ArrowRight size={14} />
+              <ArrowRight size={13} />
             </Link>
           </div>
         </div>
       )}
 
-      {/* Error Alert */}
       {errorMessage && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center gap-3">
-          <AlertCircle size={18} className="flex-shrink-0" />
+        <div className="p-4 rounded-xl bg-[#281014] border border-[#521c25] text-[#fb7185] text-xs flex items-center gap-2.5">
+          <AlertCircle size={16} className="shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
-      {/* Main Form */}
-      <form onSubmit={handleSubmit} className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6 bg-white border border-stone-200 shadow-sm">
-        {/* Date Selector */}
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-2 mb-2">
-            <Calendar size={14} className="text-emerald-600" />
-            <span>Target Date</span>
-          </label>
-          <input
-            type="date"
-            value={logDate}
-            onChange={(e) => setLogDate(e.target.value)}
-            required
-            className="w-full sm:w-64 px-4 py-2.5 rounded-xl glass-input text-sm font-semibold"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Steps Input */}
-          <div className="space-y-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-2">
-              <Footprints size={15} className="text-teal-600" />
-              <span>Steps Walked</span>
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                min="0"
-                step="1"
-                placeholder="e.g. 8000"
-                value={steps}
-                onChange={(e) => setSteps(e.target.value)}
-                required
-                className="w-full px-4 py-3 rounded-xl glass-input text-lg font-black text-stone-900"
-              />
-              <span className="absolute right-4 top-3.5 text-xs font-bold text-stone-400 uppercase">steps</span>
-            </div>
-
-            {/* Step Presets */}
-            <div className="flex gap-2">
-              {[1000, 2500, 5000].map((amt) => (
+      {/* ── 3. Sidebar-Plus-Main-Content Composition ─────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ── Left Sidebar: Quick Presets & Mechanics ────────── */}
+        <aside className="lg:col-span-4 space-y-6">
+          {/* Quick Increment Controls */}
+          <div className="health-card p-5 bg-[#0b171b] border-[#18282c] space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#8ba0a6]">
+              Quick Step Increments
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              {[1000, 2500, 5000, 10000].map((amt) => (
                 <button
                   key={amt}
                   type="button"
                   onClick={() => addSteps(amt)}
-                  className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-[11px] font-bold text-stone-700 border border-stone-200 transition flex items-center gap-1 shadow-2xs"
+                  className="py-2.5 px-3 rounded-xl bg-[#081215] hover:bg-[#122227] text-white border border-[#18282c] text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                 >
-                  <Plus size={12} />
+                  <Plus size={12} className="text-emerald-400" />
                   <span>{amt.toLocaleString()}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Calories Burned Input */}
-          <div className="space-y-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-2">
-              <Flame size={15} className="text-amber-600" />
-              <span>Active Calories Burned</span>
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                min="0"
-                step="1"
-                placeholder="e.g. 350"
-                value={caloriesBurned}
-                onChange={(e) => setCaloriesBurned(e.target.value)}
-                required
-                className="w-full px-4 py-3 rounded-xl glass-input text-lg font-black text-stone-900"
-              />
-              <span className="absolute right-4 top-3.5 text-xs font-bold text-stone-400 uppercase">kcal</span>
-            </div>
-
-            {/* Calorie Presets */}
-            <div className="flex gap-2">
-              {[100, 250, 500].map((amt) => (
+          <div className="health-card p-5 bg-[#0b171b] border-[#18282c] space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#8ba0a6]">
+              Quick Burn Increments
+            </h3>
+            <div className="grid grid-cols-3 gap-2">
+              {[100, 250, 500].map((cals) => (
                 <button
-                  key={amt}
+                  key={cals}
                   type="button"
-                  onClick={() => addCalories(amt)}
-                  className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-[11px] font-bold text-stone-700 border border-stone-200 transition flex items-center gap-1 shadow-2xs"
+                  onClick={() => addCalories(cals)}
+                  className="py-2.5 px-2 rounded-xl bg-[#081215] hover:bg-[#122227] text-[#f59e0b] border border-[#18282c] text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                 >
                   <Plus size={12} />
-                  <span>{amt} kcal</span>
+                  <span>+{cals}</span>
                 </button>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* Submit CTA */}
-        <div className="pt-4 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-stone-500">
-            <Zap size={14} className="text-emerald-600" />
-            <span>Automatically updates remaining calorie budget in real-time</span>
+          {/* Educational Note */}
+          <div className="health-card p-5 bg-[#0b171b] border-[#18282c] space-y-2 text-xs text-[#8ba0a6]">
+            <h4 className="font-bold text-white uppercase text-[11px] tracking-wider">
+              Metabolic Formula
+            </h4>
+            <p>
+              10,000 steps roughly corresponds to 400–500 active kilocalories burned depending on your basal metabolic rate and body mass.
+            </p>
           </div>
+        </aside>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs shadow-md shadow-emerald-700/15 hover:from-emerald-500 hover:to-teal-500 transition"
-          >
-            {loading ? 'Syncing...' : 'Sync Activity Log'}
-          </button>
-        </div>
-      </form>
+        {/* ── Right Main Content Area: Input Form ─────────────── */}
+        <section className="lg:col-span-8">
+          <form onSubmit={handleSubmit} className="health-card p-6 sm:p-8 bg-[#0b171b] border-[#18282c] space-y-6">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider pb-3 border-b border-[#18282c]">
+              Daily Physical Telemetry
+            </h3>
+
+            {/* Date Picker */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#8ba0a6] block">
+                Date of Activity
+              </label>
+              <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-[#081215] border border-[#18282c] focus-within:border-white/30 text-xs">
+                <Calendar size={15} className="text-emerald-400" />
+                <input
+                  type="date"
+                  value={logDate}
+                  onChange={(e) => setLogDate(e.target.value)}
+                  className="bg-transparent text-white font-semibold outline-none cursor-pointer w-full text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Step Count */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#8ba0a6] block">
+                Total Steps Taken
+              </label>
+              <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-[#081215] border border-[#18282c] focus-within:border-white/30 text-xs">
+                <Footprints size={15} className="text-[#f59e0b]" />
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={steps}
+                  onChange={(e) => setSteps(e.target.value)}
+                  placeholder="e.g. 8500"
+                  className="bg-transparent text-white font-bold outline-none w-full tabular-num text-sm"
+                />
+                <span className="text-[#8ba0a6] text-xs">steps</span>
+              </div>
+            </div>
+
+            {/* Calories Burned */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#8ba0a6] block">
+                Active Calories Burned
+              </label>
+              <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-[#081215] border border-[#18282c] focus-within:border-white/30 text-xs">
+                <Flame size={15} className="text-[#f59e0b]" />
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={caloriesBurned}
+                  onChange={(e) => setCaloriesBurned(e.target.value)}
+                  placeholder="e.g. 420"
+                  className="bg-transparent text-white font-bold outline-none w-full tabular-num text-sm"
+                />
+                <span className="text-[#8ba0a6] text-xs">kcal</span>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 px-6 rounded-xl bg-white text-black hover:bg-slate-200 transition font-black text-sm tracking-tight flex items-center justify-center gap-2 cursor-pointer shadow-xl disabled:opacity-50"
+            >
+              <TrendingUp size={16} />
+              <span>{loading ? 'Transmitting Physical Telemetry...' : 'Synchronize Energy & Steps'}</span>
+            </button>
+          </form>
+        </section>
+      </div>
     </div>
   );
 }
