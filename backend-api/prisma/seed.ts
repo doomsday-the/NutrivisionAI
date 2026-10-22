@@ -410,6 +410,7 @@ async function main() {
 
   // 6. Synchronize Database Sequences
   await prisma.$executeRawUnsafe(`SELECT setval('food_items_food_id_seq', COALESCE((SELECT MAX(food_id) FROM food_items), 1))`);
+  await prisma.$executeRawUnsafe(`SELECT setval('food_nutrients_food_nutrient_id_seq', COALESCE((SELECT MAX(food_nutrient_id) FROM food_nutrients), 1))`);
   await prisma.$executeRawUnsafe(`SELECT setval('nutrient_types_nutrient_id_seq', COALESCE((SELECT MAX(nutrient_id) FROM nutrient_types), 1))`);
   await prisma.$executeRawUnsafe(`SELECT setval('food_sources_source_id_seq', COALESCE((SELECT MAX(source_id) FROM food_sources), 1))`);
   await prisma.$executeRawUnsafe(`SELECT setval('food_categories_category_id_seq', COALESCE((SELECT MAX(category_id) FROM food_categories), 1))`);
