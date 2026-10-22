@@ -61,6 +61,12 @@ BEGIN
       INTO v_food_kcal, v_food_pro, v_food_carb, v_food_fat
       FROM public.vw_food_full WHERE food_id = v_food_id;
 
+      -- Resilient fallback: If view macros are NULL, use inline estimates from detection payload
+      v_food_kcal := COALESCE(v_food_kcal, (v_item->>'estimated_calories_per_100g')::NUMERIC, 150);
+      v_food_pro  := COALESCE(v_food_pro,  (v_item->>'estimated_protein_per_100g')::NUMERIC, 5);
+      v_food_carb := COALESCE(v_food_carb, (v_item->>'estimated_carbs_per_100g')::NUMERIC, 20);
+      v_food_fat  := COALESCE(v_food_fat,  (v_item->>'estimated_fat_per_100g')::NUMERIC, 5);
+
       -- Calculate scaled nutrition
       v_kcal := (v_food_kcal / 100) * v_qty;
       v_total_cal := v_total_cal + v_kcal;

@@ -16,10 +16,6 @@ services:
         generateValue: true
       - key: GOOGLE_CLIENT_ID
         value: 558532335340-jsbgfpii5qojdbdk8oa23tlukjhljrca.apps.googleusercontent.com
-      - key: AI_SERVICE_URL
-        sync: false
-      - key: X_INTERNAL_TOKEN
-        value: shared_secret_between_node_and_python
       - key: GEMINI_API_KEY
         sync: false
       - key: NODE_ENV
@@ -27,18 +23,3 @@ services:
       - key: DEV_LOGIN_ENABLED
         value: true
 
-  - type: web
-    name: nutrivision-ai
-    env: python
-    region: singapore
-    plan: free
-    buildCommand: cd ai-service && pip install --no-cache-dir -r requirements.txt
-    startCommand: cd ai-service && uvicorn src.app:app --host 0.0.0.0 --port 8000
-    healthCheckPath: /health
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
-      - key: X_INTERNAL_TOKEN
-        value: shared_secret_between_node_and_python
-      - key: ROBOFLOW_API_KEY
-        sync: false

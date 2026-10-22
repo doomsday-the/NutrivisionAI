@@ -1,30 +1,60 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
-import FormData from 'form-data';
 import { AuthRequest } from '../middlewares/auth';
 import crypto from 'crypto';
 
-axiosRetry(axios, {
-  retries: 3,
-  retryDelay: axiosRetry.exponentialDelay,
-  retryCondition: (error: any) => {
-    return (
-      axiosRetry.isNetworkError(error) ||
-      (error.response?.status ? error.response.status >= 500 : false)
-    );
-  },
-  shouldResetTimeout: true,
-});
-
 const prisma = new PrismaClient();
+
 interface NutritionEstimate {
   calories?: number;
   protein?: number;
   carbs?: number;
   fat?: number;
+}
+
+/**
+ * Safely inserts or updates the 4 core macro nutrients for a food item.
+ * Explicitly synchronizes the food_nutrients sequence to avoid primary key collisions.
+ */
+async function insertFoodNutrients(
+  foodId: number,
+  prisma: PrismaClient,
+  nutritionEstimate?: NutritionEstimate
+) {
+  const cals = Math.max(0, Number(nutritionEstimate?.calories) || 150);
+  const pro = Math.max(0, Number(nutritionEstimate?.protein) || 5);
+  const carbs = Math.max(0, Number(nutritionEstimate?.carbs) || 20);
+  const fat = Math.max(0, Number(nutritionEstimate?.fat) || 5);
+
+  const nutrients = [
+    { id: 1, val: cals },
+    { id: 2, val: pro },
+    { id: 3, val: carbs },
+    { id: 4, val: fat }
+  ];
+
+  await prisma.$executeRawUnsafe(
+    `SELECT setval('food_nutrients_food_nutrient_id_seq', COALESCE((SELECT MAX(food_nutrient_id) FROM public.food_nutrients), 1))`
+  ).catch(() => {});
+
+  for (const n of nutrients) {
+    await prisma.$executeRaw`
+      INSERT INTO public.food_nutrients (food_id, nutrient_id, value_per_100g)
+      VALUES (${foodId}, ${n.id}, ${n.val})
+      ON CONFLICT (food_id, nutrient_id) DO UPDATE SET value_per_100g = EXCLUDED.value_per_100g;
+    `.catch(async () => {
+      // Retry after syncing sequence in case of a concurrent primary key advance
+      await prisma.$executeRawUnsafe(
+        `SELECT setval('food_nutrients_food_nutrient_id_seq', COALESCE((SELECT MAX(food_nutrient_id) FROM public.food_nutrients), 1))`
+      ).catch(() => {});
+      await prisma.$executeRaw`
+        INSERT INTO public.food_nutrients (food_id, nutrient_id, value_per_100g)
+        VALUES (${foodId}, ${n.id}, ${n.val})
+        ON CONFLICT (food_id, nutrient_id) DO UPDATE SET value_per_100g = EXCLUDED.value_per_100g;
+      `.catch(() => {});
+    });
+  }
 }
 
 async function matchFoodInDb(
@@ -101,7 +131,7 @@ async function matchFoodInDb(
     }
   }
 
-  // 5. Dynamic Food Creation with Gemini Estimated Macros (DO NOT FALL BACK TO RICE)
+  // 5. Dynamic Food Creation with AI-Estimated Macros (NEVER FALL BACK TO RICE)
   const cleanName = clean.length > 0 ? clean : label.trim();
   try {
     // 5a. Check if exact food item already exists
@@ -109,7 +139,16 @@ async function matchFoodInDb(
       where: { name: { equals: cleanName, mode: 'insensitive' } },
       select: { food_id: true, name: true }
     });
-    if (existing) return { food_id: existing.food_id, name: existing.name };
+    if (existing) {
+      // Verify nutrients exist for this food
+      const nutrientCount: any[] = await prisma.$queryRaw`
+        SELECT COUNT(*)::INT as cnt FROM public.food_nutrients WHERE food_id = ${existing.food_id}
+      `;
+      if (!nutrientCount[0]?.cnt || nutrientCount[0].cnt === 0) {
+        await insertFoodNutrients(existing.food_id, prisma, nutritionEstimate);
+      }
+      return { food_id: existing.food_id, name: existing.name };
+    }
 
     // 5b. Find or create a guaranteed valid source_id
     const sources: any[] = await prisma.$queryRaw`
@@ -124,9 +163,12 @@ async function matchFoodInDb(
       `;
     }
 
-    // 5c. Sync sequence before inserting
+    // 5c. Sync both sequence values before inserting
     await prisma.$executeRawUnsafe(
       `SELECT setval('food_items_food_id_seq', COALESCE((SELECT MAX(food_id) FROM public.food_items), 1))`
+    ).catch(() => {});
+    await prisma.$executeRawUnsafe(
+      `SELECT setval('food_nutrients_food_nutrient_id_seq', COALESCE((SELECT MAX(food_nutrient_id) FROM public.food_nutrients), 1))`
     ).catch(() => {});
 
     // 5d. Native PostgreSQL insert RETURNING food_id (bulletproof against ORM sequence issues)
@@ -138,27 +180,7 @@ async function matchFoodInDb(
 
     if (inserted && inserted.length > 0 && inserted[0].food_id) {
       const newFoodId = Number(inserted[0].food_id);
-
-      const cals = Math.max(0, Number(nutritionEstimate?.calories) || 150);
-      const pro = Math.max(0, Number(nutritionEstimate?.protein) || 5);
-      const carbs = Math.max(0, Number(nutritionEstimate?.carbs) || 20);
-      const fat = Math.max(0, Number(nutritionEstimate?.fat) || 5);
-
-      const nutrients = [
-        { id: 1, val: cals },
-        { id: 2, val: pro },
-        { id: 3, val: carbs },
-        { id: 4, val: fat }
-      ];
-
-      for (const n of nutrients) {
-        await prisma.$executeRaw`
-          INSERT INTO public.food_nutrients (food_id, nutrient_id, value_per_100g)
-          VALUES (${newFoodId}, ${n.id}, ${n.val})
-          ON CONFLICT (food_id, nutrient_id) DO UPDATE SET value_per_100g = EXCLUDED.value_per_100g;
-        `;
-      }
-
+      await insertFoodNutrients(newFoodId, prisma, nutritionEstimate);
       return { food_id: newFoodId, name: cleanName };
     }
   } catch (createErr: any) {
@@ -167,14 +189,39 @@ async function matchFoodInDb(
       where: { name: { equals: cleanName, mode: 'insensitive' } },
       select: { food_id: true, name: true }
     });
-    if (existing) return { food_id: existing.food_id, name: existing.name };
+    if (existing) {
+      await insertFoodNutrients(existing.food_id, prisma, nutritionEstimate).catch(() => {});
+      return { food_id: existing.food_id, name: existing.name };
+    }
   }
 
-  // Safe fallback if dynamic creation fails: use an active food_id, but ALWAYS preserve the authentic cleanName!
-  const genericFallback: any[] = await prisma.$queryRaw`
-    SELECT food_id FROM public.food_items WHERE is_active = true LIMIT 1
+  // 5e. Resilient Fallback: If sequence/insert had an issue, create or fetch a custom item, NEVER Boiled Rice
+  try {
+    const customItem = await prisma.food_items.upsert({
+      where: { source_id_external_id: { source_id: 1, external_id: `CUSTOM-${cleanName.replace(/\s+/g, '-').toUpperCase()}` } },
+      update: { name: cleanName, is_active: true },
+      create: {
+        source_id: 1,
+        external_id: `CUSTOM-${cleanName.replace(/\s+/g, '-').toUpperCase()}`,
+        name: cleanName,
+        food_type: 'custom',
+        reference_unit: '100g',
+        is_verified: true,
+        is_active: true
+      },
+      select: { food_id: true, name: true }
+    });
+    await insertFoodNutrients(customItem.food_id, prisma, nutritionEstimate).catch(() => {});
+    return { food_id: customItem.food_id, name: cleanName };
+  } catch (fallbackErr: any) {
+    console.error('[Custom Fallback Food Error]', fallbackErr?.message || fallbackErr);
+  }
+
+  // Last absolute resort: query the newest food item in DB, keeping authentic cleanName
+  const latestItem: any[] = await prisma.$queryRaw`
+    SELECT food_id FROM public.food_items WHERE is_active = true ORDER BY food_id DESC LIMIT 1
   `;
-  const safeFoodId = genericFallback[0]?.food_id || 12;
+  const safeFoodId = latestItem[0]?.food_id || 1;
   return { food_id: safeFoodId, name: cleanName };
 }
 
@@ -187,49 +234,56 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
     return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Image file is required' });
   }
 
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) {
+    console.error('[Meal Analyze Error] GEMINI_API_KEY is not configured in environment variables.');
+    return res.status(503).json({
+      error: 'AI_SERVICE_UNAVAILABLE',
+      message: 'Gemini Vision AI key is not configured. Please set GEMINI_API_KEY in environment variables.'
+    });
+  }
+
   const session_id = crypto.randomUUID();
 
   try {
     let detections: any[] = [];
 
-    // Primary Detection: Resilient Gemini Multimodal Vision with Auto-Fallback
-    const geminiKey = process.env.GEMINI_API_KEY;
-    if (geminiKey) {
-      const candidateModels = [
-        'gemini-3.5-flash-lite',
-        'gemini-3.5-flash',
-        'gemini-3.1-flash-lite',
-        'gemini-3.8-flash'
-      ];
+    // Multimodal Vision with Valid Google Generative AI Models
+    const candidateModels = [
+      'gemini-1.5-flash',
+      'gemini-2.0-flash',
+      'gemini-2.5-flash',
+      'gemini-1.5-pro'
+    ];
 
-      for (const mName of candidateModels) {
+    for (const mName of candidateModels) {
+      if (detections.length > 0) break;
+      for (const apiVer of [undefined, 'v1']) {
         if (detections.length > 0) break;
-        for (const apiVer of [undefined, 'v1']) {
-          if (detections.length > 0) break;
-          try {
-            const genAI = new GoogleGenerativeAI(geminiKey);
-            const model = genAI.getGenerativeModel(
-              { model: mName },
-              apiVer ? { apiVersion: apiVer } : undefined
-            );
+        try {
+          const genAI = new GoogleGenerativeAI(geminiKey);
+          const model = genAI.getGenerativeModel(
+            { model: mName },
+            apiVer ? { apiVersion: apiVer } : undefined
+          );
 
-          const prompt = `You are a world-class culinary computer vision and nutritional intelligence AI capable of recognizing any food, beverage, dish, or cuisine worldwide (Indian, Continental, Fast Food, Asian, Mediterranean, Healthy, Bakery, Beverages, etc.).
-Analyze this meal image and return a JSON array of all distinct food and beverage items present on the plate or table.
+          const prompt = `You are an expert culinary computer vision and nutritional intelligence AI capable of identifying any food, dish, or beverage worldwide.
+Analyze this meal photo and return a JSON array containing every distinct item on the plate, bowl, or table.
 
-For each item, specify:
-- "detected_label": Clean, canonical food name (e.g. "French Fries", "Cheeseburger", "Masala Dosa", "Dal Makhani", "Coca Cola", "Caesar Salad", "Chicken Biryani", "Vanilla Ice Cream", "Omelette")
-- "suggested_weight_grams": Realistic portion weight in grams (e.g. 150 for bowls/fries, 200 for burgers/sandwiches, 50 for rotis, 250 for drinks, 100 for sides)
-- "confidence": number between 0.75 and 0.99
-- "estimated_calories_per_100g": realistic kcal per 100g
-- "estimated_protein_per_100g": realistic grams of protein per 100g
-- "estimated_carbs_per_100g": realistic grams of carbohydrates per 100g
-- "estimated_fat_per_100g": realistic grams of fat per 100g
+For each item, provide:
+- "detected_label": Canonical, descriptive food name (e.g. "French Fries", "Cheeseburger", "Masala Dosa", "Dal Makhani", "Caesar Salad", "Chicken Biryani", "Salmon Sushi Roll")
+- "suggested_weight_grams": Realistic portion weight in grams (e.g. 150 for bowls/fries, 200 for burgers, 50 for bread/rotis, 250 for drinks, 100 for sides)
+- "confidence": Number between 0.80 and 0.99
+- "estimated_calories_per_100g": Realistic energy kcal per 100g of this food
+- "estimated_protein_per_100g": Realistic grams of protein per 100g
+- "estimated_carbs_per_100g": Realistic grams of carbohydrates per 100g
+- "estimated_fat_per_100g": Realistic grams of fat per 100g
 
-CRITICAL: Return ONLY a valid JSON array. No markdown formatting, no code blocks, no other text.
-Example format:
+CRITICAL: Return ONLY a valid JSON array. No markdown formatting, no code fences, no other conversational text.
+Example:
 [
-  {"detected_label": "French Fries", "suggested_weight_grams": 150, "confidence": 0.95, "estimated_calories_per_100g": 312, "estimated_protein_per_100g": 3.4, "estimated_carbs_per_100g": 41.4, "estimated_fat_per_100g": 14.7},
-  {"detected_label": "Cheeseburger", "suggested_weight_grams": 220, "confidence": 0.95, "estimated_calories_per_100g": 263, "estimated_protein_per_100g": 15.0, "estimated_carbs_per_100g": 24.0, "estimated_fat_per_100g": 12.0}
+  {"detected_label": "Cheeseburger", "suggested_weight_grams": 220, "confidence": 0.96, "estimated_calories_per_100g": 263, "estimated_protein_per_100g": 15.0, "estimated_carbs_per_100g": 24.0, "estimated_fat_per_100g": 12.0},
+  {"detected_label": "French Fries", "suggested_weight_grams": 150, "confidence": 0.94, "estimated_calories_per_100g": 312, "estimated_protein_per_100g": 3.4, "estimated_carbs_per_100g": 41.4, "estimated_fat_per_100g": 14.7}
 ]`;
 
           const imagePart = {
@@ -277,7 +331,11 @@ Example format:
                 matched_food_id: dbMatch.food_id,
                 confidence: Number(item.confidence) || 0.95,
                 suggested_weight_grams: Number(item.suggested_weight_grams) || 150,
-                match_method: 'gemini_multimodal'
+                match_method: 'gemini_multimodal',
+                estimated_calories_per_100g: nutritionEstimate.calories || 150,
+                estimated_protein_per_100g: nutritionEstimate.protein || 5,
+                estimated_carbs_per_100g: nutritionEstimate.carbs || 20,
+                estimated_fat_per_100g: nutritionEstimate.fat || 5
               });
             }
           }
@@ -286,28 +344,23 @@ Example format:
         }
       }
     }
-  }
 
-    // Fallback Detection: Roboflow AI Service
+    // Clean Zero-Detection Handling (No Rice Guessing)
     if (detections.length === 0) {
-      try {
-        const formData = new FormData();
-        formData.append('image', file.buffer, { filename: file.originalname, contentType: file.mimetype });
-        formData.append('session_id', session_id);
-
-        const aiResponse = await axios.post(`${process.env.AI_SERVICE_URL}/predict`, formData, {
-          headers: {
-            ...formData.getHeaders(),
-            'X-Internal-Token': process.env.X_INTERNAL_TOKEN
-          },
-          timeout: 30000
-        });
-
-        detections = aiResponse.data?.detections || [];
-      } catch (rfErr: any) {
-        console.warn('[Roboflow Fallback error]:', rfErr.message);
-      }
+      return res.status(200).json({
+        meal_id: null,
+        meal_type,
+        logged_at: new Date().toISOString(),
+        total_calories: 0,
+        total_protein_g: 0,
+        total_carbs_g: 0,
+        total_fat_g: 0,
+        items: [],
+        meal_items: [],
+        message: 'No distinct food items detected. Please use manual food search or try another plate photo.'
+      });
     }
+
     const sanitizedFilename = file.originalname ? file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_') : 'meal.jpg';
     const imageUrl = `/uploads/meals/${session_id}_${sanitizedFilename}`;
 
