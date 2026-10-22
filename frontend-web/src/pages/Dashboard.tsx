@@ -194,14 +194,14 @@ export default function Dashboard() {
     }
   }, [fetchCoachInsight, data, loading]);
 
-  const targetCalories = Number(data?.target_calories ?? 2000);
-  const totalCalories = Number(data?.total_calories ?? 0);
-  const caloriesBurned = Number(data?.calories_burned ?? 0);
-  const remainingCalories = Math.max(0, targetCalories - totalCalories + caloriesBurned);
-  const totalProtein = Number(data?.total_protein_g ?? 0);
-  const totalCarbs = Number(data?.total_carbs_g ?? 0);
-  const totalFat = Number(data?.total_fat_g ?? 0);
-  const steps = Number(data?.steps ?? 0);
+  const targetCalories = Math.round(Number(data?.target_calories ?? 2000));
+  const totalCalories = Math.round(Number(data?.total_calories ?? 0));
+  const caloriesBurned = Math.round(Number(data?.calories_burned ?? 0));
+  const remainingCalories = Math.max(0, Math.round(targetCalories - totalCalories + caloriesBurned));
+  const totalProtein = Math.round(Number(data?.total_protein_g ?? 0) * 10) / 10;
+  const totalCarbs = Math.round(Number(data?.total_carbs_g ?? 0) * 10) / 10;
+  const totalFat = Math.round(Number(data?.total_fat_g ?? 0) * 10) / 10;
+  const steps = Math.round(Number(data?.steps ?? 0));
   const mealsList = data?.meals ?? [];
 
   // Macro target calculations (30% Protein, 45% Carbs, 25% Fat)
