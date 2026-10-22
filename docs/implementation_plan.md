@@ -56,22 +56,25 @@ gantt
     *   Created SQL views (`vw_user_daily_summary`, `vw_food_full`).
     *   Built complete CRUD operations for Meals, Users, Activity, and Biometric Profiles.
 
-## Phase 5: React Web Application (Completed ✅)
-*   **Goal**: Build the user-facing web dashboard with modern culinary design.
+## Phase 5: React Web Application & Modern UI Redesign (Completed ✅)
+*   **Goal**: Build the user-facing web dashboard with clinical-grade visual hierarchy, dark luxury aesthetic, and modular component primitives.
 *   **Delivered**:
-    *   Built modern React 18 + Vite + Tailwind CSS v4 frontend with warm food-style theme.
-    *   Implemented SVG circular calorie gauge, color-coded macro tracking cards, Recharts 7-day intake bar chart, and macro ratio donut chart.
-    *   Built dual-mode Meal Logging UI with photo plate analysis, food portion adjustment modal, and manual food database search.
-    *   Built historical meal calendar timeline with macro breakdown pills and deletion cascade.
-    *   Integrated physical activity logger with quick increment presets and live TDEE biometrics profile manager.
+    *   Built modern React 19 + Vite 8 + Tailwind CSS v4 frontend with emerald ambient lighting and dark glassmorphic styling.
+    *   Implemented modular UI primitive library in `frontend-web/src/components/ui/` (`Card`, `Button`, `Badge`, `ProgressRing`, `Skeleton`).
+    *   Architected a **Sidebar + Main Content** composition featuring a persistent **Daily Metabolic Ledger** control bar with quick date navigation, remaining calories, steps, and instant meal logging.
+    *   Implemented SVG circular calorie intake dial, macro target progress bars, Recharts 7-day caloric trajectory bar chart, and macro distribution donut chart.
+    *   Built dual-mode Meal Logging UI with photo plate analysis, portion weight adjustments, and dual-source food search (ICMR IFCT 2017 + USDA).
+    *   Built historical meal calendar timeline with macro breakdown badges and deletion cascade.
+    *   Integrated physical activity logger with presets and live Mifflin-St Jeor TDEE profile manager.
 
-## Phase 6: AI Nutrition Coach (Completed ✅)
-*   **Goal**: Add "Explain My Plate" dietary feedback and conversational coaching.
+## Phase 6: AI Nutrition Coach & Multimodal Vision Cascade (Completed ✅)
+*   **Goal**: Add real-time "Explain My Plate" dietary coaching and robust computer vision plate analysis.
 *   **Delivered**:
-    *   Integrated Gemini 1.5 Flash via `@google/generative-ai` with structured system prompt and graceful fallback.
-    *   Added `POST /api/coach/explain` and `GET /api/coach/daily-insight` endpoints in `coachController.ts`.
-    *   Built conversational `NutritionCoach.tsx` chat interface with user macro snapshot context and quick prompt pills.
+    *   Engineered a high-availability Google Gemini model cascade (`gemini-3.5-flash-lite`, `gemini-3.5-flash`, `gemini-3.8-flash`, `gemini-3.1-flash-lite`) to guarantee sub-second responses and eliminate 503 high-demand spike bottlenecks.
+    *   Implemented `POST /api/coach/explain` and `GET /api/coach/daily-insight` endpoints in `coachController.ts` with contextual database extraction (profile goals, daily macros, meal history).
+    *   Built conversational `NutritionCoach.tsx` chat interface with live macro snapshots and intelligent dietary prompts.
     *   Created `NutriCoachWidget.tsx` embedded on the Dashboard that automatically triggers whenever a meal is logged or updated, with sessionStorage caching.
+    *   Equipped `analyzeMeal` with primary Gemini multimodal vision detection and secondary Roboflow IndianFoodNet + MiDaS depth fallback.
 
 ## Phase 7: React Native & Wear OS (Weeks 16-20)
 *   **Goal**: Bring the app to mobile and smartwatches.
