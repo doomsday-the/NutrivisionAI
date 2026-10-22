@@ -65,7 +65,7 @@ async function insertFoodNutrients(
   }
 }
 
-async function matchFoodInDb(
+export async function matchFoodInDb(
   label: string, 
   prisma: PrismaClient,
   nutritionEstimate?: NutritionEstimate
@@ -182,7 +182,7 @@ async function matchFoodInDb(
     // 5d. Insert explicitly with nextFoodId
     await prisma.$executeRaw`
       INSERT INTO public.food_items (food_id, name, food_type, category_id, source_id, reference_unit, is_verified, is_active, created_at, updated_at)
-      VALUES (${nextFoodId}, ${cleanName}, 'prepared', null, ${sourceId}, '100g', true, true, NOW(), NOW())
+      VALUES (${nextFoodId}, ${cleanName}, 'cooked', null, ${sourceId}, '100g', true, true, NOW(), NOW())
       ON CONFLICT (food_id) DO UPDATE SET name = EXCLUDED.name, is_active = true;
     `;
 
@@ -213,7 +213,7 @@ async function matchFoodInDb(
     const emergencyId = Math.floor(Date.now() / 1000);
     await prisma.$executeRaw`
       INSERT INTO public.food_items (food_id, name, food_type, category_id, source_id, reference_unit, is_verified, is_active, created_at, updated_at)
-      VALUES (${emergencyId}, ${cleanName}, 'prepared', null, 2, '100g', true, true, NOW(), NOW())
+      VALUES (${emergencyId}, ${cleanName}, 'cooked', null, 2, '100g', true, true, NOW(), NOW())
       ON CONFLICT DO NOTHING;
     `.catch(() => {});
 
@@ -247,23 +247,19 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
 
     // Multimodal Vision with Active Google Generative AI Models
     const candidateModels = [
-      process.env.GEMINI_MODEL || 'gemini-3.5-flash',
-      'gemini-3.5-flash',
-      'gemini-3.5-flash-lite',
-      'gemini-3.8-flash',
-      'gemini-3.1-flash-lite'
+      process.env.GEMINI_MODEL || 'gemini-flash-lite-latest',
+      'gemini-flash-lite-latest',
+      'gemini-3.1-flash-lite',
+      'gemini-flash-latest',
+      'gemini-3.5-flash'
     ];
+
+    const genAI = new GoogleGenerativeAI(geminiKey);
 
     for (const mName of candidateModels) {
       if (detections.length > 0) break;
-      for (const apiVer of [undefined, 'v1']) {
-        if (detections.length > 0) break;
-        try {
-          const genAI = new GoogleGenerativeAI(geminiKey);
-          const model = genAI.getGenerativeModel(
-            { model: mName },
-            apiVer ? { apiVersion: apiVer } : undefined
-          );
+      try {
+        const model = genAI.getGenerativeModel({ model: mName });
 
           const prompt = `You are an expert culinary computer vision and nutritional intelligence AI capable of identifying any food, dish, or beverage worldwide.
 Analyze this meal photo and return a JSON array containing every distinct item on the plate, bowl, or table.
@@ -338,9 +334,8 @@ Example:
             }
           }
         } catch (geminiErr: any) {
-          console.warn(`[Gemini Vision model ${mName} (ver: ${apiVer}) error]:`, geminiErr.message);
+          console.warn(`[Gemini Vision model ${mName} error]:`, geminiErr.message);
         }
-      }
     }
 
     // Clean Zero-Detection Handling (No Rice Guessing)
@@ -449,7 +444,8 @@ Example:
     // F-002: Database Transaction Failure
     return res.status(500).json({
       error: 'MEAL_SAVE_FAILED',
-      message: 'We could not save your meal. Please try again.'
+      message: 'We could not save your meal. Please try again.',
+      details: error?.message || String(error)
     });
   }
 };
