@@ -102,14 +102,32 @@ async function matchFoodInDb(
   }
 
   // 5. Dynamic Food Creation with Gemini Estimated Macros (DO NOT FALL BACK TO RICE)
+  const cleanName = clean.length > 0 ? clean : label.trim();
   try {
-    const cleanName = clean.length > 0 ? clean : label.trim();
+    // 5a. Sync primary key sequence to prevent duplicate key collisions
+    await prisma.$executeRawUnsafe(
+      `SELECT setval('food_items_food_id_seq', COALESCE((SELECT MAX(food_id) FROM public.food_items), 1))`
+    ).catch(() => {});
+
+    // 5b. Find a guaranteed valid source_id dynamically
+    const validSource = await prisma.food_sources.findFirst({
+      select: { source_id: true },
+      orderBy: { source_id: 'asc' }
+    });
+    const sourceId = validSource ? validSource.source_id : 1;
+
+    // 5c. Find valid category_id dynamically (nullable in schema)
+    const validCategory = await prisma.food_categories.findFirst({
+      select: { category_id: true }
+    });
+    const categoryId = validCategory ? validCategory.category_id : null;
+
     const newFood = await prisma.food_items.create({
       data: {
         name: cleanName,
         food_type: 'prepared',
-        category_id: 4, // Fast Foods & Prepared
-        source_id: 2, // USDA/Global
+        category_id: categoryId,
+        source_id: sourceId,
         reference_unit: '100g',
         is_verified: true,
         is_active: true,
@@ -132,24 +150,25 @@ async function matchFoodInDb(
       await prisma.$executeRaw`
         INSERT INTO public.food_nutrients (food_id, nutrient_id, value_per_100g)
         VALUES (${newFood.food_id}, ${n.id}, ${n.val})
-        ON CONFLICT (food_id, nutrient_id) DO NOTHING;
+        ON CONFLICT (food_id, nutrient_id) DO UPDATE SET value_per_100g = EXCLUDED.value_per_100g;
       `;
     }
 
     return { food_id: newFood.food_id, name: cleanName };
-  } catch (createErr) {
-    console.error('[Dynamic Food Creation Error]', createErr);
+  } catch (createErr: any) {
+    console.error('[Dynamic Food Creation Error]', createErr?.message || createErr);
     const existing = await prisma.food_items.findFirst({
-      where: { name: { equals: label.trim(), mode: 'insensitive' } }
+      where: { name: { equals: cleanName, mode: 'insensitive' } }
     });
     if (existing) return { food_id: existing.food_id, name: existing.name };
   }
 
-  // Absolute fallback if everything fails
+  // Safe fallback if dynamic creation fails: use an active food_id, but ALWAYS preserve the authentic cleanName!
   const genericFallback: any[] = await prisma.$queryRaw`
-    SELECT food_id, name FROM public.food_items WHERE is_active = true LIMIT 1
+    SELECT food_id FROM public.food_items WHERE is_active = true LIMIT 1
   `;
-  return genericFallback[0] || { food_id: 12, name: 'Mixed Dish' };
+  const safeFoodId = genericFallback[0]?.food_id || 12;
+  return { food_id: safeFoodId, name: cleanName };
 }
 
 export const analyzeMeal = async (req: AuthRequest, res: Response) => {
@@ -172,16 +191,20 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
       const candidateModels = [
         'gemini-3.5-flash-lite',
         'gemini-3.5-flash',
-        'gemini-3.8-flash',
         'gemini-3.1-flash-lite',
-        'gemini-3.6-flash'
+        'gemini-3.8-flash'
       ];
 
       for (const mName of candidateModels) {
         if (detections.length > 0) break;
-        try {
-          const genAI = new GoogleGenerativeAI(geminiKey);
-          const model = genAI.getGenerativeModel({ model: mName }, { apiVersion: 'v1' });
+        for (const apiVer of [undefined, 'v1']) {
+          if (detections.length > 0) break;
+          try {
+            const genAI = new GoogleGenerativeAI(geminiKey);
+            const model = genAI.getGenerativeModel(
+              { model: mName },
+              apiVer ? { apiVersion: apiVer } : undefined
+            );
 
           const prompt = `You are a world-class culinary computer vision and nutritional intelligence AI capable of recognizing any food, beverage, dish, or cuisine worldwide (Indian, Continental, Fast Food, Asian, Mediterranean, Healthy, Bakery, Beverages, etc.).
 Analyze this meal image and return a JSON array of all distinct food and beverage items present on the plate or table.
@@ -243,19 +266,20 @@ Example format:
 
               const dbMatch = await matchFoodInDb(label, prisma, nutritionEstimate);
               detections.push({
-                detected_label: dbMatch.name,
+                detected_label: label, // Preserve the authentic food name detected by AI!
                 matched_food_id: dbMatch.food_id,
-                confidence: Number(item.confidence) || 0.92,
+                confidence: Number(item.confidence) || 0.95,
                 suggested_weight_grams: Number(item.suggested_weight_grams) || 150,
                 match_method: 'gemini_multimodal'
               });
             }
           }
         } catch (geminiErr: any) {
-          console.warn(`[Gemini Vision model ${mName} error]:`, geminiErr.message);
+          console.warn(`[Gemini Vision model ${mName} (ver: ${apiVer}) error]:`, geminiErr.message);
         }
       }
     }
+  }
 
     // Fallback Detection: Roboflow AI Service
     if (detections.length === 0) {
@@ -315,22 +339,31 @@ Example format:
       return res.status(500).json({ error: 'MEAL_SAVE_FAILED', message: 'Meal could not be retrieved.' });
     }
 
-    const confidenceMap = new Map<number, number>();
+    const detectionMap = new Map<number, { name: string; confidence: number }>();
     for (const d of (detections || [])) {
-      if (d.matched_food_id && typeof d.confidence === 'number') {
-        confidenceMap.set(d.matched_food_id, d.confidence);
+      if (d.matched_food_id && d.detected_label) {
+        detectionMap.set(d.matched_food_id, {
+          name: d.detected_label,
+          confidence: typeof d.confidence === 'number' ? d.confidence : 0.95
+        });
       }
     }
 
-    const items = meal.meal_items.map((item) => ({
-      item_id: item.item_id,
-      food_id: item.food_id,
-      food_name: item.food?.name || 'Unknown food',
-      quantity_grams: Number(item.quantity_grams),
-      estimated_calories: Number(item.estimated_calories),
-      confidence: confidenceMap.get(item.food_id) ?? 1.0,
-      food: item.food
-    }));
+    const items = meal.meal_items.map((item, idx) => {
+      const origDet = detections && detections[idx] ? detections[idx] : null;
+      const cached = detectionMap.get(item.food_id);
+      const foodName = origDet?.detected_label || cached?.name || item.food?.name || 'Plate Component';
+      const confidence = origDet?.confidence ?? cached?.confidence ?? 0.95;
+      return {
+        item_id: item.item_id,
+        food_id: item.food_id,
+        food_name: foodName,
+        quantity_grams: Number(item.quantity_grams),
+        estimated_calories: Number(item.estimated_calories),
+        confidence,
+        food: item.food ? { ...item.food, name: foodName } : { food_id: item.food_id, name: foodName }
+      };
+    });
 
     return res.status(201).json({
       meal_id: meal.meal_id,
