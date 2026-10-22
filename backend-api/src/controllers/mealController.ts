@@ -248,12 +248,13 @@ export const analyzeMeal = async (req: AuthRequest, res: Response) => {
   try {
     let detections: any[] = [];
 
-    // Multimodal Vision with Valid Google Generative AI Models
+    // Multimodal Vision with Active Google Generative AI Models
     const candidateModels = [
-      'gemini-1.5-flash',
-      'gemini-2.0-flash',
-      'gemini-2.5-flash',
-      'gemini-1.5-pro'
+      process.env.GEMINI_MODEL || 'gemini-3.5-flash',
+      'gemini-3.5-flash',
+      'gemini-3.5-flash-lite',
+      'gemini-3.8-flash',
+      'gemini-3.1-flash-lite'
     ];
 
     for (const mName of candidateModels) {
