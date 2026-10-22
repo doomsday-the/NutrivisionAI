@@ -58,10 +58,20 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
+import { PrismaClient } from '@prisma/client';
+import { bootstrapDatabase } from './bootstrap';
+
+const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
+
 if (require.main === module) {
-  app.listen(PORT, () => {
+  app.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
+    try {
+      await bootstrapDatabase(prisma);
+    } catch (bootErr) {
+      console.error('[Database Bootstrap Error]', bootErr);
+    }
   });
 }
 

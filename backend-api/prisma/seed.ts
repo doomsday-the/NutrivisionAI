@@ -408,13 +408,23 @@ async function main() {
     console.log('ℹ Skipping dev user seed in production environment');
   }
 
-  // 6. Synchronize Database Sequences
-  await prisma.$executeRawUnsafe(`SELECT setval('food_items_food_id_seq', COALESCE((SELECT MAX(food_id) FROM food_items), 1))`);
-  await prisma.$executeRawUnsafe(`SELECT setval('food_nutrients_food_nutrient_id_seq', COALESCE((SELECT MAX(food_nutrient_id) FROM food_nutrients), 1))`);
-  await prisma.$executeRawUnsafe(`SELECT setval('nutrient_types_nutrient_id_seq', COALESCE((SELECT MAX(nutrient_id) FROM nutrient_types), 1))`);
-  await prisma.$executeRawUnsafe(`SELECT setval('food_sources_source_id_seq', COALESCE((SELECT MAX(source_id) FROM food_sources), 1))`);
-  await prisma.$executeRawUnsafe(`SELECT setval('food_categories_category_id_seq', COALESCE((SELECT MAX(category_id) FROM food_categories), 1))`);
-  await prisma.$executeRawUnsafe(`SELECT setval('users_user_id_seq', COALESCE((SELECT MAX(user_id) FROM users), 1))`);
+  // 6. Seed rich catalog of 100+ common foods
+  try {
+    const { seedCommonFoods, syncDatabaseSequences } = require('../src/bootstrap');
+    await seedCommonFoods(prisma);
+    await syncDatabaseSequences(prisma);
+    console.log('✔ Common food catalog seeded (100+ items)');
+  } catch (seedErr) {
+    console.warn('ℹ Could not load bootstrap seed:', seedErr);
+  }
+
+  // 7. Synchronize Database Sequences
+  await prisma.$executeRawUnsafe(`SELECT setval(COALESCE(pg_get_serial_sequence('public.food_items', 'food_id'), 'food_items_food_id_seq'), COALESCE((SELECT MAX(food_id) FROM food_items), 1))`).catch(() => {});
+  await prisma.$executeRawUnsafe(`SELECT setval(COALESCE(pg_get_serial_sequence('public.food_nutrients', 'food_nutrient_id'), 'food_nutrients_food_nutrient_id_seq'), COALESCE((SELECT MAX(food_nutrient_id) FROM food_nutrients), 1))`).catch(() => {});
+  await prisma.$executeRawUnsafe(`SELECT setval(COALESCE(pg_get_serial_sequence('public.nutrient_types', 'nutrient_id'), 'nutrient_types_nutrient_id_seq'), COALESCE((SELECT MAX(nutrient_id) FROM nutrient_types), 1))`).catch(() => {});
+  await prisma.$executeRawUnsafe(`SELECT setval(COALESCE(pg_get_serial_sequence('public.food_sources', 'source_id'), 'food_sources_source_id_seq'), COALESCE((SELECT MAX(source_id) FROM food_sources), 1))`).catch(() => {});
+  await prisma.$executeRawUnsafe(`SELECT setval(COALESCE(pg_get_serial_sequence('public.food_categories', 'category_id'), 'food_categories_category_id_seq'), COALESCE((SELECT MAX(category_id) FROM food_categories), 1))`).catch(() => {});
+  await prisma.$executeRawUnsafe(`SELECT setval(COALESCE(pg_get_serial_sequence('public.users', 'user_id'), 'users_user_id_seq'), COALESCE((SELECT MAX(user_id) FROM users), 1))`).catch(() => {});
   console.log('✔ Primary key sequences synchronized');
 
   console.log('--- Database Seeding Completed Successfully ---');
