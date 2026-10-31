@@ -56,3 +56,6 @@ backend-api/prisma/seed.js
 backend-api/prisma/seed.js.map
 backend-api/prisma/seed.d.ts
 backend-api/prisma/seed.d.ts.map
+
+# Local PostgreSQL cluster
+.pgdata/
