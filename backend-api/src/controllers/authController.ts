@@ -142,3 +142,56 @@ export const devLogin = async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'DEV_LOGIN_FAILED' });
   }
 };
+
+export const companionLogin = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'EMAIL_REQUIRED', message: 'Email address is required.' });
+    }
+
+    const cleanEmail = String(email).toLowerCase().trim();
+    let user = await prisma.users.findFirst({
+      where: { email: cleanEmail }
+    });
+
+    if (!user) {
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash(Math.random().toString(36), salt);
+      user = await prisma.users.create({
+        data: {
+          google_id: `companion_${Date.now()}`,
+          email: cleanEmail,
+          display_name: cleanEmail.split('@')[0],
+          password_hash,
+          last_login_at: new Date()
+        }
+      });
+    } else {
+      await prisma.users.update({
+        where: { user_id: user.user_id },
+        data: { last_login_at: new Date() }
+      });
+    }
+
+    const token = jwt.sign(
+      { user_id: user.user_id, email: user.email },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '30d' }
+    );
+
+    return res.status(200).json({
+      token,
+      user: {
+        user_id: user.user_id,
+        email: user.email,
+        display_name: user.display_name,
+        avatar_url: user.avatar_url,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('[Companion Login Error]', error);
+    return res.status(500).json({ error: 'COMPANION_LOGIN_FAILED', message: 'Failed to authenticate companion app.' });
+  }
+};
