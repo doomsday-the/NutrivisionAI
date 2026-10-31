@@ -14,6 +14,8 @@ import {
   Menu,
   X,
   ChevronDown,
+  Download,
+  Smartphone,
 } from 'lucide-react';
 
 interface NavItem {
@@ -30,6 +32,9 @@ const navItems: NavItem[] = [
   { to: '/activity', icon: <ActivityIcon size={15} />, label: 'Activity' },
   { to: '/coach', icon: <Bot size={15} />, label: 'NutriCoach', badge: 'AI' },
 ];
+
+const APK_DOWNLOAD_URL =
+  'https://github.com/doomsday-the/NutrivisionAI/releases/download/companion-latest/NutriVisionSync.apk';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -116,6 +121,19 @@ export default function Layout() {
 
         {/* Rightmost: System Status & User Profile */}
         <div className="flex items-center gap-3">
+          {/* APK Companion App Download Button */}
+          <a
+            href={APK_DOWNLOAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 text-xs font-bold transition shadow-xs outline-none"
+            title="Download Android Companion APK (Samsung Health Sync)"
+          >
+            <Smartphone size={13} className="shrink-0" />
+            <span>Sync APK</span>
+            <Download size={12} className="shrink-0 opacity-75" />
+          </a>
+
           {/* Status Indicator */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#071f18] border border-[#114736] text-[11px] font-medium text-[#34d399]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
@@ -175,6 +193,18 @@ export default function Layout() {
                     <Sparkles size={14} className="text-[#34d399]" />
                     <span>NutriCoach AI</span>
                   </button>
+                  <a
+                    href={APK_DOWNLOAD_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-between px-3 py-2 text-xs text-emerald-400 hover:bg-[#102026] rounded-lg transition text-left cursor-pointer font-medium"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Smartphone size={14} />
+                      <span>Download Sync APK</span>
+                    </div>
+                    <Download size={13} className="opacity-75" />
+                  </a>
                 </div>
 
                 <div className="pt-1 border-t border-[#18282c]">
@@ -254,6 +284,20 @@ export default function Layout() {
             <User size={15} />
             <span>Profile & Biometrics</span>
           </NavLink>
+
+          <a
+            href={APK_DOWNLOAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition"
+          >
+            <div className="flex items-center gap-2.5">
+              <Smartphone size={15} />
+              <span>Download Companion APK</span>
+            </div>
+            <Download size={14} />
+          </a>
         </div>
       )}
 
