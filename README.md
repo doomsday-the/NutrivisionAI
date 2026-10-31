@@ -51,7 +51,7 @@ docker-compose up -d --build
 ```
 *Containers running: `nutrivision-db` (port 5433:5432), `nutrivision-backend` (port 3000), `nutrivision-ai` (port 8000).*
 
-### 3. Database Migrations & Seeding
+### 3. Database Migrations & Seeding.
 ```bash
 cd backend-api
 npm install
