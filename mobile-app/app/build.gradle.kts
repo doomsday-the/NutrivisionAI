@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.nutrivision.companion"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.nutrivision.companion"
