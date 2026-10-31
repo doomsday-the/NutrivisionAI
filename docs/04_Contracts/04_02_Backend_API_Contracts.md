@@ -71,19 +71,24 @@ Returned when `id_token` is invalid, expired, or does not match the expected Goo
 | `image` | File | Yes | JPEG or PNG, max 10 MB |
 | `meal_type` | string | Yes | One of: `breakfast`, `lunch`, `dinner`, `snack` |
 
-### Behavior (Ordered Steps — all within a single DB transaction)
-1. Validate `meal_type` and image file type/size.
-2. Generate a `session_id` (UUID v4).
-3. Forward image + `session_id` to `POST {AI_SERVICE_URL}/predict` with `X-Internal-Token` header. Timeout: 30 seconds.
-4. For each detection where `matched_food_id` is not null:
-   a. Query `food_nutrients` for the matched food's Energy, Protein, Carbohydrate, Fat values.
-   b. Calculate nutrition: `value = (nutrient.value_per_100g / 100) * detection.suggested_weight_grams`. If `suggested_weight_grams` is null, default to `100`.
-5. Insert one row into `meals`.
-6. Insert one row into `meal_items` per detection.
-7. Insert one row into `ai_match_log` per detection.
-8. Upsert one row into `daily_logs` for today's date.
-9. If any DB step fails, rollback the entire transaction and return `500`.
-10. Return the meal summary.
+### Behavior (Ordered Steps — High-Resilience Cascade & Atomic Transaction)
+1. **Validation**: Validate `meal_type` and image file type/size via Multer (JPEG/PNG, <= 10MB) and Zod schema.
+2. **Session Correlation**: Generate a unique `session_id` (UUID v4) for audit tracking in `ai_match_log`.
+3. **Primary Detection (Google Gemini Multimodal Vision Cascade)**:
+   - Evaluates candidate models in order: `gemini-flash-lite-latest` -> `gemini-3.1-flash-lite` -> `gemini-flash-latest` -> `gemini-3.5-flash`.
+   - Sends the image buffer as base64 with a structured culinary intelligence prompt.
+   - Extracts detected dishes, portion weights in grams, confidence scores (0.80 - 0.99), and estimated per-100g macros (`estimated_calories_per_100g`, `estimated_protein_per_100g`, etc.).
+4. **Secondary Fallback (FastAPI AI Service)**:
+   - If Gemini Vision is unavailable, forwards the image with `X-Internal-Token` to `POST {AI_SERVICE_URL}/predict`.
+   - Invokes hosted Roboflow IndianFoodNet for food classification and MiDaS `DPT_Hybrid` relative depth estimation for volume scaling.
+5. **Dynamic Food Matching & Safe Ingestion (`matchFoodInDb`)**:
+   - Matches detected label against `public.food_items` via: exact case-insensitive match -> prefix/bracket match -> exact phrase containment -> full-text search (`ts_rank` over `search_vector`).
+   - If not found in database, dynamically registers the food with guaranteed valid `source_id` from `food_sources`, synchronizes the primary key sequence (`setval`), and safely inserts default macro values into `food_nutrients` (`ON CONFLICT DO UPDATE`).
+   - Authentic detected labels are strictly preserved; the engine never substitutes unknown items with "Rice".
+6. **Atomic Database Execution via Stored Procedure (`sp_log_meal`)**:
+   - Executes `CALL public.sp_log_meal(user_id, meal_type, image_url, detections JSONB, session_id, OUT meal_id)`.
+   - Atomically creates `public.meals`, inserts all items into `public.meal_items`, records detections in `public.ai_match_log`, aggregates meal totals, and updates `public.daily_logs` and `remaining_calories` in a single ACID transaction.
+7. Return the created meal and nutritional breakdown.
 
 ### Response — 201 Created
 ```json
@@ -122,9 +127,9 @@ Returned when the AI service does not respond within 30 seconds or returns a 5xx
 
 ## API-003: POST /api/activity/sync
 
-**Purpose**: Receive activity data pushed from the WearOS app and update the user's daily log.
+**Purpose**: Receive activity data pushed from the Android Companion App (Samsung Health via Google Health Connect) or the Web Dashboard manual activity sync, updating the user's daily metabolic ledger and expanding their remaining daily calorie target.
 
-**Auth**: Required (same JWT, called from WearOS via the Android companion app).
+**Auth**: Required (`Authorization: Bearer <token>`).
 
 ### Request
 ```json
@@ -561,3 +566,90 @@ Returned if invoked in production mode with dev login disabled:
 }
 ```
 
+
+
+---
+
+## API-015: POST /api/auth/companion-login
+
+**Purpose**: Authenticate and pair the native Android Companion App with the user's account using their Google email address, issuing a dedicated 30-day JWT.
+
+**Auth**: None required (public authentication endpoint).
+
+### Request
+- **Method**: `POST /api/auth/companion-login`
+- **Headers**: `Content-Type: application/json`
+- **Body**:
+```json
+{
+  "email": "aryaman.sinha.lko@gmail.com"
+}
+```
+
+### Behavior
+1. Normalizes and validates the incoming email address.
+2. Finds existing user in `public.users` by email. If not found, creates a new user with placeholder Google ID `companion_<timestamp>` and BCrypt password hash.
+3. Updates `last_login_at = NOW()`.
+4. Signs a 30-day JWT (`{ user_id, email }`) with `JWT_SECRET`.
+
+### Response — 200 OK
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "user_id": 1,
+    "email": "aryaman.sinha.lko@gmail.com",
+    "display_name": "aryaman.sinha.lko",
+    "avatar_url": null,
+    "role": "user"
+  }
+}
+```
+
+### Response — 400 Bad Request
+```json
+{
+  "error": "EMAIL_REQUIRED",
+  "message": "Email address is required."
+}
+```
+
+---
+
+## API-016: GET /api/activity/weekly
+
+**Purpose**: Retrieve a 7-day chronological caloric intake trajectory ending on the requested date, comparing actual consumed calories against calibrated daily targets for Recharts data visualization.
+
+**Auth**: Required (`Authorization: Bearer <token>`).
+
+**Query Parameters**:
+- `date` (optional string, `YYYY-MM-DD`, defaults to today)
+
+### Response — 200 OK
+```json
+[
+  { "day": "Mon", "date": "2026-10-25", "calories": 1850, "target": 2000 },
+  { "day": "Tue", "date": "2026-10-26", "calories": 2100, "target": 2000 },
+  { "day": "Wed", "date": "2026-10-27", "calories": 1920, "target": 2000 },
+  { "day": "Thu", "date": "2026-10-28", "calories": 2250, "target": 2000 },
+  { "day": "Fri", "date": "2026-10-29", "calories": 1780, "target": 2000 },
+  { "day": "Sat", "date": "2026-10-30", "calories": 2050, "target": 2000 },
+  { "day": "Sun", "date": "2026-10-31", "calories": 1420, "target": 2000 }
+]
+```
+
+---
+
+## API-017: GET /health
+
+**Purpose**: Unauthenticated system health verification endpoint used by Render, Docker health checks, and monitoring systems.
+
+**Auth**: None required.
+
+### Response — 200 OK
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-10-31T13:42:00.000Z"
+}
+```
