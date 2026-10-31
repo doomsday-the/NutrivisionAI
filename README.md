@@ -113,9 +113,13 @@ The Android companion module (`mobile-app/`) solves the problem of getting real-
 All architectural decisions, schemas, contracts, and governance maps are maintained under `docs/`:
 
 1. **[00_Governance](./docs/00_Governance/)**: Project Charter, Traceability Matrix, and University Assessment Compliance Map.
-2. **[01_Requirements](./docs/01_Requirements/)**: Functional and Non-Functional Requirements.
-3. **[02_Architecture](./docs/02_Architecture/)**: ADRs (including ADR-009 for the CV Pipeline).
-4. **[03_Data](./docs/03_Data/)**: Canonical 3NF Data Model and ETL Specifications.
-5. **[04_Contracts](./docs/04_Contracts/)**: AI Service and Backend API endpoint contracts.
+2. **[01_Requirements](./docs/01_Requirements/)**: Functional and Non-Functional Requirements (FR-001 through FR-011, NFR-001 through NFR-011).
+3. **[02_Architecture](./docs/02_Architecture/)**: Architectural Decision Records (ADR-001 through ADR-013).
+4. **[03_Data](./docs/03_Data/)**: Canonical 3NF Data Model with Mermaid ER Diagram and ETL Specifications.
+5. **[04_Contracts](./docs/04_Contracts/)**: AI Service (TC-001, TC-002) and Backend API (API-001 through API-017) contracts.
 6. **[05_Operations](./docs/05_Operations/)**: Database Backup & Recovery procedures (`pg_dump`/`pg_restore`).
-7. **[Implementation Plan](./docs/implementation_plan.md)**: Roadmap and phase completion tracking.
+7. **[Implementation Plan](./docs/implementation_plan.md)**: Roadmap, milestone completion tracking, and Gantt timeline.
+8. **[Cloud Deployment Guide](./docs/deployment/STAGING_DEPLOYMENT_GUIDE.md)**: Cloud staging and production deployment instructions (Vercel, Render, Neon).
+9. **[Project Structure & Flow](./docs/project_structure.md)**: Monorepo layout, system diagrams, and architectural flow.
+10. **[Failure Philosophy](./docs/11_Failure_Philosophy.md)**: System degradation, error handling, and fault tolerance policies.
+11. **[Strategic Roadmap](./docs/short_term_roadmap.md)**: Completed milestones and future enhancement backlog.

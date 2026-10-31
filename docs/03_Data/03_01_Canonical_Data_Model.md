@@ -9,8 +9,221 @@ All table names use `snake_case`. All IDs are `SERIAL` (auto-incrementing intege
 ## Schema Overview
 
 The database uses two PostgreSQL schemas:
-- **`public`** — production tables used by the application at runtime.
+- **`public`** — 16 production tables used by the application at runtime, organized in strict Third Normal Form (3NF).
 - **`staging`** — temporary ingestion tables used only during ETL. Never queried by the application API.
+
+### Entity-Relationship Diagram (ERD)
+
+```mermaid
+erDiagram
+    users ||--o| user_profiles : "has"
+    users ||--o{ meals : "logs"
+    users ||--o{ daily_logs : "aggregates"
+    food_sources ||--o{ food_items : "provides"
+    food_categories ||--o{ food_categories : "subcategorizes"
+    food_categories ||--o{ food_items : "classifies"
+    food_items ||--o{ food_nutrients : "contains"
+    nutrient_types ||--o{ food_nutrients : "measures"
+    food_items ||--o{ serving_sizes : "portions"
+    food_items ||--o{ food_aliases : "named_as"
+    food_items ||--o{ food_tags : "tagged_with"
+    tags ||--o{ food_tags : "categorizes"
+    meals ||--|{ meal_items : "composed_of"
+    food_items ||--o{ meal_items : "included_in"
+    serving_sizes |o--o{ meal_items : "measured_by"
+    food_items |o--o{ ai_match_log : "matched_in"
+    food_items |o--o{ ai_match_log : "corrected_in"
+    staging_usda_food ||--o{ staging_usda_nutrient : "specifies"
+
+    users {
+        int user_id PK
+        string google_id UK
+        string email UK
+        string display_name
+        string avatar_url
+        string role
+        string password_hash
+        timestamptz created_at
+        timestamptz last_login_at
+    }
+
+    user_profiles {
+        int profile_id PK
+        int user_id FK, UK
+        int age
+        decimal height_cm
+        decimal weight_kg
+        string activity_level
+        string goal
+        decimal daily_calorie_target
+        timestamptz updated_at
+    }
+
+    food_sources {
+        int source_id PK
+        string source_name UK
+        string source_version
+        string source_url
+        timestamptz imported_at
+        string notes
+    }
+
+    food_categories {
+        int category_id PK
+        int parent_id FK
+        string name UK
+        string slug UK
+        string description
+    }
+
+    food_items {
+        int food_id PK
+        string external_id
+        int source_id FK
+        int category_id FK
+        string name
+        string name_local
+        string food_type
+        string reference_unit
+        decimal density_g_per_ml
+        string brand
+        string country_origin
+        boolean is_verified
+        boolean is_active
+        tsvector search_vector
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    nutrient_types {
+        int nutrient_id PK
+        string name UK
+        string display_name
+        string unit
+        string category
+        decimal daily_value_ref
+        int sort_order
+    }
+
+    food_nutrients {
+        int food_nutrient_id PK
+        int food_id FK
+        int nutrient_id FK
+        decimal value_per_100g
+        int data_points
+        decimal min_value
+        decimal max_value
+    }
+
+    serving_sizes {
+        int serving_id PK
+        int food_id FK
+        string serving_name
+        string serving_unit
+        decimal quantity
+        decimal weight_grams
+        string notes
+    }
+
+    food_aliases {
+        int alias_id PK
+        int food_id FK
+        string alias
+        string alias_type
+        string language
+    }
+
+    tags {
+        int tag_id PK
+        string name UK
+        string description
+    }
+
+    food_tags {
+        int food_id PK, FK
+        int tag_id PK, FK
+    }
+
+    meals {
+        int meal_id PK
+        int user_id FK
+        string image_url
+        string meal_type
+        decimal total_calories
+        decimal total_protein_g
+        decimal total_carbs_g
+        decimal total_fat_g
+        string notes
+        timestamptz logged_at
+    }
+
+    meal_items {
+        int item_id PK
+        int meal_id FK
+        int food_id FK
+        decimal quantity_grams
+        decimal estimated_calories
+        int serving_id FK
+        boolean user_corrected
+    }
+
+    daily_logs {
+        int log_id PK
+        int user_id FK
+        date log_date
+        decimal total_calories
+        decimal total_protein_g
+        decimal total_carbs_g
+        decimal total_fat_g
+        decimal calories_burned
+        int steps
+        decimal target_calories
+        decimal remaining_calories
+    }
+
+    ai_match_log {
+        int log_id PK
+        string detected_label
+        int matched_food_id FK
+        decimal match_score
+        string match_method
+        decimal weight_grams
+        boolean user_corrected
+        int corrected_food_id FK
+        string session_id
+        timestamptz created_at
+    }
+
+    staging_icmr_food {
+        string ifct_code PK
+        string food_name
+        string food_group
+        decimal energy_kcal
+        decimal protein_g
+        decimal fat_g
+        decimal carbohydrate_g
+        decimal fiber_g
+        decimal sodium_mg
+        timestamptz imported_at
+    }
+
+    staging_usda_food {
+        int fdc_id PK
+        string data_type
+        string description
+        string food_category
+        string publication_date
+        timestamptz imported_at
+    }
+
+    staging_usda_nutrient {
+        int fdc_id FK
+        string nutrient_name
+        decimal amount
+        string unit_name
+        timestamptz imported_at
+    }
+```
 
 ---
 
@@ -255,8 +468,8 @@ Aggregated daily nutrition summary per user. One row per user per calendar day.
 | `total_protein_g` | NUMERIC(8,2) | NN, DEFAULT 0 | |
 | `total_carbs_g` | NUMERIC(8,2) | NN, DEFAULT 0 | |
 | `total_fat_g` | NUMERIC(8,2) | NN, DEFAULT 0 | |
-| `calories_burned` | NUMERIC(8,2) | NN, DEFAULT 0 | Pushed from WearOS via activity sync |
-| `steps` | INT | NN, DEFAULT 0 | Pushed from WearOS |
+| `calories_burned` | NUMERIC(8,2) | NN, DEFAULT 0 | Pushed from Android companion (Samsung Health via Health Connect) or web manual sync |
+| `steps` | INT | NN, DEFAULT 0 | Pushed from Android companion (Samsung Health via Health Connect) or web manual sync |
 | `target_calories` | NUMERIC(8,2) | NN | Copied from `user_profiles.daily_calorie_target` at log creation |
 | `remaining_calories` | NUMERIC(8,2) | | Computed: `target_calories - total_calories + calories_burned` |
 
@@ -394,15 +607,20 @@ GROUP BY fi.food_id, fi.name, fi.name_local, fi.food_type, fi.density_g_per_ml, 
 ## Required Stored Procedure
 The following stored procedure must be implemented (satisfies university implementation rubric Section 3):
 
-### `sp_log_meal(user_id, meal_type, detections JSONB)`
-Encapsulates the entire meal logging transaction as a single atomic database operation. Called from the Node.js service layer after receiving the AI response.
+### `sp_log_meal(p_user_id INT, p_meal_type VARCHAR, p_image_url TEXT, p_detections JSONB, p_session_id VARCHAR, OUT p_meal_id INT)`
+Encapsulates the entire meal logging transaction as a single atomic database procedure (`LANGUAGE plpgsql`). Called from the Node.js service layer (`backend-api/src/controllers/mealController.ts`) via Prisma `$queryRaw` after receiving multimodal AI detection.
 
-**Logic**:
-1. Insert a row into `meals`.
-2. For each item in the `detections` JSON array, insert a row into `meal_items`.
-3. Insert a row into `ai_match_log` for each detection.
-4. Upsert `daily_logs` for the current date, recalculating totals.
-5. Return the `meal_id` of the created meal.
+**Implementation Details (`backend-api/prisma/setup_stored_procedure.sql`)**:
+1. **Daily Log Verification**: Ensures a `daily_logs` record exists for the user on today's local calendar date; inserts default zeroed entry with target calories from `user_profiles` if missing.
+2. **Atomic Meal Record Creation**: Inserts into `public.meals` (`user_id`, `meal_type`, `image_url`, `logged_at = NOW()`), returning the new `meal_id` into the `OUT p_meal_id` parameter.
+3. **Detection Loop & AI Audit Logging**: Iterates over each item in the `p_detections` JSONB array:
+   - Records detection metadata into `public.ai_match_log` (`detected_label`, `matched_food_id`, `match_score`, `match_method`, `weight_grams`, `session_id`).
+   - Retrieves authoritative per-100g macros (energy, protein, carbs, fat) from `public.vw_food_full`.
+   - **Resilient Fallback**: If the SQL view returns NULL or zero for energy/macros, dynamically extracts inline estimates passed from the multimodal AI vision payload (`estimated_calories_per_100g`, `estimated_protein_per_100g`, etc.).
+   - Computes scaled portion nutrients: `(value_per_100g / 100) * quantity_grams`.
+   - Inserts row into `public.meal_items` (`meal_id`, `food_id`, `quantity_grams`, `estimated_calories`).
+4. **Denormalized Parent Meal Aggregation**: Updates `public.meals` with calculated totals (`total_calories`, `total_protein_g`, `total_carbs_g`, `total_fat_g`).
+5. **Atomic Daily Balance Update**: Directly aggregates all logged meals for today and atomically updates `public.daily_logs` totals and recomputes `remaining_calories = target_calories - total_calories + calories_burned`.
 
 **Note**: While Prisma handles routine CRUD, raw SQL is explicitly permitted by the university rubric for stored procedures. This procedure is called via Prisma's `$queryRaw` or a dedicated SQL migration file.
 
