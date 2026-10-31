@@ -11,6 +11,8 @@ import {
   Plus,
   TrendingUp,
   Sparkles,
+  Smartphone,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
@@ -228,6 +230,53 @@ export default function Activity() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* ── Left Sidebar: Quick Presets & Mechanics ────────── */}
         <aside className="lg:col-span-4 space-y-6">
+          {/* ── Native Companion App Download ── */}
+          <div className="health-card p-5 bg-gradient-to-b from-[#0e2124] to-[#0b171b] border-emerald-500/30 space-y-3.5 relative overflow-hidden shadow-lg">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                <Smartphone size={16} />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  Samsung Health Sync App
+                </h3>
+                <span className="text-[10px] text-emerald-400 font-semibold">1-Tap Direct APK</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#8ba0a6] leading-relaxed">
+              Sync your live steps and calories directly from Samsung Health to this dashboard on demand with 0 background battery drain.
+            </p>
+
+            <div className="space-y-2">
+              <a
+                href="https://github.com/doomsday-the/NutrivisionAI/releases/latest/download/NutriVisionSync.apk"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
+              >
+                <Download size={14} />
+                <span>1. Download Android APK</span>
+              </a>
+
+              {token && (
+                <a
+                  href={`nutrivision://connect?token=${token}`}
+                  className="w-full py-2 px-3 rounded-xl bg-[#122b22] hover:bg-[#183a2e] text-[#34d399] border border-[#1b5543] font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer text-center"
+                >
+                  <Sparkles size={13} />
+                  <span>2. Pair Account to App (1-Tap)</span>
+                </a>
+              )}
+            </div>
+
+            <div className="pt-1 flex items-center justify-between text-[10px] text-[#8ba0a6]">
+              <span>Official Health Connect</span>
+              <span className="text-emerald-400 font-medium">Android 10+</span>
+            </div>
+          </div>
+
+
           {/* Quick Increment Controls */}
           <div className="health-card p-5 bg-[#0b171b] border-[#18282c] space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#8ba0a6]">
