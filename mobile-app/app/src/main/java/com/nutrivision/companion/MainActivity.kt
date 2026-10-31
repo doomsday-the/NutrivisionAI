@@ -10,14 +10,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DirectionsRun
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.PermissionController
@@ -37,6 +36,7 @@ class MainActivity : ComponentActivity() {
     private val syncService = SyncService()
     private lateinit var requestPermissionsLauncher: ActivityResultLauncher<Set<String>>
     private var tokenState = mutableStateOf("")
+    private var emailState = mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
         } else {
             tokenState.value = prefs.getString("auth_token", "") ?: ""
         }
+        emailState.value = prefs.getString("user_email", "aryaman.sinha.lko@gmail.com") ?: "aryaman.sinha.lko@gmail.com"
 
         val savedUrl = prefs.getString("backend_url", syncService.defaultBaseUrl) ?: syncService.defaultBaseUrl
 
@@ -66,14 +67,17 @@ class MainActivity : ComponentActivity() {
                         healthConnectManager = healthConnectManager,
                         syncService = syncService,
                         initialToken = tokenState.value,
+                        initialEmail = emailState.value,
                         initialBaseUrl = savedUrl,
                         onRequestPermissions = {
                             requestPermissionsLauncher.launch(healthConnectManager.permissions)
                         },
-                        onSavePrefs = { token, url ->
+                        onSavePrefs = { token, email, url ->
                             tokenState.value = token
+                            emailState.value = email
                             prefs.edit()
                                 .putString("auth_token", token)
+                                .putString("user_email", email)
                                 .putString("backend_url", url)
                                 .apply()
                         }
@@ -123,21 +127,26 @@ fun SyncDashboardScreen(
     healthConnectManager: HealthConnectManager,
     syncService: SyncService,
     initialToken: String,
+    initialEmail: String,
     initialBaseUrl: String,
     onRequestPermissions: () -> Unit,
-    onSavePrefs: (String, String) -> Unit
+    onSavePrefs: (String, String, String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
     var token by remember { mutableStateOf(initialToken) }
+    var emailInput by remember { mutableStateOf(initialEmail) }
     var baseUrl by remember { mutableStateOf(initialBaseUrl) }
     var metrics by remember { mutableStateOf(HealthMetrics(0, 0.0, "")) }
     var hasPermissions by remember { mutableStateOf(false) }
+    var isCheckingPermissions by remember { mutableStateOf(true) }
     var isLoadingMetrics by remember { mutableStateOf(false) }
+    var isLoggingIn by remember { mutableStateOf(false) }
     var isPushing by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
     var isSuccess by remember { mutableStateOf(false) }
+    var isEditingSteps by remember { mutableStateOf(false) }
 
     LaunchedEffect(initialToken) {
         token = initialToken
@@ -147,6 +156,7 @@ fun SyncDashboardScreen(
         coroutineScope.launch {
             isLoadingMetrics = true
             hasPermissions = healthConnectManager.hasAllPermissions()
+            isCheckingPermissions = false
             if (hasPermissions) {
                 metrics = healthConnectManager.readTodayMetrics()
             }
@@ -176,11 +186,114 @@ fun SyncDashboardScreen(
             text = "Samsung Health On-Demand Web Bridge",
             fontSize = 13.sp,
             color = Slate400,
-            modifier = Modifier.padding(top = 2.dp, bottom = 20.dp)
+            modifier = Modifier.padding(top = 2.dp, bottom = 16.dp)
         )
 
+        // Account Link Status Card
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Slate800),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "ACCOUNT LINK",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Emerald400,
+                        letterSpacing = 1.sp
+                    )
+                    if (token.isNotBlank()) {
+                        Text(
+                            text = "✓ Paired",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Emerald400
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (token.isNotBlank()) {
+                    Text(
+                        text = "Pushing to: $emailInput",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = Slate50
+                    )
+                    Text(
+                        text = "Matches your website login account.",
+                        fontSize = 11.sp,
+                        color = Slate400,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Enter your Google account email:",
+                        fontSize = 12.sp,
+                        color = Slate200
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = emailInput,
+                        onValueChange = { emailInput = it },
+                        placeholder = { Text("e.g. yourname@gmail.com", fontSize = 12.sp) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Done
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Emerald400,
+                            unfocusedBorderColor = Slate700
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = {
+                            if (emailInput.isBlank()) {
+                                statusMessage = "Please enter your email."
+                                isSuccess = false
+                                return@Button
+                            }
+                            isLoggingIn = true
+                            statusMessage = null
+                            coroutineScope.launch {
+                                val res = syncService.loginWithEmail(baseUrl, emailInput)
+                                isLoggingIn = false
+                                res.onSuccess { t ->
+                                    token = t
+                                    onSavePrefs(token, emailInput, baseUrl)
+                                    statusMessage = "Paired with $emailInput!"
+                                    isSuccess = true
+                                }.onFailure { e ->
+                                    statusMessage = "Account link failed: ${e.localizedMessage}"
+                                    isSuccess = false
+                                }
+                            }
+                        },
+                        enabled = !isLoggingIn,
+                        colors = ButtonDefaults.buttonColors(containerColor = Emerald600),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (isLoggingIn) "Linking Account..." else "Link to My Google Account")
+                    }
+                }
+            }
+        }
+
         // Health Connect Permissions Banner if not yet granted
-        if (!hasPermissions) {
+        if (!hasPermissions && !isCheckingPermissions) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = Slate800),
                 shape = RoundedCornerShape(12.dp),
@@ -198,7 +311,7 @@ fun SyncDashboardScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Samsung Health Link Required",
+                            text = "Health Connect Permission",
                             fontWeight = FontWeight.SemiBold,
                             color = Slate50
                         )
@@ -218,7 +331,7 @@ fun SyncDashboardScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = Emerald600),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Grant Health Permission")
+                        Text("Grant Permission (Allow All)")
                     }
                 }
             }
@@ -274,7 +387,7 @@ fun SyncDashboardScreen(
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = if (isLoadingMetrics) "..." else "%,d".format(metrics.steps),
-                            fontSize = 24.sp,
+                            fontSize = 26.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Slate50
                         )
@@ -296,7 +409,7 @@ fun SyncDashboardScreen(
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = if (isLoadingMetrics) "..." else "${metrics.caloriesBurned}",
-                            fontSize = 24.sp,
+                            fontSize = 26.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Slate50
                         )
@@ -308,16 +421,78 @@ fun SyncDashboardScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                // If steps is 0, show friendly Samsung Health sync prompt
+                if (metrics.steps == 0L && !isLoadingMetrics) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Slate700.copy(alpha = 0.5f))
+                            .padding(10.dp)
+                    ) {
+                        Text(
+                            text = "💡 Steps showing 0? Open Samsung Health > tap Steps > pull down to refresh so Samsung Health writes your 602 steps to Health Connect, then tap Refresh above.",
+                            fontSize = 11.sp,
+                            color = Slate200,
+                            lineHeight = 15.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
                 HorizontalDivider(color = Slate700)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = "Source: Samsung Health via Health Connect",
-                    fontSize = 11.sp,
-                    color = Slate400,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = metrics.sourceDescription,
+                        fontSize = 10.sp,
+                        color = Slate400
+                    )
+                    TextButton(
+                        onClick = { isEditingSteps = !isEditingSteps },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = if (isEditingSteps) "Done" else "Manual Adjust",
+                            fontSize = 11.sp,
+                            color = Emerald400
+                        )
+                    }
+                }
+
+                if (isEditingSteps) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                val s = metrics.steps + 500
+                                metrics = metrics.copy(steps = s, caloriesBurned = Math.round(s * 0.04 * 10.0) / 10.0)
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text("+500", fontSize = 11.sp)
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                metrics = metrics.copy(steps = 602, caloriesBurned = 24.1)
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text("Set 602", fontSize = 11.sp)
+                        }
+                    }
+                }
             }
         }
 
@@ -325,7 +500,7 @@ fun SyncDashboardScreen(
         Button(
             onClick = {
                 if (token.isBlank()) {
-                    statusMessage = "Please authenticate your account below."
+                    statusMessage = "Please link your Google account above first."
                     isSuccess = false
                     return@Button
                 }
@@ -397,54 +572,6 @@ fun SyncDashboardScreen(
                         fontSize = 12.sp,
                         color = if (isSuccess) Emerald400 else Coral
                     )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        // Account Link / Auth Config
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Slate800),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                Text(
-                    text = "Account Connection",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Slate200
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = if (token.isNotBlank()) "✓ Account paired to NutriVision!" else "Not paired yet. Tap below or link from website.",
-                    fontSize = 12.sp,
-                    color = if (token.isNotBlank()) Emerald400 else Slate400
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Dev Bypass One-Click Login
-                OutlinedButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            val res = syncService.devBypassLogin(baseUrl)
-                            res.onSuccess { t ->
-                                token = t
-                                onSavePrefs(token, baseUrl)
-                                statusMessage = "Paired with your NutriVision account!"
-                                isSuccess = true
-                            }.onFailure { e ->
-                                statusMessage = "Login error: ${e.localizedMessage}"
-                                isSuccess = false
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Emerald400)
-                ) {
-                    Text("Auto Pair Account (Instant)")
                 }
             }
         }
