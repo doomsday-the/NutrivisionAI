@@ -250,7 +250,7 @@ export default function Activity() {
 
             <div className="space-y-2">
               <a
-                href="https://github.com/doomsday-the/NutrivisionAI/releases/latest/download/NutriVisionSync.apk"
+                href="https://github.com/doomsday-the/NutrivisionAI/releases/download/companion-latest/NutriVisionSync.apk"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
